@@ -43,7 +43,7 @@ def compute_normalization_factor(
     relative_range: tuple[float, float],
 ) -> float:
     if mode == "absolute":
-        val = np.trapezoid(amp, freq)
+        val = np.trapz(amp, freq)
     elif mode == "relative":
         low, high = relative_range
         val = integral_over_window(freq, amp, low, high)
