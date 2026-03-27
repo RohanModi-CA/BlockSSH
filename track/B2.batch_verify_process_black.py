@@ -1,121 +1,31 @@
 #!/usr/bin/env python3
 """
-B2.batch_verify_process_black.py  —  Run black-video verification and X / Y / angle
-permanence construction on multiple datasets.
+Compatibility wrapper for the refactored bottom batch verify/process step.
 
-Scans data/ for datasets containing track1.msgpack and runs:
-    python3 2.verify_and_process_black.py <name>
-
-The interactive repair prompt inside step 2 is preserved.
+The active user-facing path is:
+    python3 track/Bottom/B2.BatchProcessVerify.py
 """
 
 from __future__ import annotations
 
-import argparse
-import os
-import subprocess
+import importlib.util
+import sys
+from pathlib import Path
 
-from helper.video_io import track1_output_path
-
-
-DATA_DIR = "data"
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
-def find_datasets() -> list[str]:
-    names: list[str] = []
-    if not os.path.isdir(DATA_DIR):
-        return names
-
-    for d in sorted(os.listdir(DATA_DIR)):
-        t1 = track1_output_path(d)
-        if os.path.exists(t1):
-            names.append(d)
-
-    return names
-
-
-def _match_name(name: str, token: str) -> bool:
-    token = os.path.splitext(os.path.basename(token))[0]
-    return token == name or name.endswith(token)
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Run 2.verify_and_process_black.py on multiple datasets."
-    )
-    parser.add_argument(
-        "--exclude",
-        nargs="*",
-        default=[],
-        help="Dataset names or numeric suffixes to exclude.",
-    )
-    parser.add_argument(
-        "--ratio-min",
-        type=float,
-        default=0.50,
-        help="Min spacing ratio relative to the reference spacing.",
-    )
-    parser.add_argument(
-        "--ratio-max",
-        type=float,
-        default=1.50,
-        help="Max spacing ratio relative to the reference spacing.",
-    )
-    parser.add_argument(
-        "--no-trim-ends",
-        action="store_true",
-        help="Pass through to 2.verify_and_process_black.py.",
-    )
-    parser.add_argument(
-        "--min-end-support",
-        type=int,
-        default=3,
-        help="Pass through to 2.verify_and_process_black.py.",
-    )
-    args = parser.parse_args()
-
-    datasets = find_datasets()
-    if not datasets:
-        print("No datasets with track1.msgpack found in data/.")
-        return
-
-    tasks = []
-    for name in datasets:
-        if any(_match_name(name, tok) for tok in args.exclude):
-            continue
-        tasks.append(name)
-
-    if not tasks:
-        print("No datasets selected for verification.")
-        return
-
-    print(f"{len(tasks)} dataset(s) will be processed:\n")
-    for name in tasks:
-        print(f"  {name}")
-    print()
-
-    for i, name in enumerate(tasks, 1):
-        print(f"[{i}/{len(tasks)}] Verifying {name}...\n")
-
-        cmd = [
-            "python3",
-            "2.verify_and_process_black.py",
-            name,
-            "--ratio-min",
-            str(args.ratio_min),
-            "--ratio-max",
-            str(args.ratio_max),
-            "--min-end-support",
-            str(args.min_end_support),
-        ]
-        if args.no_trim_ends:
-            cmd.append("--no-trim-ends")
-
-        subprocess.run(cmd)
-        print()
-
-    print("Batch black verification complete.")
+def _load_bottom_batch_module():
+    module_path = Path(__file__).resolve().parent / "Bottom" / "B2.BatchProcessVerify.py"
+    spec = importlib.util.spec_from_file_location("bottom_batch_process_verify", module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not load module from {module_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 if __name__ == "__main__":
-    main()
+    print("Note: B2.batch_verify_process_black.py is deprecated. Forwarding to Bottom/B2.BatchProcessVerify.py")
+    module = _load_bottom_batch_module()
+    raise SystemExit(module.main())

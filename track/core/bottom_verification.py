@@ -1,5 +1,5 @@
 """
-helper/verification_black.py
+track/core/bottom_verification.py
 Verification and interpolation-repair for black-on-white centroid detections.
 
 This is the colour-free analogue of helper/verification.py.
@@ -30,7 +30,7 @@ from typing import List, Tuple, Optional
 
 import numpy as np
 
-from tracking_classes import VideoCentroids, DetectionRecord
+from track.tracking_classes import VideoCentroids, DetectionRecord
 
 
 # ---------------------------------------------------------------------------
