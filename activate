@@ -48,6 +48,7 @@ blabel() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/3.Label.py" "$@
 bprepbatch() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/B0.BatchPrepare.py" "$@"; }
 btrackbatch() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/B1.BatchTrack.py" "$@"; }
 bprocbatch() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/B2.BatchProcessVerify.py" "$@"; }
+alias reactivate='source "$BLOCKSSSH_ROOT/activate"'
 
 # shellcheck disable=SC1090
 [[ -f "$BLOCKSSSH_ROOT/.analysis/completion_cache.sh" ]] && source "$BLOCKSSSH_ROOT/.analysis/completion_cache.sh"

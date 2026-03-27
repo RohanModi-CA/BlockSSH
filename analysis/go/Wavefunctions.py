@@ -64,7 +64,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--integration-window",
         type=float,
-        default=0.25,
+        default=0.05,
         help="Half-width in Hz for the peak integration/search window. Default: 0.25",
     )
     parser.add_argument(
@@ -169,6 +169,26 @@ def _shift_profiles_to_display_bonds(profiles: list[LocalizationProfile]) -> lis
             )
         )
     return shifted
+
+
+def _sort_profiles_high_to_low_frequency(
+    profiles: list[LocalizationProfile],
+    diagnostics_by_entity: dict[str, list[LocalizationPeakDiagnostic]] | None = None,
+) -> tuple[list[LocalizationProfile], dict[str, list[LocalizationPeakDiagnostic]] | None]:
+    order = sorted(
+        range(len(profiles)),
+        key=lambda idx: (float(profiles[idx].frequency), int(profiles[idx].peak_index)),
+        reverse=True,
+    )
+    sorted_profiles = [profiles[idx] for idx in order]
+    if diagnostics_by_entity is None:
+        return sorted_profiles, None
+
+    sorted_diagnostics = {
+        label: [diagnostics[idx] for idx in order]
+        for label, diagnostics in diagnostics_by_entity.items()
+    }
+    return sorted_profiles, sorted_diagnostics
 
 
 def _shift_diagnostics_labels(
@@ -319,6 +339,7 @@ def main() -> int:
             )
 
         profiles = _shift_profiles_to_display_bonds(profiles)
+        profiles, diagnostics_by_entity = _sort_profiles_high_to_low_frequency(profiles, diagnostics_by_entity)
         diagnostics_by_entity = _shift_diagnostics_labels(diagnostics_by_entity)
 
         localize_module = _load_localize_peaks_module()

@@ -29,6 +29,7 @@ def _build_wrapper_parser() -> argparse.ArgumentParser:
     parser.add_argument("--group", default=None)
     parser.add_argument("--groups-dir", default=None)
     parser.add_argument("--track-data-root", default=None)
+    parser.add_argument("--average", action="store_true")
     return parser
 
 
@@ -51,6 +52,8 @@ def main() -> int:
     args, passthrough = parser.parse_known_args(sys.argv[1:])
     if args.group is None:
         raise ValueError("--groups-dir requires --group")
+
+    passthrough = [arg for arg in passthrough if arg != "--average"]
 
     datasets = load_group_datasets(args.group, groups_dir=args.groups_dir)
     temp_config = write_temp_selection_config(

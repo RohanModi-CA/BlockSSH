@@ -14,6 +14,8 @@ import numpy as np
 
 from plotting.common import render_figure
 from plotting.frequency import (
+    plot_average_component_comparison,
+    plot_average_spectrum,
     plot_component_pair_frequency_grid,
     plot_component_pair_frequency_grid_single_row_groups,
     plot_pair_frequency_grid,
@@ -22,13 +24,18 @@ from plotting.frequency import (
 from tools.cli import add_colormap_arg, add_output_args, add_signal_processing_args, add_track2_input_args
 from tools.derived import derive_spacing_dataset
 from tools.io import load_track2_dataset
+from tools.models import AverageSpectrumResult, FFTResult, SignalRecord, SpectrumContribution
 from tools.spectrasave import (
     add_spectrasave_arg,
     build_default_spectrasave_name,
     resolve_spectrasave_path,
     save_spectrum_msgpack,
 )
-from tools.spectral import analyze_spacing_dataset_for_display, analyze_spacing_dataset_with_welch_for_display
+from tools.spectral import (
+    analyze_spacing_dataset_for_display,
+    analyze_spacing_dataset_with_welch_for_display,
+    compute_mean_amplitude_spectrum,
+)
 
 COMPONENT_SUFFIXES = ("x", "y", "a")
 
@@ -113,6 +120,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--time-interval-s", nargs=2, type=float, metavar=("START", "STOP"))
     parser.add_argument("--only", choices=["fft", "sliding"], default=None)
     parser.add_argument(
+        "--average",
+        action="store_true",
+        help="Average all displayed bonds together within each component instead of plotting them separately.",
+    )
+    parser.add_argument(
         "--full-image",
         action="store_true",
         help="Replace each sliding spectrogram panel with a 2D image of the full FFT spectrum.",
@@ -174,6 +186,20 @@ def _prompt_component_choice(available: list[str]) -> str:
     while True:
         response = input(
             f"Which component should be exported ({'/'.join(available)})? [default: {default_choice}] "
+        ).strip().lower()
+        if response == "":
+            return default_choice
+        if response in available:
+            return response
+        print(f"Please choose one of: {', '.join(available)}")
+
+
+def _prompt_save_component_choice(available: list[str], *, spectrum_kind: str) -> str:
+    default_choice = "x" if "x" in available else available[0]
+    while True:
+        response = input(
+            f"Which component should be saved for the averaged {spectrum_kind.upper()} spectrum "
+            f"({ '/'.join(available) })? [default: {default_choice}] "
         ).strip().lower()
         if response == "":
             return default_choice
@@ -439,6 +465,95 @@ def _export_single_spectrum(args, results: list, track2) -> None:
     print(f"Spectrum saved to: {saved}")
 
 
+def _average_result_from_pair_results(results: list, *, dataset_name: str, use_welch: bool) -> AverageSpectrumResult:
+    contributions: list[SpectrumContribution] = []
+
+    for result in results:
+        spectrum_result = getattr(result, "welch_result", None) if use_welch else getattr(result, "fft_result", None)
+        if result.error_message is not None or result.processed is None or spectrum_result is None:
+            continue
+
+        contributions.append(
+            SpectrumContribution(
+                record=SignalRecord(
+                    dataset_name=str(dataset_name),
+                    entity_id=int(result.pair_index),
+                    local_index=int(result.pair_index),
+                    label=str(result.label),
+                    signal_kind="bond",
+                    source_path="",
+                    t=result.processed.t,
+                    y=result.processed.y,
+                ),
+                processed=result.processed,
+                fft_result=FFTResult(
+                    freq=spectrum_result.freq,
+                    amplitude=spectrum_result.amplitude,
+                ),
+            )
+        )
+
+    if len(contributions) == 0:
+        raise ValueError("No valid bond spectra were available to average")
+
+    averaged = compute_mean_amplitude_spectrum(contributions)
+    return AverageSpectrumResult(
+        freq_grid=averaged.freq_grid,
+        avg_amp=averaged.mean_amplitude,
+        norm_low=float(averaged.freq_low),
+        norm_high=float(averaged.freq_high),
+        freq_low=float(averaged.freq_low),
+        freq_high=float(averaged.freq_high),
+        contributors=averaged.contributors,
+    )
+
+
+def _save_averaged_component_spectrum(
+    args,
+    *,
+    dataset_name: str,
+    averaged_by_component: dict[str, AverageSpectrumResult],
+    spectrum_kind: str,
+) -> None:
+    available_components = list(averaged_by_component)
+    if not available_components:
+        raise ValueError("No averaged component spectra were available to save")
+
+    if len(available_components) == 1:
+        component = available_components[0]
+    else:
+        component = _prompt_save_component_choice(available_components, spectrum_kind=spectrum_kind)
+
+    result = averaged_by_component[component]
+    default_name = build_default_spectrasave_name(dataset_name, "average-bonds", component, spectrum_kind)
+    export_path = resolve_spectrasave_path(
+        args.spectrasave,
+        default_name=default_name,
+    )
+    if export_path is None:
+        return
+
+    saved = save_spectrum_msgpack(
+        export_path,
+        freq=result.freq_grid,
+        amplitude=result.avg_amp,
+        label=f"{dataset_name} average bonds {component} {spectrum_kind.upper()}",
+        metadata={
+            "sourceKind": "single",
+            "spectrumKind": spectrum_kind,
+            "dataset": dataset_name,
+            "component": component,
+            "averageBonds": True,
+            "contributors": len(result.contributors),
+            "bondIds": sorted({int(contrib.record.entity_id) for contrib in result.contributors}),
+            "longest": bool(args.longest),
+            "handlenan": bool(args.handlenan),
+            "timeseriesnorm": bool(args.timeseriesnorm),
+        },
+    )
+    print(f"Spectrum saved to: {saved}")
+
+
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
@@ -448,17 +563,106 @@ def main() -> int:
         if len(component_results) == 0:
             print("No component sibling datasets were found; using single-dataset mode.", file=sys.stderr)
             results, track2 = _load_single_results(args)
-            if args.spectrasave is not None:
-                _export_single_spectrum(args, results, track2)
+            if args.average:
+                dataset_name = track2.dataset_name or Path(track2.track2_path).resolve().parent.name
+                averaged = _average_result_from_pair_results(results, dataset_name=dataset_name, use_welch=args.welch)
+                if args.spectrasave is not None:
+                    _save_averaged_component_spectrum(
+                        args,
+                        dataset_name=dataset_name,
+                        averaged_by_component={"x": averaged},
+                        spectrum_kind="welch" if args.welch else "fft",
+                    )
+                fig = plot_average_spectrum(
+                    averaged,
+                    full_image=args.full_image,
+                    plot_scale=args.sliding_plot_scale if args.full_image else ("log" if args.welch and args.welch_log else "log" if args.fft_log else "linear"),
+                    cmap_index=args.cm,
+                    title=args.title or f"{dataset_name} average bonds",
+                )
+            else:
+                if args.spectrasave is not None:
+                    _export_single_spectrum(args, results, track2)
 
-            if args.welch:
-                fig = plot_pair_welch_frequency_grid(
-                    results,
+                if args.welch:
+                    fig = plot_pair_welch_frequency_grid(
+                        results,
+                        welch_log=args.welch_log,
+                        sliding_plot_scale=args.sliding_plot_scale,
+                        only="welch" if args.only == "fft" else args.only,
+                        full_image=args.full_image,
+                        full_couple=args.full_couple,
+                        welch_min_hz=args.welch_min_hz,
+                        welch_max_hz=args.welch_max_hz,
+                        sliding_min_hz=args.sliding_min_hz,
+                        sliding_max_hz=args.sliding_max_hz,
+                        time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
+                        cmap_index=args.cm,
+                        title=args.title,
+                    )
+                else:
+                    fig = plot_pair_frequency_grid(
+                        results,
+                        fft_log=args.fft_log,
+                        sliding_plot_scale=args.sliding_plot_scale,
+                        only=args.only,
+                        full_image=args.full_image,
+                        full_couple=args.full_couple,
+                        fft_min_hz=args.fft_min_hz,
+                        fft_max_hz=args.fft_max_hz,
+                        sliding_min_hz=args.sliding_min_hz,
+                        sliding_max_hz=args.sliding_max_hz,
+                        time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
+                        cmap_index=args.cm,
+                        title=args.title,
+                    )
+        else:
+            if args.average:
+                averaged_by_component = {
+                    component: _average_result_from_pair_results(
+                        results,
+                        dataset_name=(component_track2[component].dataset_name or Path(component_track2[component].track2_path).resolve().parent.name),
+                        use_welch=args.welch,
+                    )
+                    for component, results in component_results.items()
+                }
+                dataset_name = (
+                    component_track2[next(iter(component_track2))].dataset_name
+                    or Path(component_track2[next(iter(component_track2))].track2_path).resolve().parent.name
+                )
+                if args.spectrasave is not None:
+                    _save_averaged_component_spectrum(
+                        args,
+                        dataset_name=dataset_name,
+                        averaged_by_component=averaged_by_component,
+                        spectrum_kind="welch" if args.welch else "fft",
+                    )
+                fig = plot_average_component_comparison(
+                    averaged_by_component,
+                    full_image=args.full_image,
+                    plot_scale=args.sliding_plot_scale if args.full_image else ("log" if args.welch and args.welch_log else "log" if args.fft_log else "linear"),
+                    cmap_index=args.cm,
+                    title=args.title or f"{dataset_name} average bonds",
+                )
+            else:
+                if args.spectrasave is not None:
+                    _export_selected_spectrum(args, component_results, component_track2)
+                plot_fn = (
+                    plot_component_pair_frequency_grid_single_row_groups
+                    if args.only == "sliding"
+                    else plot_component_pair_frequency_grid
+                )
+                fig = plot_fn(
+                    component_results,
+                    fft_log=args.fft_log,
                     welch_log=args.welch_log,
                     sliding_plot_scale=args.sliding_plot_scale,
-                    only="welch" if args.only == "fft" else args.only,
+                    only=args.only,
                     full_image=args.full_image,
                     full_couple=args.full_couple,
+                    use_welch=args.welch,
+                    fft_min_hz=args.fft_min_hz,
+                    fft_max_hz=args.fft_max_hz,
                     welch_min_hz=args.welch_min_hz,
                     welch_max_hz=args.welch_max_hz,
                     sliding_min_hz=args.sliding_min_hz,
@@ -467,49 +671,6 @@ def main() -> int:
                     cmap_index=args.cm,
                     title=args.title,
                 )
-            else:
-                fig = plot_pair_frequency_grid(
-                    results,
-                    fft_log=args.fft_log,
-                    sliding_plot_scale=args.sliding_plot_scale,
-                    only=args.only,
-                    full_image=args.full_image,
-                    full_couple=args.full_couple,
-                    fft_min_hz=args.fft_min_hz,
-                    fft_max_hz=args.fft_max_hz,
-                    sliding_min_hz=args.sliding_min_hz,
-                    sliding_max_hz=args.sliding_max_hz,
-                    time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
-                    cmap_index=args.cm,
-                    title=args.title,
-                )
-        else:
-            if args.spectrasave is not None:
-                _export_selected_spectrum(args, component_results, component_track2)
-            plot_fn = (
-                plot_component_pair_frequency_grid_single_row_groups
-                if args.only == "sliding"
-                else plot_component_pair_frequency_grid
-            )
-            fig = plot_fn(
-                component_results,
-                fft_log=args.fft_log,
-                welch_log=args.welch_log,
-                sliding_plot_scale=args.sliding_plot_scale,
-                only=args.only,
-                full_image=args.full_image,
-                full_couple=args.full_couple,
-                use_welch=args.welch,
-                fft_min_hz=args.fft_min_hz,
-                fft_max_hz=args.fft_max_hz,
-                welch_min_hz=args.welch_min_hz,
-                welch_max_hz=args.welch_max_hz,
-                sliding_min_hz=args.sliding_min_hz,
-                sliding_max_hz=args.sliding_max_hz,
-                time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
-                cmap_index=args.cm,
-                title=args.title,
-            )
         render_figure(fig, save=args.save)
         return 0
 

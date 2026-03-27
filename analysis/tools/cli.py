@@ -56,9 +56,17 @@ def add_signal_processing_args(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--timeseriesnorm",
+        dest="timeseriesnorm",
         action="store_true",
-        help="Rescale each processed bond time series to RMS 100 before spectral analysis.",
+        help="Rescale each processed bond time series to RMS 100 before spectral analysis (default).",
     )
+    parser.add_argument(
+        "--no-timeseriesnorm",
+        dest="timeseriesnorm",
+        action="store_false",
+        help="Disable RMS-100 timeseries normalization before analysis.",
+    )
+    parser.set_defaults(timeseriesnorm=True)
 
 
 def add_output_args(parser: argparse.ArgumentParser, *, include_title: bool = False) -> None:

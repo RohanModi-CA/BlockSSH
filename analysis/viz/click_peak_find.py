@@ -19,7 +19,7 @@ from matplotlib.widgets import Button
 from plotting.common import centers_to_edges, colormap_name, ensure_parent_dir
 from tools.cli import add_colormap_arg, add_output_args
 from tools.peaks import load_peaks_csv
-from tools.spectrasave import load_spectrum_msgpack
+from tools.spectrasave import load_spectrum_msgpack, resolve_existing_spectrasave_path
 
 
 DEFAULT_PEAKS_DIR = Path(__file__).resolve().parents[1] / "configs" / "peaks"
@@ -417,11 +417,11 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        payload = load_spectrum_msgpack(args.spectrasave)
+        spectrasave_path = resolve_existing_spectrasave_path(args.spectrasave)
+        payload = load_spectrum_msgpack(spectrasave_path)
         if payload.get("artifactType") != "spectrum":
             raise ValueError("Spectrasave input was not a spectrum artifact")
 
-        spectrasave_path = Path(args.spectrasave)
         output_csv = Path(args.csv) if args.csv is not None else default_csv_path(spectrasave_path)
         initial_peaks = load_existing_peaks(output_csv)
 

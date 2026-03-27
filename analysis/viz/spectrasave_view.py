@@ -18,7 +18,7 @@ from plotting.common import render_figure
 from plotting.frequency import _link_fft_frequency_to_image_frequency, _plot_frequency_image
 from tools.cli import add_colormap_arg, add_output_args
 from tools.peaks import load_peaks_csv
-from tools.spectrasave import load_spectrum_msgpack
+from tools.spectrasave import load_spectrum_msgpack, resolve_existing_spectrasave_path
 
 
 def _parse_bool_arg(value: str) -> bool:
@@ -28,20 +28,6 @@ def _parse_bool_arg(value: str) -> bool:
     if lowered in {"0", "false", "f", "no", "n", "off"}:
         return False
     raise argparse.ArgumentTypeError(f"Invalid boolean value: {value}")
-
-
-def _resolve_spectrasave_path(raw_path: str) -> Path:
-    path = Path(raw_path).expanduser()
-    candidates = [path]
-    if not path.suffix:
-        candidates.append(path.with_suffix(".msgpack"))
-
-    for candidate in candidates:
-        if candidate.exists() and candidate.is_file():
-            return candidate
-
-    tried = ", ".join(str(candidate) for candidate in candidates)
-    raise FileNotFoundError(f"SpectraSave file not found. Tried: {tried}")
 
 
 def _default_peaks_csv_path(spectrasave_path: Path) -> Path:
@@ -278,7 +264,7 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        path = _resolve_spectrasave_path(args.spectrasave)
+        path = resolve_existing_spectrasave_path(args.spectrasave)
         spectrum = load_spectrum_msgpack(path)
         peaks_csv = None
         peaks_hz: list[float] = []
