@@ -10,8 +10,16 @@
 *.mpg
 *.mpeg
 *.MOV
+
 # Python cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.pyc
+
+# Hidden files and directories
+.*
+**/.*
+
+# Keep the repository ignore file tracked
+!.gitignore

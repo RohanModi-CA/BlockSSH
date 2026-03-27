@@ -1,0 +1,9 @@
+{
+"10L3C": {
+    "contains": ["x", "y", "a"],
+    "include": true,
+    "discards": [0],
+    "pair_ids": [8,9]
+  }
+
+}

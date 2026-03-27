@@ -1,0 +1,22 @@
+{
+  "dataset": "IMG_0680_rot270",
+  "tracking_mode": "bottom_black",
+  "version": 1,
+  "source_video": "Videos/IMG_0680.MOV",
+  "params_file": "params_bottom.json",
+  "track1_file": "track1.msgpack",
+  "labels_file": "labels.json",
+  "components": {
+    "a": "components/a/track2_permanence.msgpack",
+    "x": "components/x/track2_permanence.msgpack",
+    "y": "components/y/track2_permanence.msgpack"
+  },
+  "rotation_deg": 270,
+  "crop_rect": {
+    "x0": 0,
+    "x1": null,
+    "y0": 0,
+    "y1": null
+  },
+  "notes": "converted from legacy layout on-disk for IMG_0680_rot270"
+}

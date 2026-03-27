@@ -1,0 +1,15 @@
+{
+  "crop_top": 0,
+  "crop_bottom": 0,
+  "time_start_s": 0.0,
+  "time_end_s": null,
+  "dark_max_val": 90,
+  "blur_kernel": 5,
+  "open_radius": 1,
+  "close_radius": 2,
+  "min_area": 20000,
+  "max_area": null,
+  "reject_near_image_border": true,
+  "border_margin_px": 3,
+  "cc_connectivity": 8
+}

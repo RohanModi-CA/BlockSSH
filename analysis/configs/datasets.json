@@ -1,0 +1,32 @@
+{
+  "IMG_0519": {
+    "include": true,
+    "discards": [0],
+    "pair_ids": [6, 7]
+  },
+  "IMG_0536": {
+    "include": true,
+    "discards": [],
+    "pair_ids": [3, 4]
+  },
+  "IMG_0539": {
+    "include": true,
+    "discards": [],
+    "pair_ids": [1, 2]
+  },
+  "IMG_0541": {
+    "include": true,
+    "discards": [],
+    "pair_ids": [5, 6]
+  },
+  "IMG_0545": {
+    "include": true,
+    "discards": [],
+    "pair_ids": [0, 1]
+  },
+  "IMG_0548": {
+    "include": true,
+    "discards": [],
+    "pair_ids": [8, 9]
+  }
+}

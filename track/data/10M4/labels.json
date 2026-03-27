@@ -1,0 +1,17 @@
+{
+  "dataset": "10M4",
+  "version": 1,
+  "bond_labels": {},
+  "site_labels": {
+    "1": "1",
+    "2": "2",
+    "3": "3",
+    "4": "4"
+  },
+  "disabled": {
+    "sites": [],
+    "components": {}
+  },
+  "notes": "",
+  "created_by": "3.Label.py"
+}

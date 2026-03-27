@@ -1,0 +1,20 @@
+{
+  "dataset": "IMG_0584",
+  "tracking_mode": "legacy_track1_import",
+  "version": 1,
+  "source_video": "Videos/IMG_0584.MOV",
+  "params_file": "params_bottom.json",
+  "track1_file": "track1.msgpack",
+  "labels_file": "labels.json",
+  "components": {
+    "x": "components/x/track2_permanence.msgpack"
+  },
+  "rotation_deg": 0,
+  "crop_rect": {
+    "x0": 0,
+    "x1": null,
+    "y0": 0,
+    "y1": null
+  },
+  "notes": "converted from legacy layout on-disk for IMG_0584; legacy root track2 imported as component x from IMG_0584/track2_permanence.msgpack"
+}

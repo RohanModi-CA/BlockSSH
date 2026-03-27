@@ -1,0 +1,23 @@
+{
+  "dataset": "CDX_10IC",
+  "version": 1,
+  "bond_labels": {},
+  "site_labels": {
+    "1": "1",
+    "2": "2",
+    "3": "3",
+    "4": "4",
+    "5": "5",
+    "6": "6",
+    "7": "7",
+    "8": "8",
+    "9": "9",
+    "10": "10"
+  },
+  "disabled": {
+    "sites": [],
+    "components": {}
+  },
+  "notes": "",
+  "created_by": "convert_legacy_datasets.py"
+}

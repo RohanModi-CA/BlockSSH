@@ -1,0 +1,8 @@
+{
+  "IMG_0680_rot270": {
+    "contains": ["x", "y", "a"],
+    "include": true,
+    "discards": [],
+    "pair_ids": [2, 3, 4]
+  }
+}
