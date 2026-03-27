@@ -92,6 +92,7 @@ def analyze_grouped_bond_site_amplitudes(
     normalization_multiplier: float = 4.0,
     longest: bool = False,
     handlenan: bool = False,
+    timeseriesnorm: bool = False,
     min_samples: int = 10,
 ) -> SiteAmplitudeAnalysisResult:
     peaks_arr = assert_peaks_strictly_increasing(peaks)
@@ -114,6 +115,7 @@ def analyze_grouped_bond_site_amplitudes(
             records,
             longest=longest,
             handlenan=handlenan,
+            timeseriesnorm=timeseriesnorm,
             min_samples=min_samples,
         )
         if len(contributions) == 0:

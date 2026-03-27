@@ -69,6 +69,7 @@ def main() -> int:
             normalization_multiplier=args.normalization_multiplier,
             longest=args.longest,
             handlenan=args.handlenan,
+            timeseriesnorm=args.timeseriesnorm,
         )
 
         n_datasets = sum(1 for selection in config.values() if selection.include)

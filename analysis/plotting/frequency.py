@@ -344,6 +344,7 @@ def plot_pair_frequency_grid(
     sliding_plot_scale: str = "log",
     only: str | None = None,
     full_image: bool = False,
+    full_couple: bool = False,
     fft_min_hz: float | None = None,
     fft_max_hz: float | None = None,
     sliding_min_hz: float | None = None,
@@ -467,6 +468,15 @@ def plot_pair_frequency_grid(
             title=f"{pair_title_prefix} Sliding FFT",
             time_interval=time_interval,
         )
+
+    if full_couple and full_image and only != "sliding":
+        if ncols == 1:
+            fft_axes = list(np.atleast_1d(axes))
+            image_axes: list = []
+        else:
+            fft_axes = [axes[row_idx][0] for row_idx in range(len(results))]
+            image_axes = [axes[row_idx][1] for row_idx in range(len(results))]
+        _link_fft_frequency_to_image_frequency(fft_axes, image_axes)
 
     if title:
         fig.suptitle(title, fontsize=14)
@@ -766,6 +776,294 @@ def plot_component_pair_frequency_grid(
     return fig
 
 
+def plot_component_pair_frequency_grid_single_row_groups(
+    component_results: dict[str, list[PairFrequencyAnalysisResult | PairWelchFrequencyAnalysisResult]],
+    *,
+    fft_log: bool = False,
+    welch_log: bool = False,
+    sliding_plot_scale: str = "log",
+    only: str | None = None,
+    full_image: bool = False,
+    full_couple: bool = False,
+    use_welch: bool = False,
+    fft_min_hz: float | None = None,
+    fft_max_hz: float | None = None,
+    welch_min_hz: float | None = None,
+    welch_max_hz: float | None = None,
+    sliding_min_hz: float | None = None,
+    sliding_max_hz: float | None = None,
+    time_interval: tuple[float, float] | None = None,
+    cmap_index: int = 6,
+    title: str | None = None,
+):
+    if len(component_results) == 0:
+        raise ValueError("No component results to plot")
+
+    components = [component for component in ("x", "y", "a") if component in component_results]
+    if len(components) == 0:
+        raise ValueError("No component results to plot")
+
+    ref_results = component_results[components[0]]
+    if len(ref_results) == 0:
+        raise ValueError("No pair results to plot")
+
+    ref_keys = [(result.pair_index, result.label) for result in ref_results]
+    for component in components[1:]:
+        keys = [(result.pair_index, result.label) for result in component_results[component]]
+        if keys != ref_keys:
+            raise ValueError("Component datasets do not share the same bond layout after filtering")
+
+    group_width = len(components) if only == "sliding" else 1 if only == "fft" else 1 + len(components)
+    ncols = group_width * len(ref_results)
+    width_ratios = None
+    if only is None:
+        image_panel_width = 0.42 if full_image else 0.5
+        per_group_width_ratios = [1.0 + len(components) * (1.0 - image_panel_width)] + [image_panel_width] * len(components)
+        width_ratios = per_group_width_ratios * len(ref_results)
+
+    use_compact_image_layout = only != "fft"
+    fig, axes = plt.subplots(
+        nrows=1,
+        ncols=ncols,
+        figsize=((4.7 if use_compact_image_layout else 5.2) * ncols, 3.5),
+        constrained_layout=not use_compact_image_layout,
+        gridspec_kw={"width_ratios": width_ratios} if width_ratios is not None else None,
+    )
+    axes_row = np.atleast_1d(axes)
+
+    def _axis_at(pair_idx: int, col_idx: int):
+        return axes_row[pair_idx * group_width + col_idx]
+
+    if use_compact_image_layout:
+        fig.subplots_adjust(
+            left=0.055,
+            right=0.97,
+            bottom=0.07,
+            top=0.94 if title else 0.98,
+            wspace=0.02,
+            hspace=0.22,
+        )
+
+        image_col_offset = 0 if only == "sliding" else 1
+        lead_ax = _axis_at(0, image_col_offset)
+        for pair_idx in range(len(ref_results)):
+            for comp_idx in range(len(components)):
+                ax = _axis_at(pair_idx, image_col_offset + comp_idx)
+                if ax is lead_ax:
+                    continue
+                ax.sharey(lead_ax)
+                ax.sharex(lead_ax)
+        if only != "sliding":
+            lead_fft_ax = _axis_at(0, 0)
+            for pair_idx in range(1, len(ref_results)):
+                _axis_at(pair_idx, 0).sharex(lead_fft_ax)
+
+    for pair_idx, ref_result in enumerate(ref_results):
+        pair_title_prefix = f"Pair {ref_result.pair_index} ({str(ref_result.label).upper()})"
+        row_component_results = {
+            component: component_results[component][pair_idx]
+            for component in components
+        }
+
+        col_offset = 0
+        if only != "sliding":
+            ax_fft = _axis_at(pair_idx, 0)
+            col_offset = 1
+
+            spectrum_panel_name = "Welch" if use_welch else "FFT"
+            valid_fft_results = [
+                (component, result)
+                for component, result in row_component_results.items()
+                if result.error_message is None
+                and result.processed is not None
+                and (
+                    getattr(result, "welch_result", None) is not None
+                    if use_welch
+                    else getattr(result, "fft_result", None) is not None
+                )
+            ]
+
+            if len(valid_fft_results) == 0:
+                error_bits = [
+                    f"{component}: {result.error_message or 'invalid data'}"
+                    for component, result in row_component_results.items()
+                ]
+                _set_panel_message(
+                    ax_fft=ax_fft,
+                    only="fft",
+                    title=f"{pair_title_prefix} {spectrum_panel_name} - {' | '.join(error_bits)}",
+                )
+            else:
+                spectrum_xlim_min = max(
+                    0.0,
+                    (welch_min_hz if use_welch else fft_min_hz)
+                    if (welch_min_hz if use_welch else fft_min_hz) is not None
+                    else 0.0,
+                )
+                spectrum_xlim_max = max(
+                    min(
+                        result.processed.nyquist,
+                        (welch_max_hz if use_welch else fft_max_hz)
+                        if (welch_max_hz if use_welch else fft_max_hz) is not None
+                        else result.processed.nyquist,
+                    )
+                    for _, result in valid_fft_results
+                )
+
+                any_positive = False
+                positive_vals_all: list[np.ndarray] = []
+                for component, result in valid_fft_results:
+                    spectrum_result = getattr(result, "welch_result", None) if use_welch else result.fft_result
+                    freq = spectrum_result.freq
+                    amp = spectrum_result.amplitude
+                    mask = (freq >= spectrum_xlim_min) & (freq <= spectrum_xlim_max)
+                    freq_plot = freq[mask]
+                    amp_plot = amp[mask]
+                    if freq_plot.size == 0:
+                        continue
+                    if welch_log if use_welch else fft_log:
+                        ax_fft.semilogy(
+                            freq_plot,
+                            amp_plot,
+                            linewidth=1.2,
+                            color=COMPONENT_COLORS[component],
+                            label=component,
+                        )
+                        positive_vals = amp_plot[amp_plot > 0]
+                        if positive_vals.size > 0:
+                            any_positive = True
+                            positive_vals_all.append(positive_vals)
+                    else:
+                        ax_fft.plot(
+                            freq_plot,
+                            amp_plot,
+                            linewidth=1.2,
+                            color=COMPONENT_COLORS[component],
+                            label=component,
+                        )
+
+                ax_fft.set_title(f"{pair_title_prefix} {'Welch' if use_welch else 'FFT'}")
+                ax_fft.set_xlabel("Frequency (Hz)")
+                ax_fft.set_ylabel("Welch Amplitude" if use_welch else "Amplitude")
+                ax_fft.set_xlim(spectrum_xlim_min, spectrum_xlim_max)
+                ax_fft.grid(True, alpha=0.3)
+                ax_fft.legend()
+
+                if (welch_log if use_welch else fft_log) and any_positive:
+                    positive_concat = np.concatenate(positive_vals_all)
+                    ymin = np.percentile(positive_concat, 0.1) * 0.7
+                    ymax = np.max(positive_concat) * 1.3
+                    if np.isfinite(ymin) and np.isfinite(ymax) and ymin > 0 and ymax > ymin:
+                        ax_fft.set_ylim(ymin, ymax)
+
+        if only == "fft":
+            continue
+
+        for comp_idx, component in enumerate(components):
+            result = row_component_results[component]
+            ax_spec = _axis_at(pair_idx, col_offset + comp_idx)
+            panel_title = (
+                f"{pair_title_prefix} {component.upper()} "
+                f"{'Full Welch Image' if full_image and use_welch else 'Full FFT Image' if full_image else 'Sliding FFT'}"
+            )
+
+            spectrum_result = getattr(result, "welch_result", None) if use_welch else result.fft_result
+
+            if result.error_message is not None or result.processed is None or (full_image and spectrum_result is None):
+                _set_panel_message(
+                    ax_spec=ax_spec,
+                    only="sliding",
+                    full_image=full_image,
+                    title=f"{panel_title} - {result.error_message or 'invalid data'}",
+                )
+                continue
+
+            y_min = max(0.01, sliding_min_hz if sliding_min_hz is not None else 0.01)
+            y_max = min(
+                result.processed.nyquist,
+                sliding_max_hz if sliding_max_hz is not None else result.processed.nyquist,
+            )
+
+            if y_max <= y_min:
+                _set_panel_message(
+                    ax_spec=ax_spec,
+                    only="sliding",
+                    full_image=full_image,
+                    title=f"{panel_title} - invalid frequency range",
+                )
+                continue
+
+            if full_image:
+                show_right_ylabel = comp_idx == len(components) - 1
+                _plot_frequency_image(
+                    fig,
+                    ax_spec,
+                    freq=spectrum_result.freq,
+                    amp=spectrum_result.amplitude,
+                    plot_scale=sliding_plot_scale,
+                    cmap_index=cmap_index,
+                    y_min=y_min,
+                    y_max=y_max,
+                    title=f"{pair_title_prefix} {component.upper()} {'Full Welch Image' if use_welch else 'Full FFT Image'}",
+                    linear_color_label="Welch Amplitude" if use_welch else "Amplitude",
+                    log_color_label="Welch Amplitude (dB)" if use_welch else "Amplitude (dB)",
+                    show_colorbar=not use_compact_image_layout,
+                    annotate_range=use_compact_image_layout,
+                )
+                if use_compact_image_layout:
+                    _apply_compact_image_axis_style(
+                        ax_spec,
+                        show_right_ylabel=show_right_ylabel,
+                    )
+                continue
+
+            if result.spectrogram_result is None:
+                _set_panel_message(
+                    ax_spec=ax_spec,
+                    only="sliding",
+                    full_image=full_image,
+                    title=f"{panel_title} - {result.spectrogram_error_message or 'window too short'}",
+                )
+                continue
+
+            _plot_spectrogram_panel(
+                fig,
+                ax_spec,
+                f_spec=result.spectrogram_result.f,
+                t_spec=result.spectrogram_result.t,
+                s_complex=result.spectrogram_result.S_complex,
+                t_start=float(result.processed.t[0]),
+                plot_scale=sliding_plot_scale,
+                cmap_index=cmap_index,
+                y_min=y_min,
+                y_max=y_max,
+                title=panel_title,
+                time_interval=time_interval,
+                show_colorbar=not use_compact_image_layout,
+                annotate_range=use_compact_image_layout,
+            )
+            if use_compact_image_layout:
+                _apply_compact_image_axis_style(
+                    ax_spec,
+                    show_right_ylabel=comp_idx == len(components) - 1,
+                )
+
+    if title:
+        fig.suptitle(title, fontsize=14)
+
+    if use_compact_image_layout and full_couple and only != "sliding":
+        fft_axes = [_axis_at(pair_idx, 0) for pair_idx in range(len(ref_results))]
+        image_col_offset = 1
+        image_axes = [
+            _axis_at(pair_idx, image_col_offset + comp_idx)
+            for pair_idx in range(len(ref_results))
+            for comp_idx in range(len(components))
+        ]
+        _link_fft_frequency_to_image_frequency(fft_axes, image_axes)
+
+    return fig
+
+
 def plot_pair_welch_frequency_grid(
     results: list[PairWelchFrequencyAnalysisResult],
     *,
@@ -773,6 +1071,7 @@ def plot_pair_welch_frequency_grid(
     sliding_plot_scale: str = "log",
     only: str | None = None,
     full_image: bool = False,
+    full_couple: bool = False,
     welch_min_hz: float | None = None,
     welch_max_hz: float | None = None,
     sliding_min_hz: float | None = None,
@@ -901,6 +1200,15 @@ def plot_pair_welch_frequency_grid(
             time_interval=time_interval,
         )
 
+    if full_couple and full_image and only != "sliding":
+        if ncols == 1:
+            welch_axes = list(np.atleast_1d(axes))
+            image_axes: list = []
+        else:
+            welch_axes = [axes[row_idx][0] for row_idx in range(len(results))]
+            image_axes = [axes[row_idx][1] for row_idx in range(len(results))]
+        _link_fft_frequency_to_image_frequency(welch_axes, image_axes)
+
     if title:
         fig.suptitle(title, fontsize=14)
 
@@ -953,6 +1261,103 @@ def plot_average_spectrum(
         ax.set_title(title or "Average FFT")
 
     fig.tight_layout()
+    return fig
+
+
+def plot_average_component_comparison(
+    results_by_component: dict[str, AverageSpectrumResult],
+    *,
+    full_image: bool = False,
+    plot_scale: str = "linear",
+    cmap_index: int = 6,
+    title: str | None = None,
+    reference_amp_for_norm_by_component: dict[str, np.ndarray] | None = None,
+):
+    components = [component for component in ("x", "y", "a") if component in results_by_component]
+    if len(components) == 0:
+        raise ValueError("No component averages to plot")
+
+    if not full_image:
+        fig, ax = plt.subplots(figsize=(12, 5))
+        for component in components:
+            result = results_by_component[component]
+            if plot_scale == "log":
+                ax.semilogy(
+                    result.freq_grid,
+                    result.avg_amp,
+                    linewidth=1.5,
+                    color=COMPONENT_COLORS[component],
+                    label=component,
+                )
+            else:
+                ax.plot(
+                    result.freq_grid,
+                    result.avg_amp,
+                    linewidth=1.5,
+                    color=COMPONENT_COLORS[component],
+                    label=component,
+                )
+
+        lead_result = results_by_component[components[0]]
+        ax.set_xlabel("Frequency (Hz)")
+        ax.set_ylabel("Normalized Amplitude")
+        ax.set_xlim(lead_result.freq_grid[0], lead_result.freq_grid[-1])
+        ax.grid(True, alpha=0.3)
+        ax.legend()
+        ax.set_title(title or "Average Component Comparison")
+        fig.tight_layout()
+        return fig
+
+    fig, axes = plt.subplots(
+        1,
+        len(components),
+        figsize=(4.1 * len(components), 5.0),
+        constrained_layout=False,
+    )
+    axes = np.atleast_1d(axes)
+    fig.subplots_adjust(
+        left=0.06,
+        right=0.97,
+        bottom=0.09,
+        top=0.92 if title else 0.97,
+        wspace=0.02,
+    )
+
+    lead_ax = axes[0]
+    for ax in axes[1:]:
+        ax.sharex(lead_ax)
+        ax.sharey(lead_ax)
+
+    for idx, component in enumerate(components):
+        result = results_by_component[component]
+        reference_amp = None
+        if reference_amp_for_norm_by_component is not None:
+            reference_amp = reference_amp_for_norm_by_component.get(component)
+
+        _plot_frequency_image(
+            fig,
+            axes[idx],
+            freq=result.freq_grid,
+            amp=result.avg_amp,
+            plot_scale=plot_scale,
+            cmap_index=cmap_index,
+            y_min=float(result.freq_grid[0]),
+            y_max=float(result.freq_grid[-1]),
+            title=component.upper(),
+            linear_color_label="Normalized Amplitude",
+            log_color_label="Amplitude (dB)",
+            reference_amp_for_norm=reference_amp,
+            show_colorbar=False,
+            annotate_range=True,
+        )
+        _apply_compact_image_axis_style(
+            axes[idx],
+            show_right_ylabel=idx == len(components) - 1,
+        )
+
+    if title:
+        fig.suptitle(title, fontsize=14)
+
     return fig
 
 

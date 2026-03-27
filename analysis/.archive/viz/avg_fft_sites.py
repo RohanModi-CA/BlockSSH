@@ -20,6 +20,7 @@ from tools.cli import (
     add_normalization_args,
     add_output_args,
     add_plot_scale_args,
+    resolve_normalization_mode,
     add_signal_processing_args,
     add_track_data_root_arg,
 )
@@ -98,6 +99,7 @@ def _format_bond_list(display_bonds: list[int]) -> str:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    args.normalize = resolve_normalization_mode(args)
 
     if args.freq_min_hz is not None and args.freq_max_hz is not None and args.freq_max_hz <= args.freq_min_hz:
         print("Error: --freq-max-hz must be greater than --freq-min-hz", file=sys.stderr)
@@ -131,6 +133,7 @@ def main() -> int:
             records,
             longest=args.longest,
             handlenan=args.handlenan,
+            timeseriesnorm=args.timeseriesnorm,
         )
         if len(contributions) == 0:
             raise ValueError("No spectra were accepted from the selected bond contributors")

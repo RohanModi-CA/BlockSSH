@@ -15,10 +15,17 @@ from .models import (
     SpectrumContribution,
     SpacingDataset,
 )
-from .signal import compute_complex_spectrogram, compute_one_sided_fft, compute_welch_spectrum, preprocess_signal
+from .signal import (
+    compute_complex_spectrogram,
+    compute_one_sided_fft,
+    compute_welch_spectrum,
+    normalize_processed_signal_rms,
+    preprocess_signal,
+)
 
 
 ABSOLUTE_ZERO_TOL = 1e-10
+ABSOLUTE_NORMALIZATION_MARGIN_HZ = 0.5
 
 
 def is_close_to_zero(value: float, *, tol: float = ABSOLUTE_ZERO_TOL) -> bool:
@@ -30,6 +37,7 @@ def compute_fft_contributions(
     *,
     longest: bool = False,
     handlenan: bool = False,
+    timeseriesnorm: bool = False,
     min_samples: int = 10,
 ) -> list[SpectrumContribution]:
     contributions: list[SpectrumContribution] = []
@@ -48,6 +56,16 @@ def compute_fft_contributions(
                 f"because preprocessing failed: {error_msg}"
             )
             continue
+
+        if timeseriesnorm and record.signal_kind == "bond":
+            processed_norm, _, norm_error = normalize_processed_signal_rms(processed)
+            if processed_norm is None:
+                warnings.warn(
+                    f"Skipping {record.signal_kind} id {record.entity_id} from dataset '{record.dataset_name}' "
+                    f"because time-series RMS normalization failed: {norm_error}"
+                )
+                continue
+            processed = processed_norm
 
         fft_result = compute_one_sided_fft(processed.y, processed.dt)
         if fft_result.freq.size < 2 or fft_result.amplitude.size != fft_result.freq.size:
@@ -68,12 +86,74 @@ def compute_fft_contributions(
     return contributions
 
 
+def compute_welch_contributions(
+    records: list[SignalRecord],
+    *,
+    welch_len_s: float = 100.0,
+    welch_overlap_fraction: float = 0.5,
+    longest: bool = False,
+    handlenan: bool = False,
+    timeseriesnorm: bool = False,
+    min_samples: int = 10,
+) -> list[SpectrumContribution]:
+    contributions: list[SpectrumContribution] = []
+
+    for record in records:
+        processed, error_msg = preprocess_signal(
+            record.t,
+            record.y,
+            longest=longest,
+            handlenan=handlenan,
+            min_samples=min_samples,
+        )
+        if processed is None:
+            warnings.warn(
+                f"Skipping {record.signal_kind} id {record.entity_id} from dataset '{record.dataset_name}' "
+                f"because preprocessing failed: {error_msg}"
+            )
+            continue
+
+        if timeseriesnorm and record.signal_kind == "bond":
+            processed_norm, _, norm_error = normalize_processed_signal_rms(processed)
+            if processed_norm is None:
+                warnings.warn(
+                    f"Skipping {record.signal_kind} id {record.entity_id} from dataset '{record.dataset_name}' "
+                    f"because time-series RMS normalization failed: {norm_error}"
+                )
+                continue
+            processed = processed_norm
+
+        welch_result = compute_welch_spectrum(
+            processed.y,
+            processed.Fs,
+            welch_len_s,
+            overlap_fraction=welch_overlap_fraction,
+        )
+        if welch_result is None or welch_result.freq.size < 2 or welch_result.amplitude.size != welch_result.freq.size:
+            warnings.warn(
+                f"Skipping {record.signal_kind} id {record.entity_id} from dataset '{record.dataset_name}' "
+                "because Welch output was invalid"
+            )
+            continue
+
+        contributions.append(
+            SpectrumContribution(
+                record=record,
+                processed=processed,
+                fft_result=welch_result,
+            )
+        )
+
+    return contributions
+
+
 def analyze_spacing_dataset_for_display(
     spacing_dataset: SpacingDataset,
     *,
     disabled_indices: list[int] | None = None,
     longest: bool = False,
     handlenan: bool = False,
+    timeseriesnorm: bool = False,
     sliding_len_s: float = 20.0,
     min_samples: int = 10,
 ) -> list[PairFrequencyAnalysisResult]:
@@ -111,6 +191,22 @@ def analyze_spacing_dataset_for_display(
             )
             continue
 
+        if timeseriesnorm:
+            processed_norm, _, norm_error = normalize_processed_signal_rms(processed)
+            if processed_norm is None:
+                results.append(
+                    PairFrequencyAnalysisResult(
+                        pair_index=pair_idx,
+                        label=label,
+                        processed=None,
+                        fft_result=None,
+                        spectrogram_result=None,
+                        error_message=f"time-series RMS normalization failed: {norm_error}",
+                    )
+                )
+                continue
+            processed = processed_norm
+
         fft_result = compute_one_sided_fft(processed.y, processed.dt)
         spec_result = compute_complex_spectrogram(processed.y, processed.Fs, sliding_len_s)
         spec_error = None if spec_result is not None else "window too short"
@@ -135,7 +231,8 @@ def analyze_spacing_dataset_with_welch_for_display(
     disabled_indices: list[int] | None = None,
     longest: bool = False,
     handlenan: bool = False,
-    welch_len_s: float = 20.0,
+    timeseriesnorm: bool = False,
+    welch_len_s: float = 100.0,
     welch_overlap_fraction: float = 0.5,
     sliding_len_s: float = 20.0,
     min_samples: int = 10,
@@ -173,6 +270,22 @@ def analyze_spacing_dataset_with_welch_for_display(
                 )
             )
             continue
+
+        if timeseriesnorm:
+            processed_norm, _, norm_error = normalize_processed_signal_rms(processed)
+            if processed_norm is None:
+                results.append(
+                    PairWelchFrequencyAnalysisResult(
+                        pair_index=pair_idx,
+                        label=label,
+                        processed=None,
+                        welch_result=None,
+                        spectrogram_result=None,
+                        error_message=f"time-series RMS normalization failed: {norm_error}",
+                    )
+                )
+                continue
+            processed = processed_norm
 
         welch_result = compute_welch_spectrum(
             processed.y,
@@ -340,6 +453,33 @@ def choose_frequency_window(
     return float(freq_low), float(freq_high)
 
 
+def resolve_normalization_window(
+    freq_low: float,
+    freq_high: float,
+    *,
+    normalize_mode: str,
+    relative_range: tuple[float, float],
+) -> tuple[float, float]:
+    rel_low, rel_high = map(float, relative_range)
+    if normalize_mode == "absolute":
+        norm_low = float(freq_low) + ABSOLUTE_NORMALIZATION_MARGIN_HZ
+        norm_high = float(freq_high) - ABSOLUTE_NORMALIZATION_MARGIN_HZ
+        if norm_high <= norm_low:
+            raise ValueError(
+                "Absolute normalization range [min + 0.5, max - 0.5] Hz does not fit within the selected frequency window"
+            )
+    elif normalize_mode == "relative":
+        norm_low = max(float(freq_low), rel_low)
+        norm_high = min(float(freq_high), rel_high)
+        if norm_high <= norm_low:
+            raise ValueError(
+                "Relative normalization range does not overlap the selected frequency window"
+            )
+    else:
+        raise ValueError(f"Unsupported normalization mode: {normalize_mode}")
+    return float(norm_low), float(norm_high)
+
+
 def average_spectra(normalized_stack: np.ndarray, domain: str) -> np.ndarray:
     eps = np.finfo(float).tiny
 
@@ -403,19 +543,12 @@ def compute_average_spectrum(
     freq_low = averaged.freq_low
     freq_high = averaged.freq_high
 
-    rel_low, rel_high = map(float, relative_range)
-    if normalize_mode == "absolute":
-        norm_low = freq_low
-        norm_high = freq_high
-    elif normalize_mode == "relative":
-        norm_low = max(freq_low, rel_low)
-        norm_high = min(freq_high, rel_high)
-        if norm_high <= norm_low:
-            raise ValueError(
-                "Relative normalization range does not overlap the selected frequency window"
-            )
-    else:
-        raise ValueError(f"Unsupported normalization mode: {normalize_mode}")
+    norm_low, norm_high = resolve_normalization_window(
+        freq_low,
+        freq_high,
+        normalize_mode=normalize_mode,
+        relative_range=relative_range,
+    )
 
     normalized_rows: list[np.ndarray] = []
     accepted_contributors: list[SpectrumContribution] = []

@@ -6,6 +6,28 @@ from pathlib import Path
 import numpy as np
 
 
+DEFAULT_PEAKS_DIR = Path(__file__).resolve().parents[1] / "configs" / "peaks"
+
+
+def resolve_peaks_csv(name_or_path: str | Path, peaks_dir: str | Path | None = None) -> Path:
+    path = Path(name_or_path)
+    if path.is_file():
+        return path
+
+    root = Path(peaks_dir) if peaks_dir is not None else DEFAULT_PEAKS_DIR
+    text = str(name_or_path).strip()
+    candidates = [
+        root / text,
+        root / f"{text}.csv",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+
+    tried = ", ".join(str(candidate) for candidate in candidates)
+    raise FileNotFoundError(f"Peaks file not found for '{name_or_path}'. Tried: {tried}")
+
+
 def load_peaks_csv(path: str | Path) -> list[float]:
     path = Path(path)
     if not path.exists():

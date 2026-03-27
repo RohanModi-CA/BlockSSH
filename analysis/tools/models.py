@@ -167,6 +167,18 @@ class LocalizationProfile:
 
 
 @dataclass(frozen=True)
+class LocalizationPeakDiagnostic:
+    peak_index: int
+    target_frequency: float
+    selected_frequency: float
+    found: bool
+    window_low: float
+    window_high: float
+    display_freq: np.ndarray
+    display_amplitude: np.ndarray
+
+
+@dataclass(frozen=True)
 class PeakWindowIntegral:
     peak_hz: float
     low_hz: float

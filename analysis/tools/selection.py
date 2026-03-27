@@ -4,6 +4,7 @@ import json
 import warnings
 from collections import OrderedDict
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -11,16 +12,102 @@ from .derived import derive_spacing_dataset
 from .io import load_track2_dataset
 from .models import DatasetSelection, SignalRecord, Track2Dataset
 
+CANONICAL_COMPONENTS = ("x", "y", "a")
 
-def load_dataset_selection(path: str | Path) -> OrderedDict[str, DatasetSelection]:
+
+def _prompt_yes_no(prompt: str) -> bool:
+    response = input(prompt).strip().lower()
+    return response in {"y", "yes"}
+
+
+def _prompt_component_choice(prompt: str, available: list[str]) -> str:
+    allowed = set(available)
+    default_choice = "x" if "x" in allowed else available[0]
+    while True:
+        response = input(prompt).strip().lower()
+        if response == "":
+            return default_choice
+        if response in allowed:
+            return response
+        print(f"Please choose one of: {', '.join(available)} [default: {default_choice}]")
+
+
+def _logical_component_to_physical_suffix(contains: list[str]) -> dict[str, str]:
+    return {
+        logical_component: CANONICAL_COMPONENTS[idx]
+        for idx, logical_component in enumerate(contains)
+    }
+
+
+def _shared_logical_components(component_entries: list[tuple[str, dict[str, Any]]]) -> list[str]:
+    if len(component_entries) == 0:
+        return []
+
+    shared = set(component_entries[0][1]["contains"])
+    for _, entry in component_entries[1:]:
+        shared &= set(entry["contains"])
+
+    return [component for component in CANONICAL_COMPONENTS if component in shared]
+
+
+def _resolve_component_dataset_names(
+    raw_entries: OrderedDict[str, dict[str, Any]]
+) -> list[tuple[str, bool, list[int], list[int]]]:
+    component_entries = [
+        (dataset_name, entry)
+        for dataset_name, entry in raw_entries.items()
+        if entry["include"] and entry["contains"] is not None
+    ]
+    component_choice_by_dataset: dict[str, str] = {}
+
+    if component_entries:
+        same_choice = _prompt_yes_no(
+            "Use the same component for all datasets with 'contains'? [y/N] "
+        )
+        if same_choice:
+            shared_available = _shared_logical_components(component_entries)
+            if len(shared_available) == 0:
+                raise ValueError("No overlapping logical components exist across the included datasets")
+            shared_choice = _prompt_component_choice(
+                f"Which component should be used for all of them ({'/'.join(shared_available)})? ",
+                shared_available,
+            )
+            for dataset_name, entry in component_entries:
+                component_choice_by_dataset[dataset_name] = shared_choice
+        else:
+            for dataset_name, entry in component_entries:
+                component_choice_by_dataset[dataset_name] = _prompt_component_choice(
+                    f"Dataset '{dataset_name}' component ({'/'.join(entry['contains'])})? ",
+                    entry["contains"],
+                )
+
+    resolved: list[tuple[str, bool, list[int], list[int]]] = []
+    for dataset_name, entry in raw_entries.items():
+        include = entry["include"]
+        discards = entry["discards"]
+        pair_ids = entry["pair_ids"]
+        contains = entry["contains"]
+        if include and contains is not None:
+            physical_suffix = _logical_component_to_physical_suffix(contains)[
+                component_choice_by_dataset[dataset_name]
+            ]
+            resolved_name = f"{dataset_name}_{physical_suffix}"
+        else:
+            resolved_name = dataset_name
+        resolved.append((resolved_name, include, discards, pair_ids))
+    return resolved
+
+
+def load_dataset_selection_entries(path: str | Path) -> OrderedDict[str, dict[str, Any]]:
     with open(path, "r", encoding="utf-8") as f:
         cfg = json.load(f, object_pairs_hook=OrderedDict)
 
     if not isinstance(cfg, dict) or len(cfg) == 0:
         raise ValueError("Top-level JSON must be a non-empty object keyed by dataset stem")
 
-    validated: OrderedDict[str, DatasetSelection] = OrderedDict()
+    validated: OrderedDict[str, dict[str, Any]] = OrderedDict()
     required = {"include", "discards", "pair_ids"}
+    valid_contains = {"x", "y", "a"}
 
     for dataset_name, entry in cfg.items():
         if not isinstance(dataset_name, str) or not dataset_name:
@@ -61,7 +148,45 @@ def load_dataset_selection(path: str | Path) -> OrderedDict[str, DatasetSelectio
                 )
             pair_ids_out.append(int(pair_id))
 
-        validated[dataset_name] = DatasetSelection(
+        contains = entry.get("contains")
+        contains_out: list[str] | None = None
+        if contains is not None:
+            if not isinstance(contains, list) or len(contains) == 0:
+                raise ValueError(
+                    f"Dataset '{dataset_name}' field 'contains' must be a non-empty list when provided"
+                )
+            contains_out = []
+            for axis in contains:
+                if not isinstance(axis, str) or axis not in valid_contains:
+                    raise ValueError(
+                        f"Dataset '{dataset_name}' has invalid contains entry {axis!r}; expected one of {sorted(valid_contains)}"
+                    )
+                if axis in contains_out:
+                    raise ValueError(
+                        f"Dataset '{dataset_name}' field 'contains' may not contain duplicates"
+                    )
+                contains_out.append(axis)
+            if len(contains_out) > len(CANONICAL_COMPONENTS):
+                raise ValueError(
+                    f"Dataset '{dataset_name}' field 'contains' has too many entries"
+                )
+
+        validated[dataset_name] = {
+            "include": include,
+            "discards": discards_out,
+            "pair_ids": pair_ids_out,
+            "contains": contains_out,
+        }
+
+    return validated
+
+
+def load_dataset_selection(path: str | Path) -> OrderedDict[str, DatasetSelection]:
+    raw_entries = load_dataset_selection_entries(path)
+    validated: OrderedDict[str, DatasetSelection] = OrderedDict()
+
+    for resolved_name, include, discards_out, pair_ids_out in _resolve_component_dataset_names(raw_entries):
+        validated[resolved_name] = DatasetSelection(
             include=include,
             discards=discards_out,
             pair_ids=pair_ids_out,

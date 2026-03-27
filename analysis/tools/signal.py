@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import numpy as np
 import scipy.signal as sp_signal
 
@@ -166,6 +168,25 @@ def preprocess_signal(
         nyquist=nyquist,
         proc_msg=proc_msg,
     ), None
+
+
+def normalize_processed_signal_rms(
+    processed: ProcessedSignal,
+    *,
+    target_rms: float = 100.0,
+) -> tuple[ProcessedSignal | None, float | None, str | None]:
+    y = np.asarray(processed.y, dtype=float)
+    if y.size == 0:
+        return None, None, "empty processed signal"
+    if not np.isfinite(target_rms) or target_rms <= 0:
+        return None, None, "target RMS must be positive and finite"
+
+    rms = float(np.sqrt(np.mean(np.square(y))))
+    if not np.isfinite(rms) or rms <= 0:
+        return None, None, "processed signal RMS is non-positive or invalid"
+
+    scale = float(target_rms) / rms
+    return replace(processed, y=(y * scale)), scale, None
 
 
 def hann_window_symmetric(n: int):

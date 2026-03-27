@@ -8,6 +8,7 @@ if __package__ in (None, ""):
 
 import argparse
 import sys
+from pathlib import Path
 
 import numpy as np
 
@@ -16,6 +17,12 @@ from plotting.frequency import plot_pair_welch_frequency_grid
 from tools.cli import add_colormap_arg, add_output_args, add_signal_processing_args, add_track2_input_args
 from tools.derived import derive_spacing_dataset
 from tools.io import load_track2_dataset
+from tools.spectrasave import (
+    add_spectrasave_arg,
+    build_default_spectrasave_name,
+    resolve_spectrasave_path,
+    save_spectrum_msgpack,
+)
 from tools.spectral import analyze_spacing_dataset_with_welch_for_display
 
 
@@ -28,11 +35,20 @@ def build_parser() -> argparse.ArgumentParser:
     add_colormap_arg(parser)
     add_output_args(parser, include_title=True)
 
-    parser.add_argument(
+    welch_group = parser.add_mutually_exclusive_group()
+    welch_group.add_argument(
         "--welch-log",
+        dest="welch_log",
         action="store_true",
-        help="Use a log y-axis for the Welch curve panel.",
+        help="Use a log y-axis for the Welch curve panel (default).",
     )
+    welch_group.add_argument(
+        "--welch-linear",
+        dest="welch_log",
+        action="store_false",
+        help="Use a linear y-axis for the Welch curve panel.",
+    )
+    parser.set_defaults(welch_log=True)
 
     sliding_group = parser.add_mutually_exclusive_group()
     sliding_group.add_argument(
@@ -51,7 +67,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.set_defaults(sliding_plot_scale="log")
 
-    parser.add_argument("--welch-len-s", type=float, default=20.0)
+    parser.add_argument("--welch-len-s", type=float, default=100.0)
     parser.add_argument("--welch-overlap", type=float, default=0.5)
     parser.add_argument("--sliding-len-s", type=float, default=20.0)
     parser.add_argument("--welch-min-hz", type=float, default=None)
@@ -72,6 +88,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         help="Disable pair index (0-based). Can be used multiple times.",
     )
+    add_spectrasave_arg(parser)
+    parser.add_argument(
+        "--spectrasave-pair",
+        type=int,
+        default=None,
+        help="0-based pair index to export when --spectrasave is used.",
+    )
     return parser
 
 
@@ -91,6 +114,7 @@ def main() -> int:
             disabled_indices=args.disable,
             longest=args.longest,
             handlenan=args.handlenan,
+            timeseriesnorm=args.timeseriesnorm,
             welch_len_s=args.welch_len_s,
             welch_overlap_fraction=args.welch_overlap,
             sliding_len_s=args.sliding_len_s,
@@ -106,6 +130,46 @@ def main() -> int:
         else:
             print(f"Track2: {track2.track2_path}")
             print("Approx sampling rate: unavailable")
+
+        if args.spectrasave is not None:
+            if args.spectrasave_pair is None:
+                raise ValueError("--spectrasave requires --spectrasave-pair for see_welch_fft.py")
+            matching = [result for result in results if result.pair_index == args.spectrasave_pair]
+            if not matching:
+                raise ValueError(f"Requested export pair {args.spectrasave_pair} was not available")
+            export_result = matching[0]
+            if export_result.welch_result is None:
+                raise ValueError(f"Pair {args.spectrasave_pair} has no Welch result to export")
+
+            dataset_name = track2.dataset_name or Path(track2.track2_path).resolve().parent.name
+            export_path = resolve_spectrasave_path(
+                args.spectrasave,
+                default_name=build_default_spectrasave_name(
+                    dataset_name,
+                    f"pair-{export_result.pair_index}",
+                    "welch",
+                ),
+            )
+            assert export_path is not None
+            saved = save_spectrum_msgpack(
+                export_path,
+                freq=export_result.welch_result.freq,
+                amplitude=export_result.welch_result.amplitude,
+                label=f"{dataset_name} pair {export_result.pair_index} Welch",
+                metadata={
+                    "sourceKind": "single",
+                    "spectrumKind": "welch",
+                    "dataset": dataset_name,
+                    "track2Path": track2.track2_path,
+                    "pairIndex": int(export_result.pair_index),
+                    "pairLabel": export_result.label,
+                    "welchLenS": float(args.welch_len_s),
+                    "welchOverlap": float(args.welch_overlap),
+                    "longest": bool(args.longest),
+                    "handlenan": bool(args.handlenan),
+                },
+            )
+            print(f"Spectrum saved to: {saved}")
 
         fig = plot_pair_welch_frequency_grid(
             results,
