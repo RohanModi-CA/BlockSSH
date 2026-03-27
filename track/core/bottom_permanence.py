@@ -22,6 +22,8 @@ build_permanence_xya(vc, tracking_results_path="", quiet=False, trim_weak_ends=T
 
 from __future__ import annotations
 
+import math
+import time
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -77,8 +79,12 @@ def _y_norm_from_spacing(ref_spacing: float) -> float:
 
 
 def _transition_cost(
-    prev_dets: List[DetectionRecord],
-    curr_dets: List[DetectionRecord],
+    prev_x: np.ndarray,
+    prev_y: np.ndarray,
+    prev_a: np.ndarray,
+    curr_x: np.ndarray,
+    curr_y: np.ndarray,
+    curr_a: np.ndarray,
     prev_L: int,
     curr_L: int,
     ref_spacing: float,
@@ -90,8 +96,8 @@ def _transition_cost(
 
     The overlap is computed in global-column space and compared in observed order.
     """
-    n_prev = len(prev_dets)
-    n_curr = len(curr_dets)
+    n_prev = len(prev_x)
+    n_curr = len(curr_x)
     prev_R = prev_L + n_prev - 1
     curr_R = curr_L + n_curr - 1
 
@@ -104,34 +110,52 @@ def _transition_cost(
     curr_s = inter_L - curr_L
     overlap = inter_R - inter_L + 1
 
-    p = prev_dets[prev_s: prev_s + overlap]
-    c = curr_dets[curr_s: curr_s + overlap]
+    px = prev_x[prev_s: prev_s + overlap]
+    py = prev_y[prev_s: prev_s + overlap]
+    pa = prev_a[prev_s: prev_s + overlap]
+    cx = curr_x[curr_s: curr_s + overlap]
+    cy = curr_y[curr_s: curr_s + overlap]
+    ca = curr_a[curr_s: curr_s + overlap]
 
-    px, py, pa = _frame_arrays(p)
-    cx, cy, ca = _frame_arrays(c)
+    # These overlaps are tiny in practice, so scalar math avoids the overhead of
+    # many small NumPy median/mean calls in the DP hot loop.
+    area_vals = [0.0] * (2 * overlap)
+    for i in range(overlap):
+        area_vals[2 * i] = float(pa[i])
+        area_vals[2 * i + 1] = float(ca[i])
+    area_vals.sort()
+    mid = len(area_vals) // 2
+    if len(area_vals) % 2 == 0:
+        area_med = 0.5 * (area_vals[mid - 1] + area_vals[mid])
+    else:
+        area_med = area_vals[mid]
+    area_norm = max(1.0, area_med)
 
-    area_norm = max(1.0, float(np.median(np.r_[pa, ca])))
-    dx_term = np.abs(cx - px) / ref_spacing
-    dy_term = np.abs(cy - py) / y_norm
-    da_term = np.abs(ca - pa) / area_norm
+    total = 0.0
+    for i in range(overlap):
+        total += (
+            abs(float(cx[i]) - float(px[i])) / ref_spacing
+            + _Y_WEIGHT * (abs(float(cy[i]) - float(py[i])) / y_norm)
+            + _AREA_WEIGHT * (abs(float(ca[i]) - float(pa[i])) / area_norm)
+        )
 
-    base_cost = float(np.mean(dx_term + _Y_WEIGHT * dy_term + _AREA_WEIGHT * da_term))
+    base_cost = total / overlap
 
     # Small soft priors help break exact symmetries without dominating the global fit.
     delta = n_curr - n_prev
     prior = 0.0
     if delta == 1 and curr_L == prev_L - 1:
         # left entry: the new block should be at least roughly left of the previous leftmost
-        prior += 0.10 * max(0.0, (curr_dets[0].x - prev_dets[0].x) / ref_spacing)
+        prior += 0.10 * max(0.0, (curr_x[0] - prev_x[0]) / ref_spacing)
     elif delta == 1 and curr_L == prev_L:
         # right entry: the new block should be roughly right of the previous rightmost
-        prior += 0.10 * max(0.0, (prev_dets[-1].x - curr_dets[-1].x) / ref_spacing)
+        prior += 0.10 * max(0.0, (prev_x[-1] - curr_x[-1]) / ref_spacing)
     elif delta == -1 and curr_L == prev_L + 1 and n_prev >= 2:
         # left exit
-        prior += 0.05 * max(0.0, (prev_dets[1].x - curr_dets[0].x) / ref_spacing)
+        prior += 0.05 * max(0.0, (prev_x[1] - curr_x[0]) / ref_spacing)
     elif delta == -1 and curr_L == prev_L and n_prev >= 2:
         # right exit
-        prior += 0.05 * max(0.0, (curr_dets[-1].x - prev_dets[-2].x) / ref_spacing)
+        prior += 0.05 * max(0.0, (curr_x[-1] - prev_x[-2]) / ref_spacing)
 
     return base_cost + prior
 
@@ -167,15 +191,19 @@ def _viterbi_left_positions(frames, ref_spacing: float, quiet: bool) -> List[int
     if any(len(f.detections) == 0 for f in active_frames):
         bad = first_nz + next(i for i, f in enumerate(active_frames) if len(f.detections) == 0)
         raise RuntimeError(f"Zero-detection frame at k={bad} after tracking has started.")
+    active_arrays = [_frame_arrays(f.detections) for f in active_frames]
 
     states: Dict[int, float] = {0: 0.0}
     backptrs: List[Dict[int, int]] = []
+    t_start = time.time()
 
     log(f"  First non-empty frame: {first_nz}  ({len(active_frames[0].detections)} initial blocks)")
 
     for t in range(1, len(active_frames)):
         prev_dets = active_frames[t - 1].detections
         curr_dets = active_frames[t].detections
+        prev_x, prev_y, prev_a = active_arrays[t - 1]
+        curr_x, curr_y, curr_a = active_arrays[t]
 
         if abs(len(curr_dets) - len(prev_dets)) > 1:
             raise RuntimeError(
@@ -188,7 +216,18 @@ def _viterbi_left_positions(frames, ref_spacing: float, quiet: bool) -> List[int
 
         for prev_L, prev_cost in states.items():
             for curr_L in _next_left_positions(prev_L, len(prev_dets), len(curr_dets)):
-                tr_cost = _transition_cost(prev_dets, curr_dets, prev_L, curr_L, ref_spacing, y_norm)
+                tr_cost = _transition_cost(
+                    prev_x,
+                    prev_y,
+                    prev_a,
+                    curr_x,
+                    curr_y,
+                    curr_a,
+                    prev_L,
+                    curr_L,
+                    ref_spacing,
+                    y_norm,
+                )
                 if not np.isfinite(tr_cost):
                     continue
                 cost = prev_cost + tr_cost
@@ -204,6 +243,13 @@ def _viterbi_left_positions(frames, ref_spacing: float, quiet: bool) -> List[int
         states = new_states
         backptrs.append(new_back)
 
+        if not quiet and ((t + 1) % 5000 == 0 or (t + 1) == len(active_frames) - 1):
+            elapsed = time.time() - t_start
+            print(
+                f"  Permanence DP progress: {t + 1}/{len(active_frames) - 1} active transitions "
+                f"({elapsed:.1f} s)"
+            )
+
     final_L = min(states, key=states.get)
     total_cost = float(states[final_L])
 
@@ -218,7 +264,10 @@ def _viterbi_left_positions(frames, ref_spacing: float, quiet: bool) -> List[int
     return [None] * first_nz + Ls  # type: ignore[list-item]
 
 
-def _materialize_xya_matrices(frames, left_positions: List[int]) -> Tuple[List[List[float]], List[List[float]], List[List[float]], int]:
+def _materialize_xya_matrices(
+    frames,
+    left_positions: List[int],
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int]:
     """Build full X, Y, and angle matrices from the chosen interval path."""
     active = [(k, L) for k, L in enumerate(left_positions) if L is not None]
     if not active:
@@ -229,34 +278,28 @@ def _materialize_xya_matrices(frames, left_positions: List[int]) -> Tuple[List[L
     shift = -min_L
     n_cols = max_R - min_L + 1
 
-    X = []
-    Y = []
-    A = []
+    n_frames = len(frames)
+    X = np.full((n_frames, n_cols), np.nan, dtype=float)
+    Y = np.full((n_frames, n_cols), np.nan, dtype=float)
+    A = np.full((n_frames, n_cols), np.nan, dtype=float)
 
     for k, f in enumerate(frames):
-        row_x = [float("nan")] * n_cols
-        row_y = [float("nan")] * n_cols
-        row_a = [float("nan")] * n_cols
-
         L = left_positions[k]
-        if L is not None and len(f.detections) > 0:
-            start = L + shift
-            for i, d in enumerate(f.detections):
-                j = start + i
-                row_x[j] = float(d.x)
-                row_y[j] = float(d.y)
-                row_a[j] = float(d.angle)
-
-        X.append(row_x)
-        Y.append(row_y)
-        A.append(row_a)
+        if L is None or len(f.detections) == 0:
+            continue
+        start = L + shift
+        stop = start + len(f.detections)
+        x, y, a = _frame_arrays(f.detections)
+        X[k, start:stop] = x
+        Y[k, start:stop] = y
+        A[k, start:stop] = np.array([float(d.angle) for d in f.detections], dtype=float)
 
     return X, Y, A, n_cols
 
 
 def _column_bad_flags(
-    X: List[List[float]],
-    Y: List[List[float]],
+    X: np.ndarray,
+    Y: np.ndarray,
     ref_spacing: float,
     min_support: int,
 ) -> List[bool]:
@@ -265,8 +308,8 @@ def _column_bad_flags(
 
     A flagged interior column is fatal. Flagged end columns may be trimmed.
     """
-    arr_x = np.array(X, dtype=float)
-    arr_y = np.array(Y, dtype=float)
+    arr_x = X
+    arr_y = Y
     n_cols = arr_x.shape[1]
 
     max_step_x = _MAX_COLUMN_STEP_X_RATIO * ref_spacing
@@ -299,13 +342,13 @@ def _column_bad_flags(
 
 
 def _trim_end_columns_only(
-    X: List[List[float]],
-    Y: List[List[float]],
-    A: List[List[float]],
+    X: np.ndarray,
+    Y: np.ndarray,
+    A: np.ndarray,
     ref_spacing: float,
     min_end_support: int,
     quiet: bool,
-) -> Tuple[List[List[float]], List[List[float]], List[List[float]], int, int, int]:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int, int, int]:
     """
     Trim unreliable columns, but only from the left and/or right ends.
 
@@ -346,9 +389,9 @@ def _trim_end_columns_only(
 
     if ltrim or rtrim:
         log(f"  Trimming unreliable end columns — left: {ltrim}, right: {rtrim}")
-        X = [row[keep_start:keep_end] for row in X]
-        Y = [row[keep_start:keep_end] for row in Y]
-        A = [row[keep_start:keep_end] for row in A]
+        X = X[:, keep_start:keep_end]
+        Y = Y[:, keep_start:keep_end]
+        A = A[:, keep_start:keep_end]
 
     return X, Y, A, ltrim, rtrim, keep_end - keep_start
 
@@ -397,11 +440,15 @@ def build_permanence_xya(
 
     block_labels = ["b"] * n_cols_kept
 
+    x_positions = X.tolist()
+    y_positions = Y.tolist()
+    a_positions = A.tolist()
+
     track2_x = Track2XPermanence(
         originalVideoPath=vc.filepath,
         trackingResultsPath=tracking_results_path,
         blockColors=block_labels,
-        xPositions=X,
+        xPositions=x_positions,
         frameTimes_s=[f.frame_time_s for f in frames],
         frameNumbers=[f.frame_number for f in frames],
     )
@@ -410,7 +457,7 @@ def build_permanence_xya(
         originalVideoPath=vc.filepath,
         trackingResultsPath=tracking_results_path,
         blockColors=block_labels,
-        xPositions=Y,
+        xPositions=y_positions,
         frameTimes_s=[f.frame_time_s for f in frames],
         frameNumbers=[f.frame_number for f in frames],
     )
@@ -419,7 +466,7 @@ def build_permanence_xya(
         originalVideoPath=vc.filepath,
         trackingResultsPath=tracking_results_path,
         blockColors=block_labels,
-        xPositions=A,
+        xPositions=a_positions,
         frameTimes_s=[f.frame_time_s for f in frames],
         frameNumbers=[f.frame_number for f in frames],
     )

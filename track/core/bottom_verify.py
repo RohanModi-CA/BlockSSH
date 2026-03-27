@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import numpy as np
 from pathlib import Path
 
 from track.tracking_classes import VideoCentroids
@@ -17,6 +18,14 @@ from .layout import (
 
 def _load_vc(path: str | Path) -> VideoCentroids:
     return VideoCentroids.from_dict(load_msgpack(path))
+
+
+def _convert_angle_component_to_cos2(track2a):
+    arr = np.asarray(track2a.xPositions, dtype=float)
+    finite = np.isfinite(arr)
+    arr[finite] = np.cos(2.0 * arr[finite])
+    track2a.xPositions = arr.tolist()
+    return track2a
 
 
 def run_process_verify(
@@ -92,6 +101,7 @@ def run_process_verify(
         trim_weak_ends=trim_weak_ends,
         min_end_support=min_end_support,
     )
+    t2a = _convert_angle_component_to_cos2(t2a)
 
     out_x = component_track2_path(dataset, "x")
     out_y = component_track2_path(dataset, "y")
@@ -123,7 +133,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Verify bottom black-blob track1 detections, repair bad segments if possible, "
-            "and write X / Y / angle permanence datasets."
+            "and write X / Y / processed-angle permanence datasets."
         )
     )
     parser.add_argument("name", help="Dataset name, e.g. IMG_9282 or 9282")

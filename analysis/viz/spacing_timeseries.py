@@ -46,10 +46,11 @@ def _normalize_timeseries_columns_to_rms(matrix: np.ndarray, *, target_rms: floa
         finite = np.isfinite(y)
         if not np.any(finite):
             continue
-        rms = float(np.sqrt(np.mean(np.square(y[finite]))))
+        centered = y[finite] - float(np.mean(y[finite]))
+        rms = float(np.sqrt(np.mean(np.square(centered))))
         if not np.isfinite(rms) or rms <= 0:
             continue
-        out[finite, col] = y[finite] * (float(target_rms) / rms)
+        out[finite, col] = centered * (float(target_rms) / rms)
 
     return out
 
