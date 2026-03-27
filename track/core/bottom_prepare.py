@@ -18,6 +18,7 @@ from .layout import (
     VIDEOS_DIR,
     ensure_dataset_dir,
     legacy_params_black_path,
+    manifest_path,
     params_bottom_path,
 )
 
