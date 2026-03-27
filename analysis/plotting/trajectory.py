@@ -9,6 +9,23 @@ import numpy as np
 from tools.models import Track2Dataset
 
 
+def _valid_time_mask(time: np.ndarray) -> np.ndarray:
+    time = np.asarray(time, dtype=float)
+    if time.ndim != 1:
+        raise ValueError("time must be 1D")
+    if time.size == 0:
+        return np.zeros(0, dtype=bool)
+
+    valid = np.isfinite(time)
+    if not np.any(valid):
+        return valid
+
+    prev = np.maximum.accumulate(np.where(valid, time, -np.inf))
+    monotonic = np.ones_like(valid, dtype=bool)
+    monotonic[1:] = valid[1:] & (time[1:] > prev[:-1])
+    return valid & monotonic
+
+
 def sample_video_frames(video_path: str, sample_times: np.ndarray):
     if not video_path:
         return [], [], "No originalVideoPath found in Track2."
@@ -69,6 +86,13 @@ def plot_track2_positions_overview(
     time = track2.frame_times_s
     x_positions = track2.x_positions
     block_colors = [str(c).lower() for c in track2.block_colors]
+    time_mask = _valid_time_mask(time)
+
+    if not np.any(time_mask):
+        raise ValueError("Track2 frame_times_s contains no finite increasing timestamps")
+
+    time = time[time_mask]
+    x_positions = x_positions[time_mask]
 
     n_frames, n_blocks = x_positions.shape
     if n_blocks == 0:
@@ -210,6 +234,14 @@ def plot_spacing_timeseries(
     if time.shape[0] != n_frames:
         raise ValueError("time length must match spacing rows")
 
+    time_mask = _valid_time_mask(time)
+    if not np.any(time_mask):
+        raise ValueError("time contains no finite increasing timestamps")
+
+    time = time[time_mask]
+    spacing = spacing[time_mask]
+    n_frames, n_pairs = spacing.shape
+
     fig, axes = plt.subplots(
         n_pairs,
         1,
@@ -240,6 +272,65 @@ def plot_spacing_timeseries(
         title or f"Block Spacing Time-Series (Global Avg: {global_avg:.1f}px)",
         fontsize=14,
     )
-    plt.xlim(time[0], time[-1])
+    plt.xlim(float(time[0]), float(time[-1]))
+    plt.tight_layout(rect=[0, 0.03, 1, 0.97])
+    return fig
+
+
+def plot_block_timeseries(
+    time: np.ndarray,
+    x_positions: np.ndarray,
+    block_labels: list[str],
+    *,
+    title: str | None = None,
+):
+    if x_positions.ndim != 2:
+        raise ValueError("x_positions must be 2D")
+
+    n_frames, n_blocks = x_positions.shape
+    if n_blocks == 0:
+        raise ValueError("No blocks found to plot")
+    if time.shape[0] != n_frames:
+        raise ValueError("time length must match x_positions rows")
+
+    time_mask = _valid_time_mask(time)
+    if not np.any(time_mask):
+        raise ValueError("time contains no finite increasing timestamps")
+
+    time = time[time_mask]
+    x_positions = x_positions[time_mask]
+    n_frames, n_blocks = x_positions.shape
+
+    fig, axes = plt.subplots(
+        n_blocks,
+        1,
+        figsize=(12, 2 * n_blocks),
+        sharex=True,
+    )
+    if n_blocks == 1:
+        axes = [axes]
+
+    color_map = {"r": "#e74c3c", "g": "#2ecc71"}
+    global_avg = np.nanmean(x_positions)
+
+    for i in range(n_blocks):
+        ax = axes[i]
+        label = str(block_labels[i]).lower() if i < len(block_labels) else "?"
+        color = color_map.get(label, "#3498db")
+
+        ax.plot(time, x_positions[:, i], color=color, linewidth=1)
+
+        local_avg = np.nanmean(x_positions[:, i])
+        ax.set_ylabel("X (px)")
+        ax.set_title(f"Block {i}: {label.upper()}  |  Avg: {local_avg:.1f}px")
+        ax.grid(True, linestyle="--", alpha=0.3)
+        ax.tick_params(labelbottom=True)
+
+    axes[-1].set_xlabel("Time (seconds)")
+    fig.suptitle(
+        title or f"Block X-Position Time-Series (Global Avg: {global_avg:.1f}px)",
+        fontsize=14,
+    )
+    plt.xlim(float(time[0]), float(time[-1]))
     plt.tight_layout(rect=[0, 0.03, 1, 0.97])
     return fig

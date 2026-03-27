@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+if [[ -z "${BASH_VERSION:-}" ]]; then
+    echo "This activate script currently supports bash. Use: source ./activate" >&2
+    return 1 2>/dev/null || exit 1
+fi
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    echo "This script must be sourced: source ./activate" >&2
+    exit 1
+fi
+
+_blocksssh_activate_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export BLOCKSSSH_ROOT="$_blocksssh_activate_root"
+export BLOCKSSSH_TRACK_DATA_ROOT="$BLOCKSSSH_ROOT/track/data"
+export BLOCKSSSH_ANALYSIS_CONFIG_ROOT="$BLOCKSSSH_ROOT/analysis/configs"
+
+_blocksssh_venv_activated=""
+for _candidate in "$BLOCKSSSH_ROOT/.venv/bin/activate" "$BLOCKSSSH_ROOT/venv/bin/activate" "$BLOCKSSSH_ROOT/env/bin/activate"; do
+    if [[ -f "$_candidate" ]]; then
+        # shellcheck disable=SC1090
+        source "$_candidate"
+        _blocksssh_venv_activated="$_candidate"
+        break
+    fi
+done
+
+if [[ -n "${VIRTUAL_ENV:-}" && -x "${VIRTUAL_ENV}/bin/python3" ]]; then
+    export BLOCKSSSH_PYTHON_BIN="${VIRTUAL_ENV}/bin/python3"
+else
+    export BLOCKSSSH_PYTHON_BIN="$(command -v python3)"
+fi
+
+"$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/scripts/build_completion_cache.py" >/dev/null 2>&1 || true
+
+bfft() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/FFT.py" "$@"; }
+bts() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/Timeseries.py" "$@"; }
+bsub() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/Subtract.py" "$@"; }
+bwf() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/Wavefunctions.py" "$@"; }
+bpeak() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/ClickPeakFind.py" "$@"; }
+bspec() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/SpectrasaveView.py" "$@"; }
+bgroup() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/MakeGroup.py" "$@"; }
+bprep() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/0.VideoPrepareBottom.py" "$@"; }
+brun() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/1.TrackRun.py" "$@"; }
+bproc() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/2.ProcessVerify.py" "$@"; }
+brepair() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/2b.ManualRepair.py" "$@"; }
+blabel() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/3.Label.py" "$@"; }
+bprepbatch() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/B0.BatchPrepare.py" "$@"; }
+btrackbatch() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/B1.BatchTrack.py" "$@"; }
+bprocbatch() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/B2.BatchProcessVerify.py" "$@"; }
+
+# shellcheck disable=SC1090
+[[ -f "$BLOCKSSSH_ROOT/.analysis/completion_cache.sh" ]] && source "$BLOCKSSSH_ROOT/.analysis/completion_cache.sh"
+# shellcheck disable=SC1090
+source "$BLOCKSSSH_ROOT/shell/completion.bash"
+
+if [[ -n "$_blocksssh_venv_activated" ]]; then
+    echo "BlocksSSH activated with venv: $_blocksssh_venv_activated"
+else
+    echo "BlocksSSH activated without a repo-local venv; using: $BLOCKSSSH_PYTHON_BIN"
+fi
+echo "Project root: $BLOCKSSSH_ROOT"

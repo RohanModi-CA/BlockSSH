@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Any
+import math
+
 
 @dataclass
 class Track1Params:
@@ -29,18 +31,22 @@ class Track1Params:
     assumedInputType: str = ""
     createdOn: str = ""
 
+
 @dataclass
 class DetectionRecord:
     x: float
     y: float
     color: str
     area: float
+    angle: float = float("nan")
+
 
 @dataclass
 class FrameDetections:
     frame_number: int
     frame_time_s: float
     detections: List[DetectionRecord]
+
 
 @dataclass
 class VideoCentroids:
@@ -56,14 +62,22 @@ class VideoCentroids:
     def from_dict(cls, data: dict) -> 'VideoCentroids':
         p_data = data.get('params', {})
         params = Track1Params(**p_data)
+
         frames = []
         for f_data in data.get('frames', []):
-            dets = [DetectionRecord(**d) for d in f_data.get('detections', [])]
+            dets = []
+            for d in f_data.get('detections', []):
+                dd = dict(d)
+                if 'angle' not in dd:
+                    dd['angle'] = float("nan")
+                dets.append(DetectionRecord(**dd))
+
             frames.append(FrameDetections(
                 frame_number=f_data['frame_number'],
                 frame_time_s=f_data['frame_time_s'],
                 detections=dets
             ))
+
         return cls(
             filepath=data.get('filepath', ''),
             frames=frames,
@@ -74,6 +88,7 @@ class VideoCentroids:
             meanBlockDistance=data.get('meanBlockDistance', 0.0)
         )
 
+
 @dataclass
 class Track2XPermanence:
     originalVideoPath: str
@@ -83,23 +98,24 @@ class Track2XPermanence:
     frameTimes_s: List[float]       # nFrames x 1
     frameNumbers: List[int]         # nFrames x 1
 
+
 @dataclass
 class Track3Analysis:
     track2_source_path: str
-    
+
     # Metadata
     pair_colors: List[str]          # e.g., ["rg", "gr", "rg"] for neighbors
-    
+
     # 1. Spacing (The "Block Differences")
-    # Matrix: nFrames x (nBlocks - 1). 
+    # Matrix: nFrames x (nBlocks - 1).
     # Value at [t, i] is distance between Block(i) and Block(i+1) at time t.
-    spacing_matrix: List[List[float]] 
+    spacing_matrix: List[List[float]]
 
     # 2. Velocity (Derived from time_per_frame)
     # Matrix: nFrames x nBlocks.
     # Value at [t, i] is instantaneous velocity of Block(i) compared to t-1.
     velocity_matrix: List[List[float]]
-    
+
     # 3. Time Deltas
     # Vector: nFrames. dt[t] = time[t] - time[t-1]. (dt[0] is NaN)
     time_deltas: List[float]

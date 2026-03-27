@@ -15,13 +15,14 @@
     "pair_ids": [7, 8]
   },
   "IMG_0559": {
-    "include": false,
-    "discards": [],
-    "pair_ids": [0, 1]
-  },
+	"include": false,
+	"discards": [],
+	"pair_ids": [0, 1]
+	},
   "IMG_0560": {
     "include": false,
     "discards": [],
     "pair_ids": [0, 1]
   }
+
 }

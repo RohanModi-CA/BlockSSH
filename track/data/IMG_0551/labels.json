@@ -1,0 +1,16 @@
+{
+  "dataset": "IMG_0551",
+  "version": 1,
+  "bond_labels": {},
+  "site_labels": {
+    "1": "1",
+    "2": "2",
+    "3": "3"
+  },
+  "disabled": {
+    "sites": [],
+    "components": {}
+  },
+  "notes": "",
+  "created_by": "convert_legacy_datasets.py"
+}

@@ -1,0 +1,964 @@
+{
+  "apply": true,
+  "overwrite": false,
+  "datasets": [
+    {
+      "dataset": "10IC",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/10IC",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/10IC.MOV",
+      "components": [],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "exists",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 10IC"
+    },
+    {
+      "dataset": "10IC_a",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/10IC_a",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 10IC_a"
+    },
+    {
+      "dataset": "10IC_x",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/10IC_x",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 10IC_x"
+    },
+    {
+      "dataset": "10IC_y",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/10IC_y",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 10IC_y"
+    },
+    {
+      "dataset": "10L3C",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/10L3C",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/10L3C.MOV",
+      "components": [
+        "a",
+        "x",
+        "y"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "a": "created",
+        "x": "created",
+        "y": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 10L3C"
+    },
+    {
+      "dataset": "10M4",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/10M4",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/10M4.MOV",
+      "components": [],
+      "has_track1": true,
+      "had_manifest": true,
+      "copied_components": {},
+      "params_bottom": "exists",
+      "labels": "kept",
+      "manifest": "exists",
+      "notes": "converted from legacy layout on-disk for 10M4"
+    },
+    {
+      "dataset": "10M4R",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/10M4R",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/10M4.MOV",
+      "components": [
+        "a",
+        "x",
+        "y"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "a": "created",
+        "x": "created",
+        "y": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 10M4R"
+    },
+    {
+      "dataset": "10M4_a",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/10M4_a",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 10M4_a"
+    },
+    {
+      "dataset": "10M4_x",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/10M4_x",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 10M4_x"
+    },
+    {
+      "dataset": "10M4_y",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/10M4_y",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 10M4_y"
+    },
+    {
+      "dataset": "520",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/520",
+      "tracking_mode": "legacy_matlab_import",
+      "source_video": "Videos/520.mp4",
+      "components": [],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "exists",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 520"
+    },
+    {
+      "dataset": "520_x",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/520_x",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 520_x"
+    },
+    {
+      "dataset": "520_y",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/520_y",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for 520_y"
+    },
+    {
+      "dataset": "CDX_10IC",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/CDX_10IC",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/10IC.MOV",
+      "components": [
+        "a",
+        "area",
+        "x",
+        "y"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "a": "created",
+        "area": "created",
+        "x": "created",
+        "y": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for CDX_10IC"
+    },
+    {
+      "dataset": "IMG_0519",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0519",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0516_fixed_cropped.avi",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0519; legacy root track2 imported as component x from IMG_0519/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0536",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0536",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0536.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0536; legacy root track2 imported as component x from IMG_0536/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0537",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0537",
+      "tracking_mode": "legacy_track1_import",
+      "source_video": "Videos/IMG_0537.MOV",
+      "components": [],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "exists",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0537"
+    },
+    {
+      "dataset": "IMG_0539",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0539",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0539.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0539; legacy root track2 imported as component x from IMG_0539/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0541",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0541",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0541.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0541; legacy root track2 imported as component x from IMG_0541/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0545",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0545",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0545.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0545; legacy root track2 imported as component x from IMG_0545/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0548",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0548",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0548.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0548; legacy root track2 imported as component x from IMG_0548/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0549",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0549",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0549.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0549; legacy root track2 imported as component x from IMG_0549/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0551",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0551",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0551.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0551; legacy root track2 imported as component x from IMG_0551/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0559",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0559",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0559.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0559; legacy root track2 imported as component x from IMG_0559/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0560",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0560",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0560.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0560; legacy root track2 imported as component x from IMG_0560/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0563",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0563",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0563.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0563; legacy root track2 imported as component x from IMG_0563/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0567",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0567",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0567.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0567; legacy root track2 imported as component x from IMG_0567/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0570",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0570",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0570.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0570; legacy root track2 imported as component x from IMG_0570/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0584",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0584",
+      "tracking_mode": "legacy_track1_import",
+      "source_video": "Videos/IMG_0584.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0584; legacy root track2 imported as component x from IMG_0584/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0586",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0586",
+      "tracking_mode": "legacy_track1_import",
+      "source_video": "Videos/IMG_0586.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0586; legacy root track2 imported as component x from IMG_0586/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0587",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0587",
+      "tracking_mode": "legacy_track1_import",
+      "source_video": "Videos/IMG_0587.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0587; legacy root track2 imported as component x from IMG_0587/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0588",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0588",
+      "tracking_mode": "legacy_track1_import",
+      "source_video": "Videos/IMG_0588.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0588; legacy root track2 imported as component x from IMG_0588/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0589",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0589",
+      "tracking_mode": "legacy_track1_import",
+      "source_video": "Videos/IMG_0589.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0589; legacy root track2 imported as component x from IMG_0589/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0590",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0590",
+      "tracking_mode": "legacy_track1_import",
+      "source_video": "Videos/IMG_0590.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0590; legacy root track2 imported as component x from IMG_0590/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0591",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0591",
+      "tracking_mode": "legacy_track1_import",
+      "source_video": "Videos/IMG_0591.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0591; legacy root track2 imported as component x from IMG_0591/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0592",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0592",
+      "tracking_mode": "legacy_track1_import",
+      "source_video": "Videos/IMG_0592.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0592; legacy root track2 imported as component x from IMG_0592/track2_permanence.msgpack"
+    },
+    {
+      "dataset": "IMG_0662",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/IMG_0662.MOV",
+      "components": [],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "exists",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662"
+    },
+    {
+      "dataset": "IMG_0662_rot90",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662_rot90",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/IMG_0662.MOV",
+      "components": [
+        "x",
+        "y"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created",
+        "y": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662_rot90"
+    },
+    {
+      "dataset": "IMG_0662_rot_x",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662_rot_x",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662_rot_x"
+    },
+    {
+      "dataset": "IMG_0662_rot_y",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662_rot_y",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662_rot_y"
+    },
+    {
+      "dataset": "IMG_0662_x",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662_x",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662_x"
+    },
+    {
+      "dataset": "IMG_0662_y",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662_y",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662_y"
+    },
+    {
+      "dataset": "IMG_0662b",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662b",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/IMG_0662b.MOV",
+      "components": [],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "exists",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662b"
+    },
+    {
+      "dataset": "IMG_0662b_a",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662b_a",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662b_a"
+    },
+    {
+      "dataset": "IMG_0662b_rot270",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662b_rot270",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/IMG_0662b.MOV",
+      "components": [
+        "a",
+        "x",
+        "y"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "a": "created",
+        "x": "created",
+        "y": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662b_rot270"
+    },
+    {
+      "dataset": "IMG_0662b_rot90_a",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662b_rot90_a",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662b_rot90_a"
+    },
+    {
+      "dataset": "IMG_0662b_rot90_x",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662b_rot90_x",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662b_rot90_x"
+    },
+    {
+      "dataset": "IMG_0662b_rot90_y",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662b_rot90_y",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662b_rot90_y"
+    },
+    {
+      "dataset": "IMG_0662b_x",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662b_x",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662b_x"
+    },
+    {
+      "dataset": "IMG_0662b_y",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0662b_y",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0662b_y"
+    },
+    {
+      "dataset": "IMG_0680",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0680",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/IMG_0680.MOV",
+      "components": [],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "exists",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0680"
+    },
+    {
+      "dataset": "IMG_0680_a",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0680_a",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0680_a"
+    },
+    {
+      "dataset": "IMG_0680_rot270",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0680_rot270",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/IMG_0680.MOV",
+      "components": [
+        "a",
+        "x",
+        "y"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "a": "created",
+        "x": "created",
+        "y": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0680_rot270"
+    },
+    {
+      "dataset": "IMG_0680_x",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0680_x",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0680_x"
+    },
+    {
+      "dataset": "IMG_0680_y",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0680_y",
+      "tracking_mode": "legacy_import",
+      "source_video": "",
+      "components": [],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "skipped",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0680_y"
+    },
+    {
+      "dataset": "IMG_0681",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0681",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/IMG_0681.MOV",
+      "components": [],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {},
+      "params_bottom": "exists",
+      "labels": "skipped",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0681"
+    },
+    {
+      "dataset": "IMG_0681_rot270",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0681_rot270",
+      "tracking_mode": "bottom_black",
+      "source_video": "Videos/IMG_0681.MOV",
+      "components": [
+        "a",
+        "area",
+        "x",
+        "y"
+      ],
+      "has_track1": true,
+      "had_manifest": false,
+      "copied_components": {
+        "a": "created",
+        "area": "created",
+        "x": "created",
+        "y": "created"
+      },
+      "params_bottom": "exists",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0681_rot270"
+    },
+    {
+      "dataset": "IMG_0681_rot270_area_unbarrel",
+      "root_dir": "/home/gram/Documents/FileFolder/Projects/BlocksSSH/track/data/IMG_0681_rot270_area_unbarrel",
+      "tracking_mode": "legacy_track2_import",
+      "source_video": "Videos/IMG_0681.MOV",
+      "components": [
+        "x"
+      ],
+      "has_track1": false,
+      "had_manifest": false,
+      "copied_components": {
+        "x": "created"
+      },
+      "params_bottom": "skipped",
+      "labels": "created",
+      "manifest": "created",
+      "notes": "converted from legacy layout on-disk for IMG_0681_rot270_area_unbarrel; legacy root track2 imported as component x from IMG_0681_rot270_area_unbarrel/track2_permanence.msgpack"
+    }
+  ]
+}

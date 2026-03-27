@@ -1,70 +1,33 @@
 # Refactored analysis directory
 
-This refactor splits the code into three layers:
+The active user-facing analysis surface is now `analysis/go/`.
 
-- `tools/` — data loading, signal processing, and analysis
+Use these commands:
+
+```bash
+python3 analysis/go/FFT.py DATASET
+python3 analysis/go/FFT.py --group MYGROUP
+python3 analysis/go/Timeseries.py DATASET
+python3 analysis/go/Subtract.py DATASET
+python3 analysis/go/Subtract.py --group MYGROUP
+python3 analysis/go/ClickPeakFind.py SPECTRASAVE
+python3 analysis/go/SpectrasaveView.py SPECTRASAVE
+python3 analysis/go/Wavefunctions.py DATASET PEAKSNAME
+python3 analysis/go/MakeGroup.py DATASET1 DATASET2 MYGROUP
+```
+
+Directory roles:
+
+- `go/` — active user-facing command surface
+- `tools/` — data loading, signal processing, catalog, and helper logic
 - `plotting/` — reusable plotting helpers
-- `viz/` — thin visualization scripts
+- `viz/` — implementation modules still used by `go/` during the refactor
+- `.archive/` — preserved old entry scripts, experiments, and no-longer-primary tools
 
-The analysis layer now treats `track2_permanence.msgpack` as the canonical
-upstream input and derives spacing / velocity in memory instead of relying on a
-persisted Track3 file.
+Notes:
 
-## Layout
-
-```text
-analysis/
-├── configs/
-│   ├── datasets.json
-│   └── trivialdata.json
-├── plotting/
-│   ├── common.py
-│   ├── frequency.py
-│   ├── indexed.py
-│   └── trajectory.py
-├── tools/
-│   ├── cli.py
-│   ├── derived.py
-│   ├── io.py
-│   ├── localization.py
-│   ├── models.py
-│   ├── peaks.py
-│   ├── selection.py
-│   ├── signal.py
-│   └── spectral.py
-└── viz/
-    ├── avg_fft.py
-    ├── avg_fft_sites.py
-    ├── localize_peaks.py
-    ├── localize_sitepeaks.py
-    ├── see_fft.py
-    ├── see_positions.py
-    └── spacing_timeseries.py
-```
-
-## Running scripts
-
-Run them from the `analysis/` directory, for example:
-
-```bash
-python3 viz/see_fft.py IMG_0584
-python3 viz/avg_fft.py configs/datasets.json --normalize relative
-python3 viz/avg_fft_sites.py configs/datasets.json peaks.csv --normalize relative
-python3 viz/localize_peaks.py configs/datasets.json peaks.csv --normalize relative
-python3 viz/localize_sitepeaks.py configs/datasets.json peaks.csv --normalize relative
-python3 viz/see_positions.py IMG_0584 --framestrip
-python3 viz/spacing_timeseries.py IMG_0584
-```
-
-If the sibling `../track/data/` location is not correct, pass:
-
-```bash
---track-data-root /path/to/track/data
-```
-
-## Notes
-
-- The code prioritizes clarity over backward-compatibility.
-- The old Track3 analysis file is no longer required for FFT / localization.
-- `avg_fft_sites.py` is the dedicated replacement for the old overlay behavior
-  that lived in `avg_fft2.py`.
+- The loader understands both old flat component datasets like `DATASET_x` and
+  the new tracking layout under `track/data/DATASET/components/x`.
+- `analysis/viz/` is no longer the recommended place to start from as a user.
+- Older exploratory and one-off `viz/` scripts have been moved into
+  `analysis/.archive/viz/`.

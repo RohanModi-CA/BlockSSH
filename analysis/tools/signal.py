@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import numpy as np
 import scipy.signal as sp_signal
 
@@ -9,6 +11,7 @@ from .models import (
     ProcessedSignal,
     SpectrogramResult,
     TargetFrequencyResult,
+    WelchSpectrumResult,
 )
 
 
@@ -167,6 +170,25 @@ def preprocess_signal(
     ), None
 
 
+def normalize_processed_signal_rms(
+    processed: ProcessedSignal,
+    *,
+    target_rms: float = 100.0,
+) -> tuple[ProcessedSignal | None, float | None, str | None]:
+    y = np.asarray(processed.y, dtype=float)
+    if y.size == 0:
+        return None, None, "empty processed signal"
+    if not np.isfinite(target_rms) or target_rms <= 0:
+        return None, None, "target RMS must be positive and finite"
+
+    rms = float(np.sqrt(np.mean(np.square(y))))
+    if not np.isfinite(rms) or rms <= 0:
+        return None, None, "processed signal RMS is non-positive or invalid"
+
+    scale = float(target_rms) / rms
+    return replace(processed, y=(y * scale)), scale, None
+
+
 def hann_window_symmetric(n: int):
     return sp_signal.windows.hann(n, sym=True)
 
@@ -241,6 +263,55 @@ def compute_complex_spectrogram(y, Fs: float, sliding_len_s: float) -> Spectrogr
         t=t_spec,
         S_complex=S_complex,
         win_samp=win_samp,
+        noverlap=noverlap,
+        nfft=nfft,
+    )
+
+
+def compute_welch_spectrum(
+    y,
+    Fs: float,
+    welch_len_s: float,
+    *,
+    overlap_fraction: float = 0.5,
+) -> WelchSpectrumResult | None:
+    y = np.asarray(y, dtype=float)
+    n = len(y)
+
+    if n < 4:
+        return None
+    if welch_len_s <= 0:
+        raise ValueError("welch_len_s must be > 0")
+    if not (0.0 <= overlap_fraction < 1.0):
+        raise ValueError("overlap_fraction must be in [0, 1)")
+
+    nperseg = max(8, int(round(welch_len_s * Fs)))
+    nperseg = min(nperseg, n)
+    if nperseg < 4:
+        return None
+
+    noverlap = min(int(round(overlap_fraction * nperseg)), nperseg - 1)
+    nfft = max(nperseg, next_power_of_two(nperseg))
+    window = hann_window_periodic(nperseg)
+
+    freq, power = sp_signal.welch(
+        y,
+        fs=Fs,
+        window=window,
+        nperseg=nperseg,
+        noverlap=noverlap,
+        nfft=nfft,
+        detrend=False,
+        return_onesided=True,
+        scaling="spectrum",
+    )
+    amplitude = np.sqrt(np.maximum(power, 0.0))
+
+    return WelchSpectrumResult(
+        freq=freq,
+        power=power,
+        amplitude=amplitude,
+        nperseg=nperseg,
         noverlap=noverlap,
         nfft=nfft,
     )

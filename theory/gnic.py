@@ -15,7 +15,7 @@ def build_mass_pattern(N, m1, m2):
     return m
 
 
-def build_original_dynamical_matrix(N, k, m1, m2):
+def build_original_dynamical_matrix_old(N, k, m1, m2):
     """
     Original displacement-space dynamical matrix H from the mass-spring chain:
         y_ddot = -H y
@@ -36,6 +36,31 @@ def build_original_dynamical_matrix(N, k, m1, m2):
 
     return H, m
 
+def build_original_dynamical_matrix(N, k, m1, m2, g=9.81, L=59*.0254):
+    """
+    H_new = H_old + (g/L)*I
+    """
+    m = build_mass_pattern(N, m1, m2)
+    H = np.zeros((N, N), dtype=float)
+    
+    omega_p_sq = g / L  # Pendulum contribution
+
+    for i in range(N):
+        # Standard Spring terms
+        if i == 0 or i == N - 1:
+            diag_spring = k / m[i]
+        else:
+            diag_spring = 2.0 * k / m[i]
+        
+        # Add the pendulum term to the diagonal
+        H[i, i] = diag_spring + omega_p_sq
+
+        if i > 0:
+            H[i, i - 1] = -k / m[i]
+        if i < N - 1:
+            H[i, i + 1] = -k / m[i]
+
+    return H, m
 
 def build_transformed_matrix_from_H(H, k, m1, m2):
     """
@@ -137,14 +162,17 @@ def build_lineplot_image(freq, fmax, n_cols, n_rows=800):
 def main():
     args = parse_args()
 
-    N = 11
-    k = 0.0056
+    k = 194
 
     m1 = 12.5 / (1000.0 ** 2)
     m2 = 20.4 / (1000.0 ** 2)
+    m1=37e-3
+    m2=74e-3
 
     if args.N is not None:
         N = args.N
+    else:
+        raise ValueError()
 
     if args.m1 is not None:
         m1 = args.m1

@@ -1,128 +1,29 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import importlib.util
+import sys
+from pathlib import Path
+
 if __package__ in (None, ""):
-    import sys
-    from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import argparse
-import sys
 
-import numpy as np
-
-from plotting.common import render_figure
-from plotting.frequency import plot_pair_frequency_grid
-from tools.cli import add_colormap_arg, add_output_args, add_signal_processing_args, add_track2_input_args
-from tools.derived import derive_spacing_dataset
-from tools.io import load_track2_dataset
-from tools.spectral import analyze_spacing_dataset_for_display
-
-
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="FFT and sliding FFT of Track2-derived block spacing.",
-    )
-    add_track2_input_args(parser)
-    add_signal_processing_args(parser)
-    add_colormap_arg(parser)
-    add_output_args(parser, include_title=True)
-
-    parser.add_argument(
-        "--fft-log",
-        action="store_true",
-        help="Use a log y-axis for the FFT curve panel.",
-    )
-
-    sliding_group = parser.add_mutually_exclusive_group()
-    sliding_group.add_argument(
-        "--sliding-log",
-        dest="sliding_plot_scale",
-        action="store_const",
-        const="log",
-        help="Use dB display for the sliding panel (default).",
-    )
-    sliding_group.add_argument(
-        "--sliding-linear",
-        dest="sliding_plot_scale",
-        action="store_const",
-        const="linear",
-        help="Use linear power/amplitude display for the sliding panel.",
-    )
-    parser.set_defaults(sliding_plot_scale="log")
-
-    parser.add_argument("--sliding-len-s", type=float, default=20.0)
-    parser.add_argument("--fft-min-hz", type=float, default=None)
-    parser.add_argument("--fft-max-hz", type=float, default=None)
-    parser.add_argument("--sliding-min-hz", type=float, default=None)
-    parser.add_argument("--sliding-max-hz", type=float, default=None)
-    parser.add_argument("--time-interval-s", nargs=2, type=float, metavar=("START", "STOP"))
-    parser.add_argument("--only", choices=["fft", "sliding"], default=None)
-    parser.add_argument(
-        "--full-image",
-        action="store_true",
-        help="Replace the sliding spectrogram panel with a 2D image of the full FFT spectrum.",
-    )
-    parser.add_argument(
-        "--disable",
-        type=int,
-        action="append",
-        default=[],
-        help="Disable pair index (0-based). Can be used multiple times.",
-    )
-    return parser
+def _load_module():
+    module_path = Path(__file__).resolve().parent / "see_fft_xya.py"
+    spec = importlib.util.spec_from_file_location("analysis_viz_see_fft_xya_impl", module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not load FFT implementation from {module_path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 def main() -> int:
-    parser = build_parser()
-    args = parser.parse_args()
-
-    try:
-        track2 = load_track2_dataset(
-            dataset=args.dataset,
-            track2_path=args.track2,
-            track_data_root=args.track_data_root,
-        )
-        spacing = derive_spacing_dataset(track2)
-        results = analyze_spacing_dataset_for_display(
-            spacing,
-            disabled_indices=args.disable,
-            longest=args.longest,
-            handlenan=args.handlenan,
-            sliding_len_s=args.sliding_len_s,
-        )
-
-        dt = np.diff(track2.frame_times_s)
-        dt = dt[np.isfinite(dt) & (dt > 0)]
-        if dt.size > 0:
-            approx_fs = 1.0 / float(np.median(dt))
-            approx_nyquist = 0.5 * approx_fs
-            print(f"Track2: {track2.track2_path}")
-            print(f"Approx sampling rate: {approx_fs:.4f} Hz | Approx Nyquist: {approx_nyquist:.4f} Hz")
-        else:
-            print(f"Track2: {track2.track2_path}")
-            print("Approx sampling rate: unavailable")
-
-        fig = plot_pair_frequency_grid(
-            results,
-            fft_log=args.fft_log,
-            sliding_plot_scale=args.sliding_plot_scale,
-            only=args.only,
-            full_image=args.full_image,
-            fft_min_hz=args.fft_min_hz,
-            fft_max_hz=args.fft_max_hz,
-            sliding_min_hz=args.sliding_min_hz,
-            sliding_max_hz=args.sliding_max_hz,
-            time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
-            cmap_index=args.cm,
-            title=args.title,
-        )
-        render_figure(fig, save=args.save)
-        return 0
-
-    except Exception as exc:
-        print(f"Error: {exc}", file=sys.stderr)
-        return 1
+    print("Deprecated: analysis/viz/see_fft.py now forwards to analysis/viz/see_fft_xya.py", file=sys.stderr)
+    module = _load_module()
+    return int(module.main())
 
 
 if __name__ == "__main__":

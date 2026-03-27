@@ -1,0 +1,18 @@
+{
+  "dataset": "10IC",
+  "tracking_mode": "bottom_black",
+  "version": 1,
+  "source_video": "Videos/10IC.MOV",
+  "params_file": "params_bottom.json",
+  "track1_file": "track1.msgpack",
+  "labels_file": "",
+  "components": {},
+  "rotation_deg": 0,
+  "crop_rect": {
+    "x0": 0,
+    "x1": null,
+    "y0": 0,
+    "y1": null
+  },
+  "notes": "converted from legacy layout on-disk for 10IC"
+}

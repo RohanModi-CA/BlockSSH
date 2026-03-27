@@ -5,6 +5,18 @@ import argparse
 from .io import get_default_track_data_root
 
 
+class _StoreNormalizeAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None) -> None:
+        setattr(namespace, self.dest, values)
+        setattr(namespace, "normalize_explicit", True)
+
+
+class _StoreRelativeRangeAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None) -> None:
+        setattr(namespace, self.dest, tuple(float(value) for value in values))
+        setattr(namespace, "relative_range_explicit", True)
+
+
 def add_track2_input_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "dataset",
@@ -42,6 +54,11 @@ def add_signal_processing_args(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Discard invalid time/value samples before uniform resampling.",
     )
+    parser.add_argument(
+        "--timeseriesnorm",
+        action="store_true",
+        help="Rescale each processed bond time series to RMS 100 before spectral analysis.",
+    )
 
 
 def add_output_args(parser: argparse.ArgumentParser, *, include_title: bool = False) -> None:
@@ -69,20 +86,34 @@ def add_colormap_arg(parser: argparse.ArgumentParser, *, default: int = 6) -> No
 
 
 def add_normalization_args(parser: argparse.ArgumentParser) -> None:
+    parser.set_defaults(
+        normalize="absolute",
+        normalize_explicit=False,
+        relative_range=(2.0, 8.0),
+        relative_range_explicit=False,
+    )
     parser.add_argument(
         "--normalize",
-        required=True,
+        action=_StoreNormalizeAction,
         choices=["absolute", "relative"],
-        help="Normalization mode.",
+        help="Normalization mode. Default: absolute",
     )
     parser.add_argument(
         "--relative-range",
         nargs=2,
         type=float,
+        action=_StoreRelativeRangeAction,
         metavar=("START_HZ", "STOP_HZ"),
-        default=(2.0, 8.0),
-        help="Relative-normalization band in Hz. Default: 2 8",
+        help="Relative-normalization band in Hz. Default: 2 8. Passing this without --normalize switches normalization to relative automatically.",
     )
+
+
+def resolve_normalization_mode(args: argparse.Namespace) -> str:
+    if getattr(args, "normalize_explicit", False):
+        return str(args.normalize)
+    if getattr(args, "relative_range_explicit", False):
+        return "relative"
+    return str(getattr(args, "normalize", "absolute"))
 
 
 def add_average_domain_args(parser: argparse.ArgumentParser) -> None:
@@ -111,13 +142,61 @@ def add_plot_scale_args(parser: argparse.ArgumentParser) -> None:
         dest="plot_scale",
         action="store_const",
         const="linear",
-        help="Use a linear display scale (default).",
+        help="Use a linear display scale.",
     )
     group.add_argument(
         "--plot-log",
         dest="plot_scale",
         action="store_const",
         const="log",
-        help="Use a log / dB display scale.",
+        help="Use a log / dB display scale (default).",
     )
-    parser.set_defaults(plot_scale="linear")
+    parser.set_defaults(plot_scale="log")
+
+
+def add_peak_integration_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--integration-window-width",
+        type=float,
+        default=0.1,
+        help="Half-width in Hz for the peak-integration windows. Default: 0.1",
+    )
+    parser.add_argument(
+        "--normalization-multiplier",
+        type=float,
+        default=4.0,
+        help="ROI padding multiplier applied to the integration window width. Default: 4",
+    )
+
+
+def add_bond_filter_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--only-bonds",
+        type=int,
+        nargs="+",
+        default=None,
+        help="Keep only these 1-based global bond numbers, e.g. --only-bonds 1 2 9.",
+    )
+    parser.add_argument(
+        "--exclude-bonds",
+        type=int,
+        nargs="+",
+        default=[],
+        help="Exclude these 1-based global bond numbers after any other bond filtering.",
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--odd-bonds",
+        dest="bond_parity",
+        action="store_const",
+        const="odd",
+        help="Keep only odd 1-based bond numbers.",
+    )
+    group.add_argument(
+        "--even-bonds",
+        dest="bond_parity",
+        action="store_const",
+        const="even",
+        help="Keep only even 1-based bond numbers.",
+    )
+    parser.set_defaults(bond_parity=None)

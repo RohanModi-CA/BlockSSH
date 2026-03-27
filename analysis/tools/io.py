@@ -9,30 +9,63 @@ from .models import Track2Dataset
 
 
 DEFAULT_TRACK_DATA_ROOT = (Path(__file__).resolve().parents[2] / "track" / "data").resolve()
+COMPONENT_SUFFIXES = ("x", "y", "a")
 
 
 def get_default_track_data_root() -> Path:
     return DEFAULT_TRACK_DATA_ROOT
 
 
+def _split_dataset_component(dataset: str) -> tuple[str, str | None]:
+    text = str(dataset).strip()
+    for suffix in COMPONENT_SUFFIXES:
+        token = f"_{suffix}"
+        if text.endswith(token):
+            return text[: -len(token)], suffix
+    return text, None
+
+
+def _base_candidates(dataset: str) -> list[str]:
+    base = str(dataset).strip()
+    if base.startswith("IMG_"):
+        return [base]
+    return [base, f"IMG_{base}"]
+
+
+def _candidate_dataset_dirs(root: Path, dataset: str) -> list[Path]:
+    base_name, component = _split_dataset_component(dataset)
+    candidates: list[Path] = []
+    for base in _base_candidates(base_name):
+        if component is None:
+            # New track layout defaults bare DATASET to x.
+            candidates.append(root / base / "components" / "x")
+            candidates.append(root / base)
+        else:
+            candidates.append(root / base / "components" / component)
+            candidates.append(root / f"{base}_{component}")
+    return candidates
+
+
 def dataset_dir_from_name(dataset: str, track_data_root: str | Path | None = None) -> Path:
     root = Path(track_data_root) if track_data_root is not None else DEFAULT_TRACK_DATA_ROOT
-    dataset_path: Path = root / dataset
+    for dataset_path in _candidate_dataset_dirs(root, dataset):
+        if dataset_path.exists():
+            return dataset_path
 
-    if not (Path.exists(dataset_path)):
-        # check if we can make it exist with IMG_ in front of it.
-        img_dataset = str("IMG_" + dataset)
-        img_dataset_path: Path = root / img_dataset
-        old_dataset_path = dataset_path
-        dataset_path = img_dataset_path
-        
-        if not(Path.exists(dataset_path)):
-            raise FileNotFoundError(f"Neither {str(old_dataset_path)} nor {str(img_dataset_path)} exists.")
-
-    return dataset_path
+    tried = ", ".join(str(path) for path in _candidate_dataset_dirs(root, dataset))
+    raise FileNotFoundError(f"Could not resolve dataset '{dataset}'. Tried: {tried}")
 
 
 def default_track2_path(dataset: str, track_data_root: str | Path | None = None) -> Path:
+    root = Path(track_data_root) if track_data_root is not None else DEFAULT_TRACK_DATA_ROOT
+    candidates = _candidate_dataset_dirs(root, dataset)
+    for dataset_path in candidates:
+        track2_path = dataset_path / "track2_permanence.msgpack"
+        if track2_path.is_file():
+            return track2_path
+
+    if len(candidates) > 0:
+        return candidates[0] / "track2_permanence.msgpack"
     return dataset_dir_from_name(dataset, track_data_root=track_data_root) / "track2_permanence.msgpack"
 
 

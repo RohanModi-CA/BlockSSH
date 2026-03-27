@@ -78,6 +78,16 @@ class SpectrogramResult:
 
 
 @dataclass(frozen=True)
+class WelchSpectrumResult:
+    freq: np.ndarray
+    power: np.ndarray
+    amplitude: np.ndarray
+    nperseg: int
+    noverlap: int
+    nfft: int
+
+
+@dataclass(frozen=True)
 class TargetFrequencyResult:
     target_freq: float
     selected_freq: float
@@ -106,11 +116,42 @@ class AverageSpectrumResult:
 
 
 @dataclass(frozen=True)
+class AveragedAmplitudeSpectrum:
+    freq_grid: np.ndarray
+    mean_amplitude: np.ndarray
+    freq_low: float
+    freq_high: float
+    contributors: list[SpectrumContribution]
+
+
+@dataclass(frozen=True)
+class ProcessedSpectrumWindow:
+    low_hz: float
+    high_hz: float
+    freq: np.ndarray
+    raw_amplitude: np.ndarray
+    detrended_amplitude: np.ndarray
+    shifted_amplitude: np.ndarray
+    integral: float
+
+
+@dataclass(frozen=True)
 class PairFrequencyAnalysisResult:
     pair_index: int
     label: str
     processed: ProcessedSignal | None
     fft_result: FFTResult | None
+    spectrogram_result: SpectrogramResult | None
+    error_message: str | None = None
+    spectrogram_error_message: str | None = None
+
+
+@dataclass(frozen=True)
+class PairWelchFrequencyAnalysisResult:
+    pair_index: int
+    label: str
+    processed: ProcessedSignal | None
+    welch_result: WelchSpectrumResult | None
     spectrogram_result: SpectrogramResult | None
     error_message: str | None = None
     spectrogram_error_message: str | None = None
@@ -123,3 +164,52 @@ class LocalizationProfile:
     entity_ids: np.ndarray
     mean_amplitudes: np.ndarray
     std_amplitudes: np.ndarray
+
+
+@dataclass(frozen=True)
+class LocalizationPeakDiagnostic:
+    peak_index: int
+    target_frequency: float
+    selected_frequency: float
+    found: bool
+    window_low: float
+    window_high: float
+    display_freq: np.ndarray
+    display_amplitude: np.ndarray
+
+
+@dataclass(frozen=True)
+class PeakWindowIntegral:
+    peak_hz: float
+    low_hz: float
+    high_hz: float
+    integrated_amplitude: float
+
+
+@dataclass(frozen=True)
+class BondSiteAmplitudeResult:
+    bond_id: int
+    display_bond_index: int
+    contributors: list[SpectrumContribution]
+    freq_grid: np.ndarray
+    mean_amplitude: np.ndarray
+    roi_low: float
+    roi_high: float
+    roi_freq: np.ndarray
+    roi_mean_amplitude: np.ndarray
+    roi_detrended_amplitude: np.ndarray
+    roi_shifted_amplitude: np.ndarray
+    roi_normalized_amplitude: np.ndarray
+    normalization_integral: float
+    peak_integrals: list[PeakWindowIntegral]
+
+
+@dataclass(frozen=True)
+class SiteAmplitudeAnalysisResult:
+    peaks: np.ndarray
+    integration_window_width: float
+    normalization_multiplier: float
+    roi_low: float
+    roi_high: float
+    bonds: list[BondSiteAmplitudeResult]
+    profiles: list[LocalizationProfile]

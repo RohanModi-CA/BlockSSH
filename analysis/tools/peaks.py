@@ -3,6 +3,30 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
+import numpy as np
+
+
+DEFAULT_PEAKS_DIR = Path(__file__).resolve().parents[1] / "configs" / "peaks"
+
+
+def resolve_peaks_csv(name_or_path: str | Path, peaks_dir: str | Path | None = None) -> Path:
+    path = Path(name_or_path)
+    if path.is_file():
+        return path
+
+    root = Path(peaks_dir) if peaks_dir is not None else DEFAULT_PEAKS_DIR
+    text = str(name_or_path).strip()
+    candidates = [
+        root / text,
+        root / f"{text}.csv",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+
+    tried = ", ".join(str(candidate) for candidate in candidates)
+    raise FileNotFoundError(f"Peaks file not found for '{name_or_path}'. Tried: {tried}")
+
 
 def load_peaks_csv(path: str | Path) -> list[float]:
     path = Path(path)
@@ -28,6 +52,20 @@ def load_peaks_csv(path: str | Path) -> list[float]:
         raise ValueError("No valid positive floating point peaks found in CSV")
 
     return peaks
+
+
+def assert_peaks_strictly_increasing(peaks: list[float] | np.ndarray) -> np.ndarray:
+    peaks_arr = np.asarray(peaks, dtype=float)
+    if peaks_arr.ndim != 1 or peaks_arr.size == 0:
+        raise ValueError("Peaks must be a non-empty 1D sequence")
+    if not np.all(np.isfinite(peaks_arr)):
+        raise ValueError("Peaks must all be finite")
+    if np.any(peaks_arr <= 0):
+        raise ValueError("Peaks must all be positive")
+    diffs = np.diff(peaks_arr)
+    if np.any(diffs <= 0):
+        raise ValueError("CSV peaks must be strictly increasing from lowest to highest")
+    return peaks_arr
 
 
 def select_active_peak_indices(

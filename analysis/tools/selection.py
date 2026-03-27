@@ -4,6 +4,7 @@ import json
 import warnings
 from collections import OrderedDict
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -11,16 +12,102 @@ from .derived import derive_spacing_dataset
 from .io import load_track2_dataset
 from .models import DatasetSelection, SignalRecord, Track2Dataset
 
+CANONICAL_COMPONENTS = ("x", "y", "a")
 
-def load_dataset_selection(path: str | Path) -> OrderedDict[str, DatasetSelection]:
+
+def _prompt_yes_no(prompt: str) -> bool:
+    response = input(prompt).strip().lower()
+    return response in {"y", "yes"}
+
+
+def _prompt_component_choice(prompt: str, available: list[str]) -> str:
+    allowed = set(available)
+    default_choice = "x" if "x" in allowed else available[0]
+    while True:
+        response = input(prompt).strip().lower()
+        if response == "":
+            return default_choice
+        if response in allowed:
+            return response
+        print(f"Please choose one of: {', '.join(available)} [default: {default_choice}]")
+
+
+def _logical_component_to_physical_suffix(contains: list[str]) -> dict[str, str]:
+    return {
+        logical_component: CANONICAL_COMPONENTS[idx]
+        for idx, logical_component in enumerate(contains)
+    }
+
+
+def _shared_logical_components(component_entries: list[tuple[str, dict[str, Any]]]) -> list[str]:
+    if len(component_entries) == 0:
+        return []
+
+    shared = set(component_entries[0][1]["contains"])
+    for _, entry in component_entries[1:]:
+        shared &= set(entry["contains"])
+
+    return [component for component in CANONICAL_COMPONENTS if component in shared]
+
+
+def _resolve_component_dataset_names(
+    raw_entries: OrderedDict[str, dict[str, Any]]
+) -> list[tuple[str, bool, list[int], list[int]]]:
+    component_entries = [
+        (dataset_name, entry)
+        for dataset_name, entry in raw_entries.items()
+        if entry["include"] and entry["contains"] is not None
+    ]
+    component_choice_by_dataset: dict[str, str] = {}
+
+    if component_entries:
+        same_choice = _prompt_yes_no(
+            "Use the same component for all datasets with 'contains'? [y/N] "
+        )
+        if same_choice:
+            shared_available = _shared_logical_components(component_entries)
+            if len(shared_available) == 0:
+                raise ValueError("No overlapping logical components exist across the included datasets")
+            shared_choice = _prompt_component_choice(
+                f"Which component should be used for all of them ({'/'.join(shared_available)})? ",
+                shared_available,
+            )
+            for dataset_name, entry in component_entries:
+                component_choice_by_dataset[dataset_name] = shared_choice
+        else:
+            for dataset_name, entry in component_entries:
+                component_choice_by_dataset[dataset_name] = _prompt_component_choice(
+                    f"Dataset '{dataset_name}' component ({'/'.join(entry['contains'])})? ",
+                    entry["contains"],
+                )
+
+    resolved: list[tuple[str, bool, list[int], list[int]]] = []
+    for dataset_name, entry in raw_entries.items():
+        include = entry["include"]
+        discards = entry["discards"]
+        pair_ids = entry["pair_ids"]
+        contains = entry["contains"]
+        if include and contains is not None:
+            physical_suffix = _logical_component_to_physical_suffix(contains)[
+                component_choice_by_dataset[dataset_name]
+            ]
+            resolved_name = f"{dataset_name}_{physical_suffix}"
+        else:
+            resolved_name = dataset_name
+        resolved.append((resolved_name, include, discards, pair_ids))
+    return resolved
+
+
+def load_dataset_selection_entries(path: str | Path) -> OrderedDict[str, dict[str, Any]]:
     with open(path, "r", encoding="utf-8") as f:
         cfg = json.load(f, object_pairs_hook=OrderedDict)
 
     if not isinstance(cfg, dict) or len(cfg) == 0:
         raise ValueError("Top-level JSON must be a non-empty object keyed by dataset stem")
 
-    validated: OrderedDict[str, DatasetSelection] = OrderedDict()
+    validated: OrderedDict[str, dict[str, Any]] = OrderedDict()
     required = {"include", "discards", "pair_ids"}
+    valid_contains = {"x", "y", "a"}
 
     for dataset_name, entry in cfg.items():
         if not isinstance(dataset_name, str) or not dataset_name:
@@ -61,7 +148,45 @@ def load_dataset_selection(path: str | Path) -> OrderedDict[str, DatasetSelectio
                 )
             pair_ids_out.append(int(pair_id))
 
-        validated[dataset_name] = DatasetSelection(
+        contains = entry.get("contains")
+        contains_out: list[str] | None = None
+        if contains is not None:
+            if not isinstance(contains, list) or len(contains) == 0:
+                raise ValueError(
+                    f"Dataset '{dataset_name}' field 'contains' must be a non-empty list when provided"
+                )
+            contains_out = []
+            for axis in contains:
+                if not isinstance(axis, str) or axis not in valid_contains:
+                    raise ValueError(
+                        f"Dataset '{dataset_name}' has invalid contains entry {axis!r}; expected one of {sorted(valid_contains)}"
+                    )
+                if axis in contains_out:
+                    raise ValueError(
+                        f"Dataset '{dataset_name}' field 'contains' may not contain duplicates"
+                    )
+                contains_out.append(axis)
+            if len(contains_out) > len(CANONICAL_COMPONENTS):
+                raise ValueError(
+                    f"Dataset '{dataset_name}' field 'contains' has too many entries"
+                )
+
+        validated[dataset_name] = {
+            "include": include,
+            "discards": discards_out,
+            "pair_ids": pair_ids_out,
+            "contains": contains_out,
+        }
+
+    return validated
+
+
+def load_dataset_selection(path: str | Path) -> OrderedDict[str, DatasetSelection]:
+    raw_entries = load_dataset_selection_entries(path)
+    validated: OrderedDict[str, DatasetSelection] = OrderedDict()
+
+    for resolved_name, include, discards_out, pair_ids_out in _resolve_component_dataset_names(raw_entries):
+        validated[resolved_name] = DatasetSelection(
             include=include,
             discards=discards_out,
             pair_ids=pair_ids_out,
@@ -112,7 +237,7 @@ def _build_site_signal_records_for_dataset(
     track2: Track2Dataset,
 ) -> list[SignalRecord]:
     x_positions = np.asarray(track2.x_positions, dtype=float)
-    n_frames, n_blocks = x_positions.shape
+    _, n_blocks = x_positions.shape
     n_pairs = max(0, n_blocks - 1)
 
     remaining_local_bonds = [i for i in range(n_pairs) if i not in set(selection.discards)]
@@ -186,6 +311,26 @@ def build_configured_bond_signals(
     return records
 
 
+def build_grouped_configured_bond_signals(
+    config: OrderedDict[str, DatasetSelection],
+    *,
+    track_data_root: str | None = None,
+) -> OrderedDict[int, list[SignalRecord]]:
+    grouped: OrderedDict[int, list[SignalRecord]] = OrderedDict()
+
+    for dataset_name, selection in config.items():
+        if not selection.include:
+            continue
+
+        track2 = load_track2_dataset(dataset=dataset_name, track_data_root=track_data_root)
+        dataset_records = _build_bond_signal_records_for_dataset(dataset_name, selection, track2)
+
+        for record in dataset_records:
+            grouped.setdefault(int(record.entity_id), []).append(record)
+
+    return grouped
+
+
 def build_configured_site_signals(
     config: OrderedDict[str, DatasetSelection],
     *,
@@ -213,3 +358,52 @@ def build_configured_site_signals(
             seen_ids.add(record.entity_id)
 
     return records
+
+
+def _normalize_display_bond_numbers(values: list[int] | None, *, arg_name: str) -> list[int] | None:
+    if values is None:
+        return None
+
+    out: list[int] = []
+    for value in values:
+        if int(value) < 1:
+            raise ValueError(f"{arg_name} values must be positive 1-based bond numbers")
+        out.append(int(value))
+    return sorted(set(out))
+
+
+def collect_display_bond_numbers(records: list[SignalRecord]) -> list[int]:
+    return sorted({int(record.entity_id) + 1 for record in records})
+
+
+def filter_signal_records_by_display_bonds(
+    records: list[SignalRecord],
+    *,
+    only_bonds: list[int] | None = None,
+    exclude_bonds: list[int] | None = None,
+    parity: str | None = None,
+) -> list[SignalRecord]:
+    only_set = set(_normalize_display_bond_numbers(only_bonds, arg_name="--only-bonds") or [])
+    exclude_set = set(_normalize_display_bond_numbers(exclude_bonds, arg_name="--exclude-bonds") or [])
+
+    if only_set and (only_set & exclude_set):
+        overlap = sorted(only_set & exclude_set)
+        raise ValueError(f"Bond numbers cannot appear in both --only-bonds and --exclude-bonds: {overlap}")
+
+    if parity not in {None, "odd", "even"}:
+        raise ValueError("parity must be one of None, 'odd', or 'even'")
+
+    filtered: list[SignalRecord] = []
+    for record in records:
+        display_bond = int(record.entity_id) + 1
+        if only_set and display_bond not in only_set:
+            continue
+        if display_bond in exclude_set:
+            continue
+        if parity == "odd" and display_bond % 2 == 0:
+            continue
+        if parity == "even" and display_bond % 2 != 0:
+            continue
+        filtered.append(record)
+
+    return filtered

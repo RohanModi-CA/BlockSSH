@@ -1,0 +1,18 @@
+{
+  "dataset": "IMG_0662b_rot90_a",
+  "tracking_mode": "legacy_import",
+  "version": 1,
+  "source_video": "",
+  "params_file": "",
+  "track1_file": "",
+  "labels_file": "",
+  "components": {},
+  "rotation_deg": 0,
+  "crop_rect": {
+    "x0": 0,
+    "x1": null,
+    "y0": 0,
+    "y1": null
+  },
+  "notes": "converted from legacy layout on-disk for IMG_0662b_rot90_a"
+}

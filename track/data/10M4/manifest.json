@@ -1,0 +1,18 @@
+{
+  "dataset": "10M4",
+  "tracking_mode": "bottom_black",
+  "version": 1,
+  "source_video": "Videos/10M4.MOV",
+  "params_file": "params_bottom.json",
+  "track1_file": "track1.msgpack",
+  "labels_file": "labels.json",
+  "components": {},
+  "rotation_deg": 0,
+  "crop_rect": {
+    "x0": 0,
+    "x1": null,
+    "y0": 0,
+    "y1": null
+  },
+  "notes": "converted from legacy layout on-disk for 10M4"
+}
