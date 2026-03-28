@@ -226,9 +226,10 @@ def adjust_params_interactive(params: BottomTrackingParams) -> BottomTrackingPar
     print("\n[Step 4 — Tune Parameters]")
     print("  Format:  param_name value")
     print("  Example: min_area 70000")
-    print("  Type 'done' to continue.")
+    print("  Type 'help' to list all parameters, or 'done' to continue.")
 
     fld_map = {field.name: field for field in dc_fields(params)}
+    default_params = BottomTrackingParams.defaults()
     while True:
         try:
             line = input("> ").strip()
@@ -236,6 +237,13 @@ def adjust_params_interactive(params: BottomTrackingParams) -> BottomTrackingPar
             break
         if not line or line.lower() == "done":
             break
+        if line.lower() == "help":
+            print("  Editable parameters:")
+            for key in sorted(name for name in fld_map if name != "crop_rect"):
+                current_val = getattr(params, key)
+                default_val = getattr(default_params, key)
+                print(f"    {key}: current={current_val!r}  default={default_val!r}")
+            continue
         parts = line.split(None, 1)
         if len(parts) != 2:
             print("  Format: param_name value")

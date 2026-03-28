@@ -31,7 +31,16 @@ else
     export BLOCKSSSH_PYTHON_BIN="$(command -v python3)"
 fi
 
-"$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/scripts/build_completion_cache.py" >/dev/null 2>&1 || true
+if ! "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/scripts/build_completion_cache.py"; then
+    echo "Warning: failed to build BlocksSSH completion cache." >&2
+fi
+
+_blocksssh_supports_assoc_arrays() {
+    unset _blocksssh_assoc_test
+    declare -A _blocksssh_assoc_test=() || return 1
+    _blocksssh_assoc_test["foo/bar"]="ok" || return 1
+    [[ "${_blocksssh_assoc_test["foo/bar"]}" == "ok" ]]
+}
 
 bfft() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/FFT.py" "$@"; }
 bts() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/Timeseries.py" "$@"; }
@@ -50,10 +59,20 @@ btrackbatch() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/B1.BatchTr
 bprocbatch() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/track/Bottom/B2.BatchProcessVerify.py" "$@"; }
 alias reactivate='source "$BLOCKSSSH_ROOT/activate"'
 
-# shellcheck disable=SC1090
-[[ -f "$BLOCKSSSH_ROOT/.analysis/completion_cache.sh" ]] && source "$BLOCKSSSH_ROOT/.analysis/completion_cache.sh"
-# shellcheck disable=SC1090
-source "$BLOCKSSSH_ROOT/shell/completion.bash"
+if _blocksssh_supports_assoc_arrays; then
+    # shellcheck disable=SC1090
+    if [[ -f "$BLOCKSSSH_ROOT/.analysis/completion_cache.sh" ]]; then
+        if ! source "$BLOCKSSSH_ROOT/.analysis/completion_cache.sh"; then
+            echo "Warning: failed to load BlocksSSH completion cache from $BLOCKSSSH_ROOT/.analysis/completion_cache.sh" >&2
+        fi
+    fi
+    # shellcheck disable=SC1090
+    if ! source "$BLOCKSSSH_ROOT/shell/completion.bash"; then
+        echo "Warning: failed to load BlocksSSH shell completions from $BLOCKSSSH_ROOT/shell/completion.bash" >&2
+    fi
+else
+    echo "Warning: associative arrays are unavailable in this bash; BlocksSSH shell completions disabled." >&2
+fi
 
 if [[ -n "$_blocksssh_venv_activated" ]]; then
     echo "BlocksSSH activated with venv: $_blocksssh_venv_activated"
