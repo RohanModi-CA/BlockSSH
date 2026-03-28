@@ -56,9 +56,9 @@ def _resolve_requested_component(
             raise ValueError(f"Default bond spacing mode does not support component '{resolved}'")
         return resolved
 
-    if resolved not in {"x", "y"}:
+    if resolved not in {"x", "y", "a"}:
         raise ValueError(
-            f"Comoving bond spacing mode requires component 'x' or 'y'; got '{resolved}'"
+            f"Comoving bond spacing mode does not support component '{resolved}'"
         )
     return resolved
 
@@ -194,6 +194,22 @@ def load_bond_signal_dataset(
         raise ValueError("Comoving bond spacing mode requires a dataset name or track2 path")
 
     base_dataset, _ = split_dataset_component(resolved_dataset_name)
+    if requested_component == "a":
+        track2_a = load_track2_dataset(
+            dataset=join_dataset_component(base_dataset, "a"),
+            track_data_root=track_data_root,
+        )
+        spacing = derive_spacing_dataset(track2_a)
+        return BondSignalDataset(
+            dataset_name=resolved_dataset_name,
+            component=requested_component,
+            mode=mode,
+            pair_labels=list(spacing.pair_labels),
+            signal_matrix=np.asarray(spacing.spacing_matrix, dtype=float),
+            frame_times_s=np.asarray(track2_a.frame_times_s, dtype=float),
+            source_path=str(track2_a.track2_path),
+        )
+
     track2_x = load_track2_dataset(
         dataset=join_dataset_component(base_dataset, "x"),
         track_data_root=track_data_root,
