@@ -8,7 +8,7 @@ from typing import Any
 
 import numpy as np
 
-from .derived import derive_spacing_dataset
+from .bonds import load_bond_signal_dataset
 from .io import load_track2_dataset
 from .models import DatasetSelection, SignalRecord, Track2Dataset
 
@@ -198,10 +198,16 @@ def load_dataset_selection(path: str | Path) -> OrderedDict[str, DatasetSelectio
 def _build_bond_signal_records_for_dataset(
     dataset_name: str,
     selection: DatasetSelection,
-    track2: Track2Dataset,
+    *,
+    track_data_root: str | None = None,
+    bond_spacing_mode: str = "default",
 ) -> list[SignalRecord]:
-    spacing = derive_spacing_dataset(track2)
-    n_pairs = int(spacing.spacing_matrix.shape[1])
+    bond_dataset = load_bond_signal_dataset(
+        dataset=dataset_name,
+        track_data_root=track_data_root,
+        bond_spacing_mode=bond_spacing_mode,
+    )
+    n_pairs = int(bond_dataset.signal_matrix.shape[1])
 
     remaining_local_indices = [
         local_idx for local_idx in range(n_pairs) if local_idx not in set(selection.discards)
@@ -215,7 +221,7 @@ def _build_bond_signal_records_for_dataset(
 
     records: list[SignalRecord] = []
     for local_idx, requested_pair_id in zip(remaining_local_indices, selection.pair_ids):
-        label = spacing.pair_labels[local_idx] if local_idx < len(spacing.pair_labels) else "?"
+        label = bond_dataset.pair_labels[local_idx] if local_idx < len(bond_dataset.pair_labels) else "?"
         records.append(
             SignalRecord(
                 dataset_name=dataset_name,
@@ -223,9 +229,9 @@ def _build_bond_signal_records_for_dataset(
                 local_index=int(local_idx),
                 label=str(label).lower(),
                 signal_kind="bond",
-                source_path=track2.track2_path,
-                t=track2.frame_times_s,
-                y=np.asarray(spacing.spacing_matrix[:, local_idx], dtype=float),
+                source_path=bond_dataset.source_path,
+                t=np.asarray(bond_dataset.frame_times_s, dtype=float),
+                y=np.asarray(bond_dataset.signal_matrix[:, local_idx], dtype=float),
             )
         )
     return records
@@ -287,6 +293,7 @@ def build_configured_bond_signals(
     *,
     track_data_root: str | None = None,
     allow_duplicate_ids: bool = False,
+    bond_spacing_mode: str = "default",
 ) -> list[SignalRecord]:
     records: list[SignalRecord] = []
     seen_ids: set[int] = set()
@@ -295,8 +302,12 @@ def build_configured_bond_signals(
         if not selection.include:
             continue
 
-        track2 = load_track2_dataset(dataset=dataset_name, track_data_root=track_data_root)
-        dataset_records = _build_bond_signal_records_for_dataset(dataset_name, selection, track2)
+        dataset_records = _build_bond_signal_records_for_dataset(
+            dataset_name,
+            selection,
+            track_data_root=track_data_root,
+            bond_spacing_mode=bond_spacing_mode,
+        )
 
         for record in dataset_records:
             if (not allow_duplicate_ids) and (record.entity_id in seen_ids):
@@ -315,6 +326,7 @@ def build_grouped_configured_bond_signals(
     config: OrderedDict[str, DatasetSelection],
     *,
     track_data_root: str | None = None,
+    bond_spacing_mode: str = "default",
 ) -> OrderedDict[int, list[SignalRecord]]:
     grouped: OrderedDict[int, list[SignalRecord]] = OrderedDict()
 
@@ -322,8 +334,12 @@ def build_grouped_configured_bond_signals(
         if not selection.include:
             continue
 
-        track2 = load_track2_dataset(dataset=dataset_name, track_data_root=track_data_root)
-        dataset_records = _build_bond_signal_records_for_dataset(dataset_name, selection, track2)
+        dataset_records = _build_bond_signal_records_for_dataset(
+            dataset_name,
+            selection,
+            track_data_root=track_data_root,
+            bond_spacing_mode=bond_spacing_mode,
+        )
 
         for record in dataset_records:
             grouped.setdefault(int(record.entity_id), []).append(record)

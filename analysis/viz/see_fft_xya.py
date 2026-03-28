@@ -21,10 +21,18 @@ from plotting.frequency import (
     plot_pair_frequency_grid,
     plot_pair_welch_frequency_grid,
 )
-from tools.cli import add_colormap_arg, add_output_args, add_signal_processing_args, add_track2_input_args
-from tools.derived import derive_spacing_dataset
+from tools.bonds import load_bond_signal_dataset
+from tools.cli import (
+    add_bond_spacing_mode_arg,
+    add_colormap_arg,
+    add_frequency_window_args,
+    add_output_args,
+    add_signal_processing_args,
+    add_track2_input_args,
+    validate_frequency_window_args,
+)
 from tools.io import load_track2_dataset
-from tools.models import AverageSpectrumResult, FFTResult, SignalRecord, SpectrumContribution
+from tools.models import AverageSpectrumResult, FFTResult, SignalRecord, SpectrumContribution, SpacingDataset
 from tools.spectrasave import (
     add_spectrasave_arg,
     build_default_spectrasave_name,
@@ -38,6 +46,20 @@ from tools.spectral import (
 )
 
 COMPONENT_SUFFIXES = ("x", "y", "a")
+
+
+def _spacing_dataset_from_track2(track2, *, bond_spacing_mode: str, component: str | None = None) -> SpacingDataset:
+    bond_dataset = load_bond_signal_dataset(
+        dataset=track2.dataset_name,
+        track2_path=track2.track2_path,
+        bond_spacing_mode=bond_spacing_mode,
+        component=component,
+    )
+    return SpacingDataset(
+        track2=track2,
+        pair_labels=list(bond_dataset.pair_labels),
+        spacing_matrix=np.asarray(bond_dataset.signal_matrix, dtype=float),
+    )
 
 
 def _parse_bool_arg(value: str) -> bool:
@@ -54,6 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Overlay FFT or Welch spectra and show per-component sliding FFTs for Track2-derived block spacing.",
     )
     add_track2_input_args(parser)
+    add_bond_spacing_mode_arg(parser)
     add_signal_processing_args(parser)
     add_colormap_arg(parser)
     add_output_args(parser, include_title=True)
@@ -111,12 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--welch-len-s", type=float, default=100.0)
     parser.add_argument("--welch-overlap", type=float, default=0.5)
-    parser.add_argument("--fft-min-hz", type=float, default=None)
-    parser.add_argument("--fft-max-hz", type=float, default=None)
-    parser.add_argument("--welch-min-hz", type=float, default=None)
-    parser.add_argument("--welch-max-hz", type=float, default=None)
-    parser.add_argument("--sliding-min-hz", type=float, default=None)
-    parser.add_argument("--sliding-max-hz", type=float, default=None)
+    add_frequency_window_args(parser)
     parser.add_argument("--time-interval-s", nargs=2, type=float, metavar=("START", "STOP"))
     parser.add_argument("--only", choices=["fft", "sliding"], default=None)
     parser.add_argument(
@@ -261,7 +279,11 @@ def _load_component_results(args) -> tuple[dict[str, list], dict[str, object]]:
             missing_components.append(component)
             continue
 
-        spacing = derive_spacing_dataset(track2)
+        spacing = _spacing_dataset_from_track2(
+            track2,
+            bond_spacing_mode=args.bond_spacing_mode,
+            component=component,
+        )
         if args.welch:
             results = analyze_spacing_dataset_with_welch_for_display(
                 spacing,
@@ -346,7 +368,11 @@ def _load_single_results(args):
         track2_path=args.track2,
         track_data_root=args.track_data_root,
     )
-    spacing = derive_spacing_dataset(track2)
+    spacing = _spacing_dataset_from_track2(
+        track2,
+        bond_spacing_mode=args.bond_spacing_mode,
+        component=_strip_component_suffix(track2.dataset_name or "") if track2.dataset_name is not None else None,
+    )
     results = _analyze_spacing(args, spacing)
     _print_track2_summary(track2)
     return results, track2
@@ -558,6 +584,11 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
+    freq_window_error = validate_frequency_window_args(args)
+    if freq_window_error is not None:
+        print(freq_window_error, file=sys.stderr)
+        return 1
+
     try:
         component_results, component_track2 = _load_component_results(args)
         if len(component_results) == 0:
@@ -592,10 +623,10 @@ def main() -> int:
                         only="welch" if args.only == "fft" else args.only,
                         full_image=args.full_image,
                         full_couple=args.full_couple,
-                        welch_min_hz=args.welch_min_hz,
-                        welch_max_hz=args.welch_max_hz,
-                        sliding_min_hz=args.sliding_min_hz,
-                        sliding_max_hz=args.sliding_max_hz,
+                        welch_min_hz=args.freq_min_hz,
+                        welch_max_hz=args.freq_max_hz,
+                        sliding_min_hz=args.freq_min_hz,
+                        sliding_max_hz=args.freq_max_hz,
                         time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                         cmap_index=args.cm,
                         title=args.title,
@@ -608,10 +639,10 @@ def main() -> int:
                         only=args.only,
                         full_image=args.full_image,
                         full_couple=args.full_couple,
-                        fft_min_hz=args.fft_min_hz,
-                        fft_max_hz=args.fft_max_hz,
-                        sliding_min_hz=args.sliding_min_hz,
-                        sliding_max_hz=args.sliding_max_hz,
+                        fft_min_hz=args.freq_min_hz,
+                        fft_max_hz=args.freq_max_hz,
+                        sliding_min_hz=args.freq_min_hz,
+                        sliding_max_hz=args.freq_max_hz,
                         time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                         cmap_index=args.cm,
                         title=args.title,
@@ -661,12 +692,12 @@ def main() -> int:
                     full_image=args.full_image,
                     full_couple=args.full_couple,
                     use_welch=args.welch,
-                    fft_min_hz=args.fft_min_hz,
-                    fft_max_hz=args.fft_max_hz,
-                    welch_min_hz=args.welch_min_hz,
-                    welch_max_hz=args.welch_max_hz,
-                    sliding_min_hz=args.sliding_min_hz,
-                    sliding_max_hz=args.sliding_max_hz,
+                    fft_min_hz=args.freq_min_hz,
+                    fft_max_hz=args.freq_max_hz,
+                    welch_min_hz=args.freq_min_hz,
+                    welch_max_hz=args.freq_max_hz,
+                    sliding_min_hz=args.freq_min_hz,
+                    sliding_max_hz=args.freq_max_hz,
                     time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                     cmap_index=args.cm,
                     title=args.title,

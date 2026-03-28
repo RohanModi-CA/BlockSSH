@@ -24,6 +24,7 @@ from plotting.frequency import COMPONENT_COLORS, _plot_frequency_image
 from tools.cli import (
     add_average_domain_args,
     add_bond_filter_args,
+    add_bond_spacing_mode_arg,
     add_colormap_arg,
     add_normalization_args,
     add_output_args,
@@ -187,6 +188,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("config_json", help="Dataset-selection JSON file.")
     add_track_data_root_arg(parser)
+    add_bond_spacing_mode_arg(parser)
     add_normalization_args(parser)
     add_average_domain_args(parser)
     add_plot_scale_args(parser)
@@ -541,6 +543,7 @@ def _compute_component_results(args, groups: list[ShowGroup]):
             config,
             track_data_root=args.track_data_root,
             allow_duplicate_ids=args.allow_duplicate_bonds,
+            bond_spacing_mode=args.bond_spacing_mode,
         )
         component_available = collect_display_bond_numbers(records)
         records = filter_signal_records_by_display_bonds(
@@ -616,6 +619,7 @@ def _compute_external_subtraction_results(args, groups: list[ShowGroup]) -> tupl
             config,
             track_data_root=args.track_data_root,
             allow_duplicate_ids=args.allow_duplicate_bonds,
+            bond_spacing_mode=args.bond_spacing_mode,
         )
         available_display_bonds = collect_display_bond_numbers(records)
         records = filter_signal_records_by_display_bonds(

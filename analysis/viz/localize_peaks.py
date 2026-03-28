@@ -18,6 +18,7 @@ from tools.bond_phase import (
 from plotting.common import render_figure
 from plotting.indexed import plot_localization_profiles
 from tools.cli import (
+    add_bond_spacing_mode_arg,
     add_normalization_args,
     add_output_args,
     add_signal_processing_args,
@@ -37,6 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("config_json", help="Dataset-selection JSON file.")
     parser.add_argument("peaks_csv", help="CSV file containing peak frequencies.")
     add_track_data_root_arg(parser)
+    add_bond_spacing_mode_arg(parser)
     add_normalization_args(parser)
     add_signal_processing_args(parser)
     add_output_args(parser, include_title=True)
@@ -168,6 +170,7 @@ def main() -> int:
             config,
             track_data_root=args.track_data_root,
             allow_duplicate_ids=args.allow_duplicate_bonds,
+            bond_spacing_mode=args.bond_spacing_mode,
         )
         peak_targets = [(idx, peaks[idx]) for idx in active_indices]
         projection_factors_by_peak = None

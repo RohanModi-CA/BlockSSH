@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 
+from .bonds import BOND_SPACING_MODES
 from .io import get_default_track_data_root
 
 
@@ -40,6 +41,15 @@ def add_track_data_root_arg(parser: argparse.ArgumentParser) -> None:
         "--track-data-root",
         default=str(get_default_track_data_root()),
         help="Root directory containing track datasets. Default: sibling ../track/data/",
+    )
+
+
+def add_bond_spacing_mode_arg(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--bond-spacing-mode",
+        choices=BOND_SPACING_MODES,
+        default="default",
+        help="Bond signal derivation mode. Default: default",
     )
 
 
@@ -91,6 +101,29 @@ def add_colormap_arg(parser: argparse.ArgumentParser, *, default: int = 6) -> No
         default=default,
         help=f"Colormap index. Default: {default}",
     )
+
+
+def add_frequency_window_args(parser: argparse.ArgumentParser, *, help_scope: str = "displayed frequency range") -> None:
+    parser.add_argument(
+        "--freq-min-hz",
+        type=float,
+        default=None,
+        help=f"Lower bound in Hz for the {help_scope}.",
+    )
+    parser.add_argument(
+        "--freq-max-hz",
+        type=float,
+        default=None,
+        help=f"Upper bound in Hz for the {help_scope}.",
+    )
+
+
+def validate_frequency_window_args(args: argparse.Namespace) -> str | None:
+    freq_min_hz = getattr(args, "freq_min_hz", None)
+    freq_max_hz = getattr(args, "freq_max_hz", None)
+    if freq_min_hz is not None and freq_max_hz is not None and freq_max_hz <= freq_min_hz:
+        return "Error: --freq-max-hz must be greater than --freq-min-hz"
+    return None
 
 
 def add_normalization_args(parser: argparse.ArgumentParser) -> None:
