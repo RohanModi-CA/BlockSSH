@@ -23,3 +23,7 @@ __pycache__/
 
 # Keep the repository ignore file tracked
 !.gitignore
+
+node_modules/
+package-lock.json
+package.json
