@@ -19,6 +19,7 @@ from analysis.tools.bond_phase import (
     transform_bond_phase_table,
 )
 from analysis.tools.cli import (
+    add_bond_spacing_mode_arg,
     add_normalization_args,
     add_output_args,
     add_signal_processing_args,
@@ -51,6 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("dataset", help="Dataset name, e.g. 10M4.")
     parser.add_argument("peaks", help="Peaks name or CSV path.")
     add_track_data_root_arg(parser)
+    add_bond_spacing_mode_arg(parser)
     add_normalization_args(parser)
     add_signal_processing_args(parser)
     add_output_args(parser, include_title=True)
@@ -255,6 +257,7 @@ def main() -> int:
             config,
             track_data_root=args.track_data_root,
             allow_duplicate_ids=False,
+            bond_spacing_mode=args.bond_spacing_mode,
         )
         if len(records) == 0:
             raise ValueError(f"No bond records were produced for dataset '{args.dataset}'")
@@ -355,6 +358,7 @@ def main() -> int:
 
         print(f"Dataset: {args.dataset}")
         print(f"Component: {args.show}")
+        print(f"Bond spacing mode: {args.bond_spacing_mode}")
         print(f"Peaks file: {peaks_path}")
         print(f"Peaks (Hz): {peaks}")
         print(f"Bonds: {[bond_id + 1 for bond_id in bond_ids_zero]}")

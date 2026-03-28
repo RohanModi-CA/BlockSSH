@@ -16,13 +16,18 @@ def get_default_track_data_root() -> Path:
     return DEFAULT_TRACK_DATA_ROOT
 
 
-def _split_dataset_component(dataset: str) -> tuple[str, str | None]:
+def split_dataset_component(dataset: str) -> tuple[str, str | None]:
     text = str(dataset).strip()
     for suffix in COMPONENT_SUFFIXES:
         token = f"_{suffix}"
         if text.endswith(token):
             return text[: -len(token)], suffix
     return text, None
+
+
+def join_dataset_component(dataset: str, component: str) -> str:
+    base, _ = split_dataset_component(dataset)
+    return f"{base}_{str(component).strip().lower()}"
 
 
 def _base_candidates(dataset: str) -> list[str]:
@@ -33,7 +38,7 @@ def _base_candidates(dataset: str) -> list[str]:
 
 
 def _candidate_dataset_dirs(root: Path, dataset: str) -> list[Path]:
-    base_name, component = _split_dataset_component(dataset)
+    base_name, component = split_dataset_component(dataset)
     candidates: list[Path] = []
     for base in _base_candidates(base_name):
         if component is None:
@@ -82,6 +87,19 @@ def resolve_track2_path(
 
     assert dataset is not None
     return default_track2_path(dataset, track_data_root=track_data_root)
+
+
+def dataset_name_from_track2_path(track2_path: str | Path) -> str:
+    path = Path(track2_path)
+    if path.name != "track2_permanence.msgpack":
+        raise ValueError(f"Expected a track2_permanence.msgpack path, got: {path}")
+
+    parent = path.parent
+    if parent.name in COMPONENT_SUFFIXES and parent.parent.name == "components":
+        return f"{parent.parent.parent.name}_{parent.name}"
+    if any(parent.name.endswith(f"_{suffix}") for suffix in COMPONENT_SUFFIXES):
+        return parent.name
+    return parent.name
 
 
 def _require_file(path: Path, label: str) -> None:

@@ -21,10 +21,10 @@ from plotting.frequency import (
     plot_pair_frequency_grid,
     plot_pair_welch_frequency_grid,
 )
-from tools.cli import add_colormap_arg, add_output_args, add_signal_processing_args, add_track2_input_args
-from tools.derived import derive_spacing_dataset
+from tools.bonds import load_bond_signal_dataset
+from tools.cli import add_bond_spacing_mode_arg, add_colormap_arg, add_output_args, add_signal_processing_args, add_track2_input_args
 from tools.io import load_track2_dataset
-from tools.models import AverageSpectrumResult, FFTResult, SignalRecord, SpectrumContribution
+from tools.models import AverageSpectrumResult, FFTResult, SignalRecord, SpectrumContribution, SpacingDataset
 from tools.spectrasave import (
     add_spectrasave_arg,
     build_default_spectrasave_name,
@@ -38,6 +38,24 @@ from tools.spectral import (
 )
 
 COMPONENT_SUFFIXES = ("x", "y", "a")
+
+
+def _active_components_for_mode(mode: str) -> tuple[str, ...]:
+    return ("x", "y") if str(mode).strip().lower() == "comoving" else COMPONENT_SUFFIXES
+
+
+def _spacing_dataset_from_track2(track2, *, bond_spacing_mode: str, component: str | None = None) -> SpacingDataset:
+    bond_dataset = load_bond_signal_dataset(
+        dataset=track2.dataset_name,
+        track2_path=track2.track2_path,
+        bond_spacing_mode=bond_spacing_mode,
+        component=component,
+    )
+    return SpacingDataset(
+        track2=track2,
+        pair_labels=list(bond_dataset.pair_labels),
+        spacing_matrix=np.asarray(bond_dataset.signal_matrix, dtype=float),
+    )
 
 
 def _parse_bool_arg(value: str) -> bool:
@@ -54,6 +72,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Overlay FFT or Welch spectra and show per-component sliding FFTs for Track2-derived block spacing.",
     )
     add_track2_input_args(parser)
+    add_bond_spacing_mode_arg(parser)
     add_signal_processing_args(parser)
     add_colormap_arg(parser)
     add_output_args(parser, include_title=True)
@@ -247,7 +266,7 @@ def _load_component_results(args) -> tuple[dict[str, list], dict[str, object]]:
     component_track2: dict[str, object] = {}
     missing_components: list[str] = []
 
-    for component in COMPONENT_SUFFIXES:
+    for component in _active_components_for_mode(args.bond_spacing_mode):
         if component in disabled_components:
             continue
 
@@ -261,7 +280,11 @@ def _load_component_results(args) -> tuple[dict[str, list], dict[str, object]]:
             missing_components.append(component)
             continue
 
-        spacing = derive_spacing_dataset(track2)
+        spacing = _spacing_dataset_from_track2(
+            track2,
+            bond_spacing_mode=args.bond_spacing_mode,
+            component=component,
+        )
         if args.welch:
             results = analyze_spacing_dataset_with_welch_for_display(
                 spacing,
@@ -346,7 +369,11 @@ def _load_single_results(args):
         track2_path=args.track2,
         track_data_root=args.track_data_root,
     )
-    spacing = derive_spacing_dataset(track2)
+    spacing = _spacing_dataset_from_track2(
+        track2,
+        bond_spacing_mode=args.bond_spacing_mode,
+        component=_strip_component_suffix(track2.dataset_name or "") if track2.dataset_name is not None else None,
+    )
     results = _analyze_spacing(args, spacing)
     _print_track2_summary(track2)
     return results, track2

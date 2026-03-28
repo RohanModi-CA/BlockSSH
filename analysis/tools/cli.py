@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 
+from .bonds import BOND_SPACING_MODES
 from .io import get_default_track_data_root
 
 
@@ -40,6 +41,15 @@ def add_track_data_root_arg(parser: argparse.ArgumentParser) -> None:
         "--track-data-root",
         default=str(get_default_track_data_root()),
         help="Root directory containing track datasets. Default: sibling ../track/data/",
+    )
+
+
+def add_bond_spacing_mode_arg(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--bond-spacing-mode",
+        choices=BOND_SPACING_MODES,
+        default="default",
+        help="Bond signal derivation mode. Default: default",
     )
 
 
