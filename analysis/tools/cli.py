@@ -103,6 +103,29 @@ def add_colormap_arg(parser: argparse.ArgumentParser, *, default: int = 6) -> No
     )
 
 
+def add_frequency_window_args(parser: argparse.ArgumentParser, *, help_scope: str = "displayed frequency range") -> None:
+    parser.add_argument(
+        "--freq-min-hz",
+        type=float,
+        default=None,
+        help=f"Lower bound in Hz for the {help_scope}.",
+    )
+    parser.add_argument(
+        "--freq-max-hz",
+        type=float,
+        default=None,
+        help=f"Upper bound in Hz for the {help_scope}.",
+    )
+
+
+def validate_frequency_window_args(args: argparse.Namespace) -> str | None:
+    freq_min_hz = getattr(args, "freq_min_hz", None)
+    freq_max_hz = getattr(args, "freq_max_hz", None)
+    if freq_min_hz is not None and freq_max_hz is not None and freq_max_hz <= freq_min_hz:
+        return "Error: --freq-max-hz must be greater than --freq-min-hz"
+    return None
+
+
 def add_normalization_args(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(
         normalize="absolute",
