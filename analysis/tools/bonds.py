@@ -101,54 +101,32 @@ def _derive_comoving_signal_matrices(
     transverse = np.full((n_frames, n_pairs), np.nan, dtype=float)
 
     for pair_idx in range(n_pairs):
-        prev_vector: tuple[float, float] | None = None
-        prev_xhat: tuple[float, float] | None = None
-        prev_yhat: tuple[float, float] | None = None
-        prev_long = np.nan
-        prev_trans = np.nan
+        vx = np.asarray(dx[:, pair_idx], dtype=float)
+        vy = np.asarray(dy[:, pair_idx], dtype=float)
+        valid = np.isfinite(vx) & np.isfinite(vy)
+        if not np.any(valid):
+            continue
 
-        for frame_idx in range(n_frames):
-            vx = float(dx[frame_idx, pair_idx])
-            vy = float(dy[frame_idx, pair_idx])
-            if (not np.isfinite(vx)) or (not np.isfinite(vy)):
-                prev_vector = None
-                prev_xhat = None
-                prev_yhat = None
-                prev_long = np.nan
-                prev_trans = np.nan
-                continue
+        mean_vx = float(np.nanmean(vx[valid]))
+        mean_vy = float(np.nanmean(vy[valid]))
+        if (not np.isfinite(mean_vx)) or (not np.isfinite(mean_vy)):
+            continue
+        reference = np.array([mean_vx, mean_vy], dtype=float)
 
-            norm = float(np.hypot(vx, vy))
-            if (not np.isfinite(norm)) or norm <= 0.0:
-                prev_vector = None
-                prev_xhat = None
-                prev_yhat = None
-                prev_long = np.nan
-                prev_trans = np.nan
-                continue
+        vectors = np.column_stack([vx, vy])
+        norms = np.hypot(vx, vy)
+        instant_valid = valid & np.isfinite(norms) & (norms > 0.0)
+        if not np.any(instant_valid):
+            continue
 
-            curr_xhat = (vx / norm, vy / norm)
-            curr_yhat = (-curr_xhat[1], curr_xhat[0])
+        xhat = np.full((n_frames, 2), np.nan, dtype=float)
+        xhat[instant_valid, 0] = vx[instant_valid] / norms[instant_valid]
+        xhat[instant_valid, 1] = vy[instant_valid] / norms[instant_valid]
+        yhat = np.column_stack((-xhat[:, 1], xhat[:, 0]))
 
-            if prev_vector is None or prev_xhat is None or prev_yhat is None:
-                long_value = norm
-                trans_value = 0.0
-            else:
-                delta_x = vx - prev_vector[0]
-                delta_y = vy - prev_vector[1]
-                long_inc = delta_x * prev_xhat[0] + delta_y * prev_xhat[1]
-                trans_inc = delta_x * prev_yhat[0] + delta_y * prev_yhat[1]
-                long_value = float(prev_long + long_inc)
-                trans_value = float(prev_trans + trans_inc)
-
-            longitudinal[frame_idx, pair_idx] = long_value
-            transverse[frame_idx, pair_idx] = trans_value
-
-            prev_vector = (vx, vy)
-            prev_xhat = curr_xhat
-            prev_yhat = curr_yhat
-            prev_long = long_value
-            prev_trans = trans_value
+        delta = vectors - reference
+        longitudinal[instant_valid, pair_idx] = np.sum(delta[instant_valid] * xhat[instant_valid], axis=1)
+        transverse[instant_valid, pair_idx] = np.sum(delta[instant_valid] * yhat[instant_valid], axis=1)
 
     return longitudinal, transverse
 

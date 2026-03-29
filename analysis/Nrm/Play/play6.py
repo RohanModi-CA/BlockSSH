@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from play1 import CONFIG, OUTPUT_DIR
-from analysis.Nrm.Tools.post_hit_regions import extract_post_hit_regions
+from analysis.Nrm.Tools.post_hit_regions import EnabledRegionConfig, extract_post_hit_regions
 from analysis.tools.signal import hann_window_periodic, next_power_of_two, preprocess_signal
 
 
@@ -82,6 +82,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=12,
         help="Maximum segment count for top-K amplitude subset search. Default: 12",
     )
+    parser.add_argument(
+        "--bond-spacing-mode",
+        choices=("default", "comoving"),
+        default="default",
+        help="Bond signal representation to analyze. Default: default",
+    )
     return parser
 
 
@@ -95,13 +101,23 @@ def configure_matplotlib(show: bool) -> None:
         matplotlib.use("Agg")
 
 
-def collect_segments(segment_len_s: float, overlap: float) -> tuple[np.ndarray, list[SegmentRecord], np.ndarray]:
+def collect_segments(
+    segment_len_s: float,
+    overlap: float,
+    *,
+    bond_spacing_mode: str = "default",
+) -> tuple[np.ndarray, list[SegmentRecord], np.ndarray]:
     records: list[SegmentRecord] = []
     nperseg: int | None = None
     freqs: np.ndarray | None = None
 
     for bond_id in CONFIG.bond_ids:
-        result = extract_post_hit_regions(dataset=CONFIG.dataset, component=CONFIG.component, bond_id=bond_id)
+        result = extract_post_hit_regions(
+            dataset=CONFIG.dataset,
+            component=CONFIG.component,
+            bond_id=bond_id,
+            config=EnabledRegionConfig(bond_spacing_mode=str(bond_spacing_mode)),
+        )
         processed, err = preprocess_signal(result.frame_times_s, result.signal, longest=False, handlenan=False)
         if processed is None:
             raise ValueError(f"Failed preprocessing bond {bond_id}: {err}")
@@ -292,7 +308,11 @@ def main() -> int:
         TripletSpec("Second Harmonic", 6.34, 6.34),
     ]
 
-    freqs, records, mean_amplitude = collect_segments(args.segment_len_s, args.overlap)
+    freqs, records, mean_amplitude = collect_segments(
+        args.segment_len_s,
+        args.overlap,
+        bond_spacing_mode=str(args.bond_spacing_mode),
+    )
     X = np.vstack([record.spectrum for record in records])
     bins_by_label = resolve_triplet_bins(freqs, mean_amplitude, triplets, args.snap_bins)
     overall_metrics = evaluate_subset(X, bins_by_label)
@@ -302,7 +322,7 @@ def main() -> int:
     print(f"--- Play 6: Localized Bicoherence Search ({CONFIG.dataset}) ---")
     print(
         f"Segments: {len(records)} | segment_len={args.segment_len_s:.1f}s | "
-        f"df={freqs[1]-freqs[0]:.4f} Hz | snap_bins={args.snap_bins}"
+        f"df={freqs[1]-freqs[0]:.4f} Hz | snap_bins={args.snap_bins} | mode={args.bond_spacing_mode}"
     )
     print("Resolved bins:")
     for label, bins in bins_by_label.items():

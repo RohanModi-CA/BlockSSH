@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from play1 import CONFIG, OUTPUT_DIR
-from analysis.Nrm.Tools.post_hit_regions import extract_post_hit_regions
+from analysis.Nrm.Tools.post_hit_regions import EnabledRegionConfig, extract_post_hit_regions
 from analysis.tools.signal import hann_window_periodic, next_power_of_two, preprocess_signal
 
 
@@ -69,6 +69,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Disable hit masking and use all segments from the full traces.",
     )
     parser.add_argument(
+        "--bond-spacing-mode",
+        choices=("default", "comoving"),
+        default="default",
+        help="Bond signal representation to analyze. Default: default",
+    )
+    parser.add_argument(
         "--search-bins",
         type=int,
         default=0,
@@ -121,10 +127,12 @@ def collect_segment_spectra(cfg, args: argparse.Namespace) -> SegmentCollection:
     freqs: np.ndarray | None = None
 
     for bond_id in cfg.bond_ids:
+        region_config = EnabledRegionConfig(bond_spacing_mode=str(args.bond_spacing_mode))
         result = extract_post_hit_regions(
             dataset=cfg.dataset,
             component=cfg.component,
             bond_id=bond_id,
+            config=region_config,
         )
         processed, err = preprocess_signal(result.frame_times_s, result.signal, longest=False, handlenan=False)
         if processed is None:
@@ -284,7 +292,7 @@ def main() -> int:
 
     print(
         f"Segments: {n_segments} | df={df:.4f} Hz | nperseg={collection.nperseg} "
-        f"| overlap={collection.noverlap / collection.nperseg:.2f}"
+        f"| overlap={collection.noverlap / collection.nperseg:.2f} | mode={args.bond_spacing_mode}"
     )
     if args.no_mask_hits:
         print("Hit masking: disabled")

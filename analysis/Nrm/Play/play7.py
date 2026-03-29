@@ -98,6 +98,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Exclude control bins near target/known triads by this many bins. Default: 4",
     )
     parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility. Default: 0")
+    parser.add_argument(
+        "--bond-spacing-mode",
+        choices=("default", "comoving"),
+        default="default",
+        help="Bond signal representation to analyze. Default: default",
+    )
     return parser
 
 
@@ -305,7 +311,11 @@ def main() -> int:
         TripletSpec("Second Harmonic", 6.34, 6.34),
     ]
 
-    freqs, records, mean_amplitude = collect_segments(args.segment_len_s, args.overlap)
+    freqs, records, mean_amplitude = collect_segments(
+        args.segment_len_s,
+        args.overlap,
+        bond_spacing_mode=str(args.bond_spacing_mode),
+    )
     X = np.vstack([record.spectrum for record in records])
     mids = np.asarray([record.mid_s for record in records], dtype=float)
     bins_by_label = resolve_triplet_bins(freqs, mean_amplitude, triplets, args.snap_bins)
@@ -396,7 +406,7 @@ def main() -> int:
     print(f"--- Play 7: Confirmatory Bicoherence Test ({CONFIG.dataset}) ---")
     print(
         f"Segments: {len(records)} | segment_len={args.segment_len_s:.1f}s | "
-        f"scan={scan_desc} | windows={len(windows)}"
+        f"scan={scan_desc} | windows={len(windows)} | mode={args.bond_spacing_mode}"
     )
     print(f"Resolved target bins: {target_bins.f1_sel:.3f} + {target_bins.f2_sel:.3f} -> {target_bins.f3_sel:.3f}")
     print(f"Matched controls evaluated: {len(controls)}")
