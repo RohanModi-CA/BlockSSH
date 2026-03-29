@@ -5,6 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import Normalize
+from matplotlib.ticker import MultipleLocator
 
 
 COLORMAPS = {
@@ -78,6 +79,39 @@ def ensure_parent_dir(path: str | Path) -> Path:
     if str(parent):
         parent.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def resolve_clipped_window(
+    supported_min: float,
+    supported_max: float,
+    requested_min: float | None = None,
+    requested_max: float | None = None,
+    *,
+    label: str = "frequency range",
+) -> tuple[float, float]:
+    lower = float(supported_min)
+    upper = float(supported_max)
+    if not np.isfinite(lower) or not np.isfinite(upper) or upper <= lower:
+        raise ValueError(f"Invalid supported {label}: {supported_min} to {supported_max}")
+
+    resolved_min = lower if requested_min is None else max(lower, float(requested_min))
+    resolved_max = upper if requested_max is None else min(upper, float(requested_max))
+    if not np.isfinite(resolved_min) or not np.isfinite(resolved_max) or resolved_max <= resolved_min:
+        raise ValueError(f"Requested {label} does not overlap the available data")
+    return float(resolved_min), float(resolved_max)
+
+
+def apply_major_tick_spacing(ax, tickspace: float | None, *, axis: str = "x") -> None:
+    if tickspace is None:
+        return
+    locator = MultipleLocator(float(tickspace))
+    if axis == "x":
+        ax.xaxis.set_major_locator(locator)
+        return
+    if axis == "y":
+        ax.yaxis.set_major_locator(locator)
+        return
+    raise ValueError(f"Unsupported axis: {axis}")
 
 
 def render_figure(fig, save: str | None = None) -> None:

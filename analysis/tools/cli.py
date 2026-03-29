@@ -118,11 +118,27 @@ def add_frequency_window_args(parser: argparse.ArgumentParser, *, help_scope: st
     )
 
 
+def add_tickspace_arg(parser: argparse.ArgumentParser, *, help_scope: str = "frequency axis") -> None:
+    parser.add_argument(
+        "--tickspace",
+        type=float,
+        default=None,
+        help=f"Major tick spacing in Hz for the {help_scope}.",
+    )
+
+
 def validate_frequency_window_args(args: argparse.Namespace) -> str | None:
     freq_min_hz = getattr(args, "freq_min_hz", None)
     freq_max_hz = getattr(args, "freq_max_hz", None)
     if freq_min_hz is not None and freq_max_hz is not None and freq_max_hz <= freq_min_hz:
         return "Error: --freq-max-hz must be greater than --freq-min-hz"
+    return None
+
+
+def validate_tickspace_arg(args: argparse.Namespace) -> str | None:
+    tickspace = getattr(args, "tickspace", None)
+    if tickspace is not None and tickspace <= 0:
+        return "Error: --tickspace must be greater than 0"
     return None
 
 
@@ -193,6 +209,32 @@ def add_plot_scale_args(parser: argparse.ArgumentParser) -> None:
         help="Use a log / dB display scale (default).",
     )
     parser.set_defaults(plot_scale="log")
+
+
+def add_flattening_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--flatten",
+        action="store_true",
+        help="Flatten the averaged spectrum by dividing out a smoothed baseline-response envelope.",
+    )
+    parser.add_argument(
+        "--flatten-reference-band",
+        nargs=2,
+        type=float,
+        default=(20.0, 30.0),
+        metavar=("START_HZ", "STOP_HZ"),
+        help="Reference band in Hz used to anchor the flattening transfer. Default: 20 30",
+    )
+    parser.add_argument(
+        "--flatten-plot",
+        default=None,
+        help="Optional path to save a diagnostic plot of the raw spectrum, baseline, transfer, and flattened spectrum.",
+    )
+    parser.add_argument(
+        "--flatten-show-plot",
+        action="store_true",
+        help="Display a diagnostic plot of the raw spectrum, baseline, transfer, and flattened spectrum.",
+    )
 
 
 def add_peak_integration_args(parser: argparse.ArgumentParser) -> None:

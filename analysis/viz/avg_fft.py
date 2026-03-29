@@ -18,15 +18,25 @@ from tools.cli import (
     add_bond_filter_args,
     add_bond_spacing_mode_arg,
     add_colormap_arg,
+    add_flattening_args,
+    add_frequency_window_args,
     add_normalization_args,
     add_output_args,
     add_plot_scale_args,
     resolve_normalization_mode,
     add_signal_processing_args,
+    add_tickspace_arg,
     add_track_data_root_arg,
+    validate_frequency_window_args,
+    validate_tickspace_arg,
+)
+from tools.flattening import (
+    apply_flattening_to_average_result,
+    flattening_metadata,
+    plot_flattening_diagnostic,
 )
 from tools.io import default_track2_path
-from tools.models import DatasetSelection
+from tools.models import DatasetSelection, FlatteningResult
 from tools.selection import (
     build_configured_bond_signals,
     collect_display_bond_numbers,
@@ -74,9 +84,8 @@ def build_parser() -> argparse.ArgumentParser:
     add_bond_filter_args(parser)
     add_colormap_arg(parser)
     add_output_args(parser, include_title=True)
-
-    parser.add_argument("--freq-min-hz", type=float, default=None)
-    parser.add_argument("--freq-max-hz", type=float, default=None)
+    add_frequency_window_args(parser)
+    add_tickspace_arg(parser)
     parser.add_argument(
         "--welch",
         action="store_true",
@@ -103,6 +112,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Render the averaged spectrum as a 2D frequency image instead of a 1D curve.",
     )
+    add_flattening_args(parser)
     add_spectrasave_arg(parser)
     return parser
 
@@ -163,6 +173,7 @@ def _save_average_result(
     label: str,
     component: str | None = None,
     extra_metadata: dict | None = None,
+    flattening: FlatteningResult | None = None,
 ) -> None:
     default_name_parts = [config_stem, source_kind, spectrum_kind]
     if component is not None:
@@ -194,6 +205,8 @@ def _save_average_result(
     }
     if extra_metadata:
         metadata.update(extra_metadata)
+    if flattening is not None:
+        metadata["flattening"] = flattening_metadata(flattening)
 
     saved = save_spectrum_msgpack(
         export_path,
@@ -203,6 +216,48 @@ def _save_average_result(
         metadata=metadata,
     )
     print(f"Spectrum saved to: {saved}")
+
+
+def _validate_flatten_args(args) -> str | None:
+    flat_low, flat_high = map(float, args.flatten_reference_band)
+    if flat_high <= flat_low:
+        return "Error: --flatten-reference-band STOP_HZ must be greater than START_HZ"
+    return None
+
+
+def _maybe_apply_flattening(result, args) -> tuple[object, FlatteningResult | None]:
+    if not args.flatten:
+        return result, None
+    return apply_flattening_to_average_result(
+        result,
+        reference_band=tuple(float(value) for value in args.flatten_reference_band),
+    )
+
+
+def _maybe_emit_flatten_plot(
+    args,
+    *,
+    freq_grid,
+    raw_amp,
+    flattening: FlatteningResult | None,
+    title: str,
+) -> None:
+    if flattening is None or (args.flatten_plot is None and not args.flatten_show_plot):
+        return
+    fig = plot_flattening_diagnostic(freq_grid, raw_amp, flattening, title=title)
+    if args.flatten_plot is not None:
+        save_path = Path(args.flatten_plot)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(save_path, dpi=300)
+        print(f"Flattening plot saved to: {save_path}")
+    if args.flatten_show_plot:
+        import matplotlib.pyplot as plt
+
+        plt.show()
+    else:
+        import matplotlib.pyplot as plt
+
+        plt.close(fig)
 
 
 def _validate_compare_xya_inputs(
@@ -241,8 +296,17 @@ def main() -> int:
     args = parser.parse_args()
     args.normalize = resolve_normalization_mode(args)
 
-    if args.freq_min_hz is not None and args.freq_max_hz is not None and args.freq_max_hz <= args.freq_min_hz:
-        print("Error: --freq-max-hz must be greater than --freq-min-hz", file=sys.stderr)
+    freq_window_error = validate_frequency_window_args(args)
+    if freq_window_error is not None:
+        print(freq_window_error, file=sys.stderr)
+        return 1
+    tickspace_error = validate_tickspace_arg(args)
+    if tickspace_error is not None:
+        print(tickspace_error, file=sys.stderr)
+        return 1
+    flatten_error = _validate_flatten_args(args)
+    if flatten_error is not None:
+        print(flatten_error, file=sys.stderr)
         return 1
 
     rel_low, rel_high = map(float, args.relative_range)
@@ -265,6 +329,8 @@ def main() -> int:
             )
 
             results_by_component = OrderedDict()
+            raw_results_by_component = OrderedDict()
+            flattening_by_component: dict[str, FlatteningResult] = {}
             reference_amp_by_component: dict[str, object] = {}
             available_display_bonds = None
             selected_display_bonds = None
@@ -312,7 +378,7 @@ def main() -> int:
                         f"No spectra were accepted from the selected bond contributors for component '{logical_component}'"
                     )
 
-                result = compute_average_spectrum(
+                raw_result = compute_average_spectrum(
                     contributions,
                     normalize_mode=args.normalize,
                     relative_range=tuple(args.relative_range),
@@ -320,7 +386,11 @@ def main() -> int:
                     lowest_freq=args.freq_min_hz,
                     highest_freq=args.freq_max_hz,
                 )
+                result, flattening = _maybe_apply_flattening(raw_result, args)
+                raw_results_by_component[logical_component] = raw_result
                 results_by_component[logical_component] = result
+                if flattening is not None:
+                    flattening_by_component[logical_component] = flattening
 
                 if args.full_image and args.plot_scale == "linear":
                     reference = compute_reference_average_spectrum(
@@ -372,6 +442,19 @@ def main() -> int:
             print(f"Display mode: {'full image' if args.full_image else 'curve'}")
             if args.full_image and args.plot_scale == "linear":
                 print("Image color scale reference: full implicit frequency window")
+            if args.flatten:
+                print(
+                    "Flattening: "
+                    f"enabled with reference band [{args.flatten_reference_band[0]:.6g}, {args.flatten_reference_band[1]:.6g}] Hz"
+                )
+                component = "x" if "x" in flattening_by_component else next(iter(flattening_by_component))
+                _maybe_emit_flatten_plot(
+                    args,
+                    freq_grid=raw_results_by_component[component].freq_grid,
+                    raw_amp=raw_results_by_component[component].avg_amp,
+                    flattening=flattening_by_component[component],
+                    title=f"{config_stem} component {component} flattening diagnostic",
+                )
 
             fig = plot_average_component_comparison(
                 results_by_component,
@@ -380,6 +463,7 @@ def main() -> int:
                 cmap_index=args.cm,
                 title=title,
                 reference_amp_for_norm_by_component=reference_amp_by_component or None,
+                tickspace_hz=args.tickspace,
             )
             if args.spectrasave is not None:
                 for logical_component, result in results_by_component.items():
@@ -392,6 +476,7 @@ def main() -> int:
                         label=f"{config_stem} average {logical_component}",
                         component=logical_component,
                         extra_metadata={"compareXya": True},
+                        flattening=flattening_by_component.get(logical_component),
                     )
         else:
             config = load_dataset_selection(args.config_json)
@@ -432,7 +517,7 @@ def main() -> int:
             if len(contributions) == 0:
                 raise ValueError("No spectra were accepted from the selected bond contributors")
 
-            result = compute_average_spectrum(
+            raw_result = compute_average_spectrum(
                 contributions,
                 normalize_mode=args.normalize,
                 relative_range=tuple(args.relative_range),
@@ -440,6 +525,7 @@ def main() -> int:
                 lowest_freq=args.freq_min_hz,
                 highest_freq=args.freq_max_hz,
             )
+            result, flattening = _maybe_apply_flattening(raw_result, args)
 
             reference_amp = None
             if args.full_image and args.plot_scale == "linear":
@@ -476,6 +562,19 @@ def main() -> int:
             print(f"Display mode: {'full image' if args.full_image else 'curve'}")
             if args.full_image and args.plot_scale == "linear":
                 print("Image color scale reference: full implicit frequency window")
+            if args.flatten:
+                print(
+                    "Flattening: "
+                    f"enabled with reference band [{args.flatten_reference_band[0]:.6g}, {args.flatten_reference_band[1]:.6g}] Hz"
+                )
+
+            _maybe_emit_flatten_plot(
+                args,
+                freq_grid=raw_result.freq_grid,
+                raw_amp=raw_result.avg_amp,
+                flattening=flattening,
+                title=f"{config_stem} flattening diagnostic",
+            )
 
             fig = plot_average_spectrum(
                 result,
@@ -484,6 +583,7 @@ def main() -> int:
                 cmap_index=args.cm,
                 title=title,
                 reference_amp_for_norm=reference_amp,
+                tickspace_hz=args.tickspace,
             )
             if args.spectrasave is not None:
                 _save_average_result(
@@ -494,6 +594,7 @@ def main() -> int:
                     source_kind="avg",
                     label=f"{config_stem} average",
                     extra_metadata={"compareXya": False},
+                    flattening=flattening,
                 )
         render_figure(fig, save=args.save)
         return 0

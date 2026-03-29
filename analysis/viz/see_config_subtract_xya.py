@@ -19,22 +19,32 @@ import numpy as np
 from scipy.ndimage import gaussian_filter1d
 from scipy.signal import medfilt, savgol_filter
 
-from plotting.common import render_figure
+from plotting.common import apply_major_tick_spacing, render_figure
 from plotting.frequency import COMPONENT_COLORS, _plot_frequency_image
 from tools.cli import (
     add_average_domain_args,
     add_bond_filter_args,
     add_bond_spacing_mode_arg,
     add_colormap_arg,
+    add_flattening_args,
+    add_frequency_window_args,
     add_normalization_args,
     add_output_args,
     add_plot_scale_args,
     add_signal_processing_args,
+    add_tickspace_arg,
     add_track_data_root_arg,
     resolve_normalization_mode,
+    validate_frequency_window_args,
+    validate_tickspace_arg,
+)
+from tools.flattening import (
+    apply_flattening_to_average_result,
+    flattening_metadata,
+    plot_flattening_diagnostic,
 )
 from tools.io import default_track2_path
-from tools.models import AverageSpectrumResult, DatasetSelection
+from tools.models import AverageSpectrumResult, DatasetSelection, FlatteningResult
 from tools.selection import (
     build_configured_bond_signals,
     collect_display_bond_numbers,
@@ -55,7 +65,7 @@ from tools.spectral import (
 )
 
 CANONICAL_COMPONENTS = ("x", "y", "a")
-BASELINE_MATCH_MODES = ("none", "median-offset")
+BASELINE_MATCH_MODES = ("none", "offset", "constant-offset", "median-offset")
 DEFAULT_BASELINE_WINDOW_BINS = 101
 
 
@@ -80,6 +90,8 @@ class SubtractSpec:
         base_label = self.label()
         if self.baseline_match == "none":
             return base_label
+        if self.baseline_match in {"offset", "constant-offset"}:
+            return f"{base_label} [constant-offset]"
         return f"{base_label} [{self.baseline_match}:{self.baseline_window_bins}]"
 
 
@@ -110,6 +122,8 @@ def _parse_subtract_tail(
     if tail:
         baseline_match = str(tail[0]).strip().lower()
         tail = tail[1:]
+    if baseline_match == "offset":
+        baseline_match = "constant-offset"
     if tail:
         try:
             baseline_window_bins = int(tail[0])
@@ -197,9 +211,9 @@ def build_parser() -> argparse.ArgumentParser:
     add_colormap_arg(parser)
     add_output_args(parser, include_title=True)
     add_spectrasave_arg(parser)
-
-    parser.add_argument("--freq-min-hz", type=float, default=None)
-    parser.add_argument("--freq-max-hz", type=float, default=None)
+    add_frequency_window_args(parser)
+    add_tickspace_arg(parser)
+    add_flattening_args(parser)
 
     welch_group = parser.add_mutually_exclusive_group()
     welch_group.add_argument(
@@ -319,7 +333,7 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Subtract COMPONENT from the current --show target as "
             "--subtract COMPONENT [SCALE] [BASELINE_MATCH] [BASELINE_WINDOW_BINS]. "
-            "BASELINE_MATCH choices: none, median-offset."
+            "BASELINE_MATCH choices: none, constant-offset (alias: offset), median-offset."
         ),
     )
     parser.add_argument(
@@ -332,7 +346,7 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Subtract the average spectrum from a plain config-selected bond set as "
             "--subtract-config CONFIG_JSON [SCALE] [BASELINE_MATCH] [BASELINE_WINDOW_BINS]. "
-            "BASELINE_MATCH choices: none, median-offset."
+            "BASELINE_MATCH choices: none, constant-offset (alias: offset), median-offset."
         ),
     )
     return parser
@@ -662,6 +676,32 @@ def _build_common_frequency_grid(results_by_component: OrderedDict[str, object])
     return common
 
 
+def _validate_flatten_args(args) -> str | None:
+    flat_low, flat_high = map(float, args.flatten_reference_band)
+    if flat_high <= flat_low:
+        return "Error: --flatten-reference-band STOP_HZ must be greater than START_HZ"
+    return None
+
+
+def _maybe_apply_flattening_to_results(
+    args,
+    results_by_key: OrderedDict[str, AverageSpectrumResult],
+) -> tuple[OrderedDict[str, AverageSpectrumResult], dict[str, FlatteningResult]]:
+    if not args.flatten:
+        return OrderedDict(results_by_key), {}
+
+    flattened_results: OrderedDict[str, AverageSpectrumResult] = OrderedDict()
+    flattening_by_key: dict[str, FlatteningResult] = {}
+    for key, result in results_by_key.items():
+        flattened, flattening = apply_flattening_to_average_result(
+            result,
+            reference_band=tuple(float(value) for value in args.flatten_reference_band),
+        )
+        flattened_results[key] = flattened
+        flattening_by_key[key] = flattening
+    return flattened_results, flattening_by_key
+
+
 def _build_common_frequency_grid_from_results(results: list[AverageSpectrumResult]) -> np.ndarray:
     overlap_low = max(float(result.freq_grid[0]) for result in results)
     overlap_high = min(float(result.freq_grid[-1]) for result in results)
@@ -734,6 +774,12 @@ def _align_subtract_source_to_target(
     source_arr = np.asarray(source_amp, dtype=float)
     if spec.baseline_match == "none":
         return source_arr
+    if spec.baseline_match == "constant-offset":
+        finite = np.isfinite(target_arr) & np.isfinite(source_arr)
+        if not np.any(finite):
+            raise ValueError("Constant-offset alignment requires at least one finite overlapping bin")
+        offset = float(np.median(target_arr[finite] - source_arr[finite]))
+        return source_arr + offset
     if spec.baseline_match != "median-offset":
         raise ValueError(f"Unsupported baseline match mode: {spec.baseline_match}")
 
@@ -950,6 +996,7 @@ def _plot_groups(
                 title=f"Panel {idx}: {expr_label}",
                 linear_color_label="Normalized Amplitude",
                 log_color_label="Amplitude (dB)",
+                y_tickspace_hz=args.tickspace,
             )
         elif plot_scale == "log":
             if not args.showonlyresult:
@@ -992,6 +1039,7 @@ def _plot_groups(
     if not full_image:
         axes[-1].set_xlabel("Frequency (Hz)")
         axes[-1].set_xlim(float(common_freq[0]), float(common_freq[-1]))
+        apply_major_tick_spacing(axes[-1], args.tickspace, axis="x")
     fig.suptitle(title)
     return fig
 
@@ -1008,12 +1056,44 @@ def _render_figure(fig, *, save: str | None, show: bool) -> None:
         plt.close(fig)
 
 
+def _maybe_emit_flatten_plot(
+    args,
+    *,
+    results_by_component: OrderedDict[str, AverageSpectrumResult],
+    flattening_by_component: dict[str, FlatteningResult],
+) -> None:
+    if not args.flatten or (args.flatten_plot is None and not args.flatten_show_plot):
+        return
+    if not flattening_by_component:
+        return
+
+    component = "x" if "x" in flattening_by_component else next(iter(flattening_by_component))
+    result = results_by_component[component]
+    flattening = flattening_by_component[component]
+    fig = plot_flattening_diagnostic(
+        result.freq_grid,
+        result.avg_amp,
+        flattening,
+        title=f"Subtract source component {component} flattening diagnostic",
+    )
+    if args.flatten_plot is not None:
+        save_path = Path(args.flatten_plot)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(save_path, dpi=300)
+        print(f"Flattening plot saved to: {save_path}")
+    if args.flatten_show_plot:
+        plt.show()
+    else:
+        plt.close(fig)
+
+
 def _save_panel_spectrasaves(
     args,
     *,
     config_json: str,
     common_freq: np.ndarray,
     panel_outputs: list[dict[str, object]],
+    flattening_by_component: dict[str, FlatteningResult],
 ) -> None:
     if args.spectrasave is None:
         return
@@ -1073,6 +1153,10 @@ def _save_panel_spectrasaves(
                 "savitzkyWindowBins": int(args.savitzky_window_bins),
                 "savitzkyPolyorder": int(args.savitzky_polyorder),
             },
+            "flatteningByComponent": {
+                component: flattening_metadata(flattening)
+                for component, flattening in flattening_by_component.items()
+            },
         }
 
         saved = save_spectrum_msgpack(
@@ -1090,8 +1174,17 @@ def main() -> int:
     args = parser.parse_args()
     args.normalize = resolve_normalization_mode(args)
 
-    if args.freq_min_hz is not None and args.freq_max_hz is not None and args.freq_max_hz <= args.freq_min_hz:
-        print("Error: --freq-max-hz must be greater than --freq-min-hz", file=sys.stderr)
+    freq_window_error = validate_frequency_window_args(args)
+    if freq_window_error is not None:
+        print(freq_window_error, file=sys.stderr)
+        return 1
+    tickspace_error = validate_tickspace_arg(args)
+    if tickspace_error is not None:
+        print(tickspace_error, file=sys.stderr)
+        return 1
+    flatten_error = _validate_flatten_args(args)
+    if flatten_error is not None:
+        print(flatten_error, file=sys.stderr)
         return 1
 
     rel_low, rel_high = map(float, args.relative_range)
@@ -1106,12 +1199,20 @@ def main() -> int:
             groups,
         )
         external_results_by_path, external_bond_info_by_path = _compute_external_subtraction_results(args, groups)
-        all_results = list(results_by_component.values()) + list(external_results_by_path.values())
+        flattened_results_by_component, flattening_by_component = _maybe_apply_flattening_to_results(
+            args,
+            results_by_component,
+        )
+        flattened_external_results_by_path, _ = _maybe_apply_flattening_to_results(
+            args,
+            external_results_by_path,
+        )
+        all_results = list(flattened_results_by_component.values()) + list(flattened_external_results_by_path.values())
         common_freq = _build_common_frequency_grid_from_results(all_results)
-        amp_by_component = _interpolate_component_amplitudes(results_by_component, common_freq=common_freq)
+        amp_by_component = _interpolate_component_amplitudes(flattened_results_by_component, common_freq=common_freq)
         external_amp_by_path = {
             config_path: np.interp(common_freq, result.freq_grid, result.avg_amp)
-            for config_path, result in external_results_by_path.items()
+            for config_path, result in flattened_external_results_by_path.items()
         }
         panel_outputs = _compute_panel_outputs(
             groups,
@@ -1119,6 +1220,11 @@ def main() -> int:
             external_amp_by_path=external_amp_by_path,
             args=args,
             clipto=args.clipto,
+        )
+        _maybe_emit_flatten_plot(
+            args,
+            results_by_component=results_by_component,
+            flattening_by_component=flattening_by_component,
         )
 
         accepted_display_bonds = sorted({
@@ -1178,6 +1284,11 @@ def main() -> int:
             print(f"Display smoothing pipeline: {' -> '.join(smoothing_steps)}")
         if args.spectrasave is not None:
             print(f"SpectraSave export mode: {args.spectrasave_mode}")
+        if args.flatten:
+            print(
+                "Flattening: "
+                f"enabled with reference band [{args.flatten_reference_band[0]:.6g}, {args.flatten_reference_band[1]:.6g}] Hz"
+            )
         print("Normalization band processing: linear detrend -> zero-floor -> integrate area")
         print(f"Near-zero denominator threshold: {ABSOLUTE_ZERO_TOL:.0e}")
 
@@ -1186,6 +1297,7 @@ def main() -> int:
             config_json=args.config_json,
             common_freq=common_freq,
             panel_outputs=panel_outputs,
+            flattening_by_component=flattening_by_component,
         )
 
         fig = _plot_groups(
