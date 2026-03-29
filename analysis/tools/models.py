@@ -116,6 +116,21 @@ class AverageSpectrumResult:
 
 
 @dataclass(frozen=True)
+class FlatteningResult:
+    baseline: np.ndarray
+    baseline_smooth: np.ndarray
+    transfer: np.ndarray
+    flattened: np.ndarray
+    reference_level: float
+    reference_band: tuple[float, float]
+    method: str
+    baseline_quantile: float
+    baseline_envelope_hz: float
+    baseline_smooth_hz: float
+    response_smooth_hz: float
+
+
+@dataclass(frozen=True)
 class AveragedAmplitudeSpectrum:
     freq_grid: np.ndarray
     mean_amplitude: np.ndarray

@@ -25,14 +25,22 @@ from tools.bonds import load_bond_signal_dataset
 from tools.cli import (
     add_bond_spacing_mode_arg,
     add_colormap_arg,
+    add_flattening_args,
     add_frequency_window_args,
     add_output_args,
     add_signal_processing_args,
+    add_tickspace_arg,
     add_track2_input_args,
     validate_frequency_window_args,
+    validate_tickspace_arg,
+)
+from tools.flattening import (
+    apply_flattening_to_average_result,
+    flattening_metadata,
+    plot_flattening_diagnostic,
 )
 from tools.io import load_track2_dataset
-from tools.models import AverageSpectrumResult, FFTResult, SignalRecord, SpectrumContribution, SpacingDataset
+from tools.models import AverageSpectrumResult, FFTResult, FlatteningResult, SignalRecord, SpectrumContribution, SpacingDataset
 from tools.spectrasave import (
     add_spectrasave_arg,
     build_default_spectrasave_name,
@@ -135,6 +143,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--welch-len-s", type=float, default=100.0)
     parser.add_argument("--welch-overlap", type=float, default=0.5)
     add_frequency_window_args(parser)
+    add_tickspace_arg(parser)
     parser.add_argument("--time-interval-s", nargs=2, type=float, metavar=("START", "STOP"))
     parser.add_argument("--only", choices=["fft", "sliding"], default=None)
     parser.add_argument(
@@ -170,6 +179,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         help="Disable one of the suffixed component datasets: x, y, or a. Can be used multiple times.",
     )
+    add_flattening_args(parser)
     add_spectrasave_arg(parser)
     return parser
 
@@ -539,6 +549,7 @@ def _save_averaged_component_spectrum(
     *,
     dataset_name: str,
     averaged_by_component: dict[str, AverageSpectrumResult],
+    flattening_by_component: dict[str, FlatteningResult] | None,
     spectrum_kind: str,
 ) -> None:
     available_components = list(averaged_by_component)
@@ -575,9 +586,74 @@ def _save_averaged_component_spectrum(
             "longest": bool(args.longest),
             "handlenan": bool(args.handlenan),
             "timeseriesnorm": bool(args.timeseriesnorm),
+            "flattening": None
+            if flattening_by_component is None or component not in flattening_by_component
+            else flattening_metadata(flattening_by_component[component]),
         },
     )
     print(f"Spectrum saved to: {saved}")
+
+
+def _validate_flatten_args(args) -> str | None:
+    flat_low, flat_high = map(float, args.flatten_reference_band)
+    if flat_high <= flat_low:
+        return "Error: --flatten-reference-band STOP_HZ must be greater than START_HZ"
+    return None
+
+
+def _maybe_apply_flattening(
+    args,
+    results_by_component: dict[str, AverageSpectrumResult],
+) -> tuple[dict[str, AverageSpectrumResult], dict[str, FlatteningResult]]:
+    if not args.flatten:
+        return dict(results_by_component), {}
+
+    flattened_results: dict[str, AverageSpectrumResult] = {}
+    flattening_by_component: dict[str, FlatteningResult] = {}
+    for component, result in results_by_component.items():
+        flattened, flattening = apply_flattening_to_average_result(
+            result,
+            reference_band=tuple(float(value) for value in args.flatten_reference_band),
+        )
+        flattened_results[component] = flattened
+        flattening_by_component[component] = flattening
+    return flattened_results, flattening_by_component
+
+
+def _maybe_emit_flatten_plot(
+    args,
+    *,
+    dataset_name: str,
+    results_by_component: dict[str, AverageSpectrumResult],
+    flattening_by_component: dict[str, FlatteningResult],
+) -> None:
+    if not args.flatten or (args.flatten_plot is None and not args.flatten_show_plot):
+        return
+    if not flattening_by_component:
+        return
+
+    component = "x" if "x" in flattening_by_component else next(iter(flattening_by_component))
+    raw_result = results_by_component[component]
+    flattening = flattening_by_component[component]
+    fig = plot_flattening_diagnostic(
+        raw_result.freq_grid,
+        raw_result.avg_amp,
+        flattening,
+        title=f"{dataset_name} component {component} flattening diagnostic",
+    )
+    if args.flatten_plot is not None:
+        save_path = Path(args.flatten_plot)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(save_path, dpi=300)
+        print(f"Flattening plot saved to: {save_path}")
+    if args.flatten_show_plot:
+        import matplotlib.pyplot as plt
+
+        plt.show()
+    else:
+        import matplotlib.pyplot as plt
+
+        plt.close(fig)
 
 
 def main() -> int:
@@ -588,6 +664,14 @@ def main() -> int:
     if freq_window_error is not None:
         print(freq_window_error, file=sys.stderr)
         return 1
+    tickspace_error = validate_tickspace_arg(args)
+    if tickspace_error is not None:
+        print(tickspace_error, file=sys.stderr)
+        return 1
+    flatten_error = _validate_flatten_args(args)
+    if flatten_error is not None:
+        print(flatten_error, file=sys.stderr)
+        return 1
 
     try:
         component_results, component_track2 = _load_component_results(args)
@@ -596,20 +680,33 @@ def main() -> int:
             results, track2 = _load_single_results(args)
             if args.average:
                 dataset_name = track2.dataset_name or Path(track2.track2_path).resolve().parent.name
-                averaged = _average_result_from_pair_results(results, dataset_name=dataset_name, use_welch=args.welch)
+                averaged_raw = _average_result_from_pair_results(results, dataset_name=dataset_name, use_welch=args.welch)
+                flattened_by_component, flattening_by_component = _maybe_apply_flattening(
+                    args,
+                    {"x": averaged_raw},
+                )
+                averaged = flattened_by_component["x"]
                 if args.spectrasave is not None:
                     _save_averaged_component_spectrum(
                         args,
                         dataset_name=dataset_name,
                         averaged_by_component={"x": averaged},
+                        flattening_by_component=flattening_by_component,
                         spectrum_kind="welch" if args.welch else "fft",
                     )
+                _maybe_emit_flatten_plot(
+                    args,
+                    dataset_name=dataset_name,
+                    results_by_component={"x": averaged_raw},
+                    flattening_by_component=flattening_by_component,
+                )
                 fig = plot_average_spectrum(
                     averaged,
                     full_image=args.full_image,
                     plot_scale=args.sliding_plot_scale if args.full_image else ("log" if args.welch and args.welch_log else "log" if args.fft_log else "linear"),
                     cmap_index=args.cm,
                     title=args.title or f"{dataset_name} average bonds",
+                    tickspace_hz=args.tickspace,
                 )
             else:
                 if args.spectrasave is not None:
@@ -630,6 +727,7 @@ def main() -> int:
                         time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                         cmap_index=args.cm,
                         title=args.title,
+                        tickspace_hz=args.tickspace,
                     )
                 else:
                     fig = plot_pair_frequency_grid(
@@ -646,10 +744,11 @@ def main() -> int:
                         time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                         cmap_index=args.cm,
                         title=args.title,
+                        tickspace_hz=args.tickspace,
                     )
         else:
             if args.average:
-                averaged_by_component = {
+                averaged_raw_by_component = {
                     component: _average_result_from_pair_results(
                         results,
                         dataset_name=(component_track2[component].dataset_name or Path(component_track2[component].track2_path).resolve().parent.name),
@@ -657,6 +756,10 @@ def main() -> int:
                     )
                     for component, results in component_results.items()
                 }
+                averaged_by_component, flattening_by_component = _maybe_apply_flattening(
+                    args,
+                    averaged_raw_by_component,
+                )
                 dataset_name = (
                     component_track2[next(iter(component_track2))].dataset_name
                     or Path(component_track2[next(iter(component_track2))].track2_path).resolve().parent.name
@@ -666,14 +769,22 @@ def main() -> int:
                         args,
                         dataset_name=dataset_name,
                         averaged_by_component=averaged_by_component,
+                        flattening_by_component=flattening_by_component,
                         spectrum_kind="welch" if args.welch else "fft",
                     )
+                _maybe_emit_flatten_plot(
+                    args,
+                    dataset_name=dataset_name,
+                    results_by_component=averaged_raw_by_component,
+                    flattening_by_component=flattening_by_component,
+                )
                 fig = plot_average_component_comparison(
                     averaged_by_component,
                     full_image=args.full_image,
                     plot_scale=args.sliding_plot_scale if args.full_image else ("log" if args.welch and args.welch_log else "log" if args.fft_log else "linear"),
                     cmap_index=args.cm,
                     title=args.title or f"{dataset_name} average bonds",
+                    tickspace_hz=args.tickspace,
                 )
             else:
                 if args.spectrasave is not None:
@@ -701,6 +812,7 @@ def main() -> int:
                     time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                     cmap_index=args.cm,
                     title=args.title,
+                    tickspace_hz=args.tickspace,
                 )
         render_figure(fig, save=args.save)
         return 0
