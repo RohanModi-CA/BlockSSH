@@ -16,8 +16,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Button
 
-from plotting.common import centers_to_edges, colormap_name, ensure_parent_dir
-from tools.cli import add_colormap_arg, add_output_args
+from plotting.common import (
+    apply_major_tick_spacing,
+    centers_to_edges,
+    colormap_name,
+    ensure_parent_dir,
+    resolve_clipped_window,
+)
+from tools.cli import (
+    add_colormap_arg,
+    add_frequency_window_args,
+    add_output_args,
+    add_tickspace_arg,
+    validate_frequency_window_args,
+    validate_tickspace_arg,
+)
 from tools.peaks import load_peaks_csv
 from tools.spectrasave import load_spectrum_msgpack, resolve_existing_spectrasave_path
 
@@ -71,8 +84,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.set_defaults(image_log=True)
 
-    parser.add_argument("--freq-min-hz", type=float, default=None)
-    parser.add_argument("--freq-max-hz", type=float, default=None)
+    add_frequency_window_args(parser)
+    add_tickspace_arg(parser)
     parser.add_argument(
         "--image-columns",
         type=int,
@@ -123,6 +136,7 @@ class PeakPicker:
         freq_max_hz: float | None,
         image_columns: int,
         marker_x: float,
+        tickspace_hz: float | None,
         initial_peaks: list[float] | None = None,
     ) -> None:
         self.freq = np.asarray(freq, dtype=float)
@@ -134,6 +148,7 @@ class PeakPicker:
         self.cmap_index = int(cmap_index)
         self.image_columns = max(int(image_columns), 2)
         self.marker_x = float(np.clip(marker_x, 0.0, 1.0))
+        self.tickspace_hz = tickspace_hz
         self.mode = "neutral"
         self.peaks: list[float] = []
         self._syncing = False
@@ -148,10 +163,12 @@ class PeakPicker:
         if self.freq.size == 0:
             raise ValueError("Spectrum contains no positive finite frequencies")
 
-        self.freq_min = float(self.freq[0] if freq_min_hz is None else freq_min_hz)
-        self.freq_max = float(self.freq[-1] if freq_max_hz is None else freq_max_hz)
-        if self.freq_max <= self.freq_min:
-            raise ValueError("--freq-max-hz must be greater than --freq-min-hz")
+        self.freq_min, self.freq_max = resolve_clipped_window(
+            float(self.freq[0]),
+            float(self.freq[-1]),
+            freq_min_hz,
+            freq_max_hz,
+        )
 
         self.fig = plt.figure(figsize=(13.5, 7.2))
         self.ax_fft = self.fig.add_axes([0.07, 0.18, 0.43, 0.72])
@@ -181,6 +198,7 @@ class PeakPicker:
             self.ax_fft.plot(self.freq, self.amplitude, linewidth=1.2, color="tab:blue")
 
         self.ax_fft.set_xlim(self.freq_min, self.freq_max)
+        apply_major_tick_spacing(self.ax_fft, self.tickspace_hz, axis="x")
         self.ax_fft.set_xlabel("Frequency (Hz)")
         self.ax_fft.set_ylabel("Amplitude")
         self.ax_fft.set_title(self.title)
@@ -245,6 +263,7 @@ class PeakPicker:
         self.fig.colorbar(pcm, ax=self.ax_img, label=color_label)
         self.ax_img.set_xlim(0.0, 1.0)
         self.ax_img.set_ylim(self.freq_min, self.freq_max)
+        apply_major_tick_spacing(self.ax_img, self.tickspace_hz, axis="y")
         self.ax_img.set_xlabel("Image X")
         self.ax_img.set_ylabel("Frequency (Hz)")
         self.ax_img.set_title("FFT Image")
@@ -415,6 +434,14 @@ class PeakPicker:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    freq_window_error = validate_frequency_window_args(args)
+    if freq_window_error is not None:
+        print(freq_window_error, file=sys.stderr)
+        return 1
+    tickspace_error = validate_tickspace_arg(args)
+    if tickspace_error is not None:
+        print(tickspace_error, file=sys.stderr)
+        return 1
 
     try:
         spectrasave_path = resolve_existing_spectrasave_path(args.spectrasave)
@@ -437,6 +464,7 @@ def main() -> int:
             freq_max_hz=args.freq_max_hz,
             image_columns=args.image_columns,
             marker_x=args.marker_x,
+            tickspace_hz=args.tickspace,
             initial_peaks=initial_peaks,
         )
 

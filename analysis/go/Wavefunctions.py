@@ -122,6 +122,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Flip a 1-based bond index, or use --flip all.",
     )
     parser.add_argument(
+        "--flipmode",
+        action="append",
+        default=[],
+        metavar="BOND",
+        help="Alias for --flip. Flip a 1-based bond index, or use --flipmode all.",
+    )
+    parser.add_argument(
         "--reference-bond",
         type=int,
         default=None,
@@ -285,7 +292,7 @@ def main() -> int:
             handlenan=args.handlenan,
         )
         phase_table = bond_phase_table_from_result(bond_phase_result)
-        flip_bond_ids = _parse_flip_args(args.flip, bond_ids_zero)
+        flip_bond_ids = _parse_flip_args([*args.flip, *args.flipmode], bond_ids_zero)
         phase_table = transform_bond_phase_table(
             phase_table,
             flip_bond_ids=flip_bond_ids,

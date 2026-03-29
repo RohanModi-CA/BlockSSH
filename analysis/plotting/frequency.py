@@ -9,7 +9,13 @@ from tools.models import (
     PairWelchFrequencyAnalysisResult,
     SiteAmplitudeAnalysisResult,
 )
-from .common import centers_to_edges, colormap_name, robust_nonnegative_norm
+from .common import (
+    apply_major_tick_spacing,
+    centers_to_edges,
+    colormap_name,
+    resolve_clipped_window,
+    robust_nonnegative_norm,
+)
 from .indexed import overlay_indexed_points
 
 COMPONENT_COLORS = {
@@ -47,6 +53,7 @@ def _plot_fft_curve_panel(
     x_min: float,
     x_max: float,
     title: str,
+    x_tickspace_hz: float | None = None,
 ) -> None:
     if log_scale:
         ax.semilogy(freq, amp, linewidth=1)
@@ -63,6 +70,7 @@ def _plot_fft_curve_panel(
     ax.set_xlabel("Frequency (Hz)")
     ax.set_ylabel("Amplitude")
     ax.set_xlim(x_min, x_max)
+    apply_major_tick_spacing(ax, x_tickspace_hz, axis="x")
     ax.grid(True, alpha=0.3)
 
 
@@ -76,6 +84,7 @@ def _plot_spectrum_curve_panel(
     x_max: float,
     title: str,
     y_label: str,
+    x_tickspace_hz: float | None = None,
 ) -> None:
     _plot_fft_curve_panel(
         ax,
@@ -85,6 +94,7 @@ def _plot_spectrum_curve_panel(
         x_min=x_min,
         x_max=x_max,
         title=title,
+        x_tickspace_hz=x_tickspace_hz,
     )
     ax.set_ylabel(y_label)
 
@@ -108,6 +118,7 @@ def _plot_frequency_image(
     overlay: dict | None = None,
     show_colorbar: bool = True,
     annotate_range: bool = False,
+    y_tickspace_hz: float | None = None,
 ) -> None:
     mask = (freq >= y_min) & (freq <= y_max)
     if not np.any(mask):
@@ -152,6 +163,7 @@ def _plot_frequency_image(
     ax.set_ylabel("Frequency (Hz)")
     ax.set_xlim(0.0, x_max)
     ax.set_ylim(y_min, y_max)
+    apply_major_tick_spacing(ax, y_tickspace_hz, axis="y")
     ax.set_title(title)
 
     if annotate_range:
@@ -209,6 +221,7 @@ def _plot_spectrogram_panel(
     time_interval: tuple[float, float] | None = None,
     show_colorbar: bool = True,
     annotate_range: bool = False,
+    y_tickspace_hz: float | None = None,
 ) -> None:
     mag = np.abs(s_complex)
     eps = np.finfo(float).eps
@@ -244,6 +257,7 @@ def _plot_spectrogram_panel(
     ax.set_xlabel("Time (s)")
     ax.set_ylabel("Frequency (Hz)")
     ax.set_ylim(y_min, y_max)
+    apply_major_tick_spacing(ax, y_tickspace_hz, axis="y")
     if time_interval is not None:
         ax.set_xlim(*time_interval)
 
@@ -352,6 +366,7 @@ def plot_pair_frequency_grid(
     time_interval: tuple[float, float] | None = None,
     cmap_index: int = 6,
     title: str | None = None,
+    tickspace_hz: float | None = None,
 ):
     if len(results) == 0:
         raise ValueError("No pair results to plot")
@@ -392,13 +407,23 @@ def plot_pair_frequency_grid(
             )
             continue
 
-        fft_xlim_min = max(0.0, fft_min_hz if fft_min_hz is not None else 0.0)
-        fft_xlim_max = min(
-            result.processed.nyquist,
-            fft_max_hz if fft_max_hz is not None else result.processed.nyquist,
-        )
-
         if only != "sliding":
+            try:
+                fft_xlim_min, fft_xlim_max = resolve_clipped_window(
+                    max(0.0, float(result.fft_result.freq[0])),
+                    min(float(result.processed.nyquist), float(result.fft_result.freq[-1])),
+                    fft_min_hz,
+                    fft_max_hz,
+                )
+            except ValueError:
+                _set_panel_message(
+                    ax_fft=ax_fft,
+                    ax_spec=ax_spec,
+                    only=only,
+                    full_image=full_image,
+                    title=f"{pair_title_prefix} - invalid frequency range",
+                )
+                continue
             _plot_fft_curve_panel(
                 ax_fft,
                 freq=result.fft_result.freq,
@@ -407,18 +432,20 @@ def plot_pair_frequency_grid(
                 x_min=fft_xlim_min,
                 x_max=fft_xlim_max,
                 title=f"{pair_title_prefix} FFT | {result.processed.proc_msg}",
+                x_tickspace_hz=tickspace_hz,
             )
 
         if only == "fft":
             continue
 
-        y_min = max(0.01, sliding_min_hz if sliding_min_hz is not None else 0.01)
-        y_max = min(
-            result.processed.nyquist,
-            sliding_max_hz if sliding_max_hz is not None else result.processed.nyquist,
-        )
-
-        if y_max <= y_min:
+        try:
+            y_min, y_max = resolve_clipped_window(
+                max(0.01, float(result.fft_result.freq[0])),
+                min(float(result.processed.nyquist), float(result.fft_result.freq[-1])),
+                sliding_min_hz,
+                sliding_max_hz,
+            )
+        except ValueError:
             _set_panel_message(
                 ax_fft=ax_fft,
                 ax_spec=ax_spec,
@@ -441,6 +468,7 @@ def plot_pair_frequency_grid(
                 title=f"{pair_title_prefix} Full FFT Image",
                 linear_color_label="Amplitude",
                 log_color_label="Amplitude (dB)",
+                y_tickspace_hz=tickspace_hz,
             )
             continue
 
@@ -467,6 +495,7 @@ def plot_pair_frequency_grid(
             y_max=y_max,
             title=f"{pair_title_prefix} Sliding FFT",
             time_interval=time_interval,
+            y_tickspace_hz=tickspace_hz,
         )
 
     if full_couple and full_image and only != "sliding":
@@ -503,6 +532,7 @@ def plot_component_pair_frequency_grid(
     time_interval: tuple[float, float] | None = None,
     cmap_index: int = 6,
     title: str | None = None,
+    tickspace_hz: float | None = None,
 ):
     if len(component_results) == 0:
         raise ValueError("No component results to plot")
@@ -604,23 +634,31 @@ def plot_component_pair_frequency_grid(
                     title=f"{pair_title_prefix} {spectrum_panel_name} - {' | '.join(error_bits)}",
                 )
             else:
-                spectrum_xlim_min = max(
-                    0.0,
-                    (welch_min_hz if use_welch else fft_min_hz)
-                    if (welch_min_hz if use_welch else fft_min_hz) is not None
-                    else 0.0,
+                supported_min = max(
+                    max(0.0, float(getattr(result, "welch_result" if use_welch else "fft_result").freq[0]))
+                    for _, result in valid_fft_results
                 )
-                spectrum_xlim_max = max(
+                supported_max = min(
                     min(
-                        result.processed.nyquist,
-                        (
-                            welch_max_hz if use_welch else fft_max_hz
-                        )
-                        if (welch_max_hz if use_welch else fft_max_hz) is not None
-                        else result.processed.nyquist,
+                        float(result.processed.nyquist),
+                        float(getattr(result, "welch_result" if use_welch else "fft_result").freq[-1]),
                     )
                     for _, result in valid_fft_results
                 )
+                try:
+                    spectrum_xlim_min, spectrum_xlim_max = resolve_clipped_window(
+                        supported_min,
+                        supported_max,
+                        welch_min_hz if use_welch else fft_min_hz,
+                        welch_max_hz if use_welch else fft_max_hz,
+                    )
+                except ValueError:
+                    _set_panel_message(
+                        ax_fft=ax_fft,
+                        only="fft",
+                        title=f"{pair_title_prefix} {spectrum_panel_name} - invalid frequency range",
+                    )
+                    continue
 
                 any_positive = False
                 positive_vals_all: list[np.ndarray] = []
@@ -658,6 +696,7 @@ def plot_component_pair_frequency_grid(
                 ax_fft.set_xlabel("Frequency (Hz)")
                 ax_fft.set_ylabel("Welch Amplitude" if use_welch else "Amplitude")
                 ax_fft.set_xlim(spectrum_xlim_min, spectrum_xlim_max)
+                apply_major_tick_spacing(ax_fft, tickspace_hz, axis="x")
                 ax_fft.grid(True, alpha=0.3)
                 ax_fft.legend()
 
@@ -690,13 +729,14 @@ def plot_component_pair_frequency_grid(
                 )
                 continue
 
-            y_min = max(0.01, sliding_min_hz if sliding_min_hz is not None else 0.01)
-            y_max = min(
-                result.processed.nyquist,
-                sliding_max_hz if sliding_max_hz is not None else result.processed.nyquist,
-            )
-
-            if y_max <= y_min:
+            try:
+                y_min, y_max = resolve_clipped_window(
+                    max(0.01, float(spectrum_result.freq[0])),
+                    min(float(result.processed.nyquist), float(spectrum_result.freq[-1])),
+                    sliding_min_hz,
+                    sliding_max_hz,
+                )
+            except ValueError:
                 _set_panel_message(
                     ax_spec=ax_spec,
                     only="sliding",
@@ -721,6 +761,7 @@ def plot_component_pair_frequency_grid(
                     log_color_label="Welch Amplitude (dB)" if use_welch else "Amplitude (dB)",
                     show_colorbar=not use_compact_image_layout,
                     annotate_range=use_compact_image_layout,
+                    y_tickspace_hz=tickspace_hz,
                 )
                 if use_compact_image_layout:
                     _apply_compact_image_axis_style(
@@ -753,6 +794,7 @@ def plot_component_pair_frequency_grid(
                 time_interval=time_interval,
                 show_colorbar=not use_compact_image_layout,
                 annotate_range=use_compact_image_layout,
+                y_tickspace_hz=tickspace_hz,
             )
             if use_compact_image_layout:
                 _apply_compact_image_axis_style(
@@ -795,6 +837,7 @@ def plot_component_pair_frequency_grid_single_row_groups(
     time_interval: tuple[float, float] | None = None,
     cmap_index: int = 6,
     title: str | None = None,
+    tickspace_hz: float | None = None,
 ):
     if len(component_results) == 0:
         raise ValueError("No component results to plot")
@@ -894,21 +937,31 @@ def plot_component_pair_frequency_grid_single_row_groups(
                     title=f"{pair_title_prefix} {spectrum_panel_name} - {' | '.join(error_bits)}",
                 )
             else:
-                spectrum_xlim_min = max(
-                    0.0,
-                    (welch_min_hz if use_welch else fft_min_hz)
-                    if (welch_min_hz if use_welch else fft_min_hz) is not None
-                    else 0.0,
+                supported_min = max(
+                    max(0.0, float(getattr(result, "welch_result" if use_welch else "fft_result").freq[0]))
+                    for _, result in valid_fft_results
                 )
-                spectrum_xlim_max = max(
+                supported_max = min(
                     min(
-                        result.processed.nyquist,
-                        (welch_max_hz if use_welch else fft_max_hz)
-                        if (welch_max_hz if use_welch else fft_max_hz) is not None
-                        else result.processed.nyquist,
+                        float(result.processed.nyquist),
+                        float(getattr(result, "welch_result" if use_welch else "fft_result").freq[-1]),
                     )
                     for _, result in valid_fft_results
                 )
+                try:
+                    spectrum_xlim_min, spectrum_xlim_max = resolve_clipped_window(
+                        supported_min,
+                        supported_max,
+                        welch_min_hz if use_welch else fft_min_hz,
+                        welch_max_hz if use_welch else fft_max_hz,
+                    )
+                except ValueError:
+                    _set_panel_message(
+                        ax_fft=ax_fft,
+                        only="fft",
+                        title=f"{pair_title_prefix} {spectrum_panel_name} - invalid frequency range",
+                    )
+                    continue
 
                 any_positive = False
                 positive_vals_all: list[np.ndarray] = []
@@ -946,6 +999,7 @@ def plot_component_pair_frequency_grid_single_row_groups(
                 ax_fft.set_xlabel("Frequency (Hz)")
                 ax_fft.set_ylabel("Welch Amplitude" if use_welch else "Amplitude")
                 ax_fft.set_xlim(spectrum_xlim_min, spectrum_xlim_max)
+                apply_major_tick_spacing(ax_fft, tickspace_hz, axis="x")
                 ax_fft.grid(True, alpha=0.3)
                 ax_fft.legend()
 
@@ -978,13 +1032,14 @@ def plot_component_pair_frequency_grid_single_row_groups(
                 )
                 continue
 
-            y_min = max(0.01, sliding_min_hz if sliding_min_hz is not None else 0.01)
-            y_max = min(
-                result.processed.nyquist,
-                sliding_max_hz if sliding_max_hz is not None else result.processed.nyquist,
-            )
-
-            if y_max <= y_min:
+            try:
+                y_min, y_max = resolve_clipped_window(
+                    max(0.01, float(spectrum_result.freq[0])),
+                    min(float(result.processed.nyquist), float(spectrum_result.freq[-1])),
+                    sliding_min_hz,
+                    sliding_max_hz,
+                )
+            except ValueError:
                 _set_panel_message(
                     ax_spec=ax_spec,
                     only="sliding",
@@ -1009,6 +1064,7 @@ def plot_component_pair_frequency_grid_single_row_groups(
                     log_color_label="Welch Amplitude (dB)" if use_welch else "Amplitude (dB)",
                     show_colorbar=not use_compact_image_layout,
                     annotate_range=use_compact_image_layout,
+                    y_tickspace_hz=tickspace_hz,
                 )
                 if use_compact_image_layout:
                     _apply_compact_image_axis_style(
@@ -1041,6 +1097,7 @@ def plot_component_pair_frequency_grid_single_row_groups(
                 time_interval=time_interval,
                 show_colorbar=not use_compact_image_layout,
                 annotate_range=use_compact_image_layout,
+                y_tickspace_hz=tickspace_hz,
             )
             if use_compact_image_layout:
                 _apply_compact_image_axis_style(
@@ -1079,6 +1136,7 @@ def plot_pair_welch_frequency_grid(
     time_interval: tuple[float, float] | None = None,
     cmap_index: int = 6,
     title: str | None = None,
+    tickspace_hz: float | None = None,
 ):
     if len(results) == 0:
         raise ValueError("No pair results to plot")
@@ -1119,13 +1177,23 @@ def plot_pair_welch_frequency_grid(
             )
             continue
 
-        welch_xlim_min = max(0.0, welch_min_hz if welch_min_hz is not None else 0.0)
-        welch_xlim_max = min(
-            result.processed.nyquist,
-            welch_max_hz if welch_max_hz is not None else result.processed.nyquist,
-        )
-
         if only != "sliding":
+            try:
+                welch_xlim_min, welch_xlim_max = resolve_clipped_window(
+                    max(0.0, float(result.welch_result.freq[0])),
+                    min(float(result.processed.nyquist), float(result.welch_result.freq[-1])),
+                    welch_min_hz,
+                    welch_max_hz,
+                )
+            except ValueError:
+                _set_panel_message(
+                    ax_fft=ax_welch,
+                    ax_spec=ax_spec,
+                    only="fft" if only == "welch" else only,
+                    full_image=full_image,
+                    title=f"{pair_title_prefix} - invalid frequency range",
+                )
+                continue
             _plot_spectrum_curve_panel(
                 ax_welch,
                 freq=result.welch_result.freq,
@@ -1138,18 +1206,20 @@ def plot_pair_welch_frequency_grid(
                     f" | nperseg={result.welch_result.nperseg}, overlap={result.welch_result.noverlap}"
                 ),
                 y_label="Welch Amplitude",
+                x_tickspace_hz=tickspace_hz,
             )
 
         if only == "welch":
             continue
 
-        y_min = max(0.01, sliding_min_hz if sliding_min_hz is not None else 0.01)
-        y_max = min(
-            result.processed.nyquist,
-            sliding_max_hz if sliding_max_hz is not None else result.processed.nyquist,
-        )
-
-        if y_max <= y_min:
+        try:
+            y_min, y_max = resolve_clipped_window(
+                max(0.01, float(result.welch_result.freq[0])),
+                min(float(result.processed.nyquist), float(result.welch_result.freq[-1])),
+                sliding_min_hz,
+                sliding_max_hz,
+            )
+        except ValueError:
             _set_panel_message(
                 ax_fft=ax_welch,
                 ax_spec=ax_spec,
@@ -1172,6 +1242,7 @@ def plot_pair_welch_frequency_grid(
                 title=f"{pair_title_prefix} Full Welch Image",
                 linear_color_label="Welch Amplitude",
                 log_color_label="Welch Amplitude (dB)",
+                y_tickspace_hz=tickspace_hz,
             )
             continue
 
@@ -1198,6 +1269,7 @@ def plot_pair_welch_frequency_grid(
             y_max=y_max,
             title=f"{pair_title_prefix} Sliding FFT",
             time_interval=time_interval,
+            y_tickspace_hz=tickspace_hz,
         )
 
     if full_couple and full_image and only != "sliding":
@@ -1224,6 +1296,7 @@ def plot_average_spectrum(
     title: str | None = None,
     reference_amp_for_norm: np.ndarray | None = None,
     overlay: dict | None = None,
+    tickspace_hz: float | None = None,
 ):
     fig, ax = plt.subplots(figsize=(12, 5))
 
@@ -1247,6 +1320,7 @@ def plot_average_spectrum(
             log_color_label="Amplitude (dB)",
             reference_amp_for_norm=reference_amp_for_norm,
             overlay=overlay,
+            y_tickspace_hz=tickspace_hz,
         )
     else:
         if plot_scale == "log":
@@ -1257,6 +1331,7 @@ def plot_average_spectrum(
         ax.set_xlabel("Frequency (Hz)")
         ax.set_ylabel("Normalized Amplitude")
         ax.set_xlim(result.freq_grid[0], result.freq_grid[-1])
+        apply_major_tick_spacing(ax, tickspace_hz, axis="x")
         ax.grid(True, alpha=0.3)
         ax.set_title(title or "Average FFT")
 
@@ -1272,6 +1347,7 @@ def plot_average_component_comparison(
     cmap_index: int = 6,
     title: str | None = None,
     reference_amp_for_norm_by_component: dict[str, np.ndarray] | None = None,
+    tickspace_hz: float | None = None,
 ):
     components = [component for component in ("x", "y", "a") if component in results_by_component]
     if len(components) == 0:
@@ -1302,6 +1378,7 @@ def plot_average_component_comparison(
         ax.set_xlabel("Frequency (Hz)")
         ax.set_ylabel("Normalized Amplitude")
         ax.set_xlim(lead_result.freq_grid[0], lead_result.freq_grid[-1])
+        apply_major_tick_spacing(ax, tickspace_hz, axis="x")
         ax.grid(True, alpha=0.3)
         ax.legend()
         ax.set_title(title or "Average Component Comparison")
@@ -1349,6 +1426,7 @@ def plot_average_component_comparison(
             reference_amp_for_norm=reference_amp,
             show_colorbar=False,
             annotate_range=True,
+            y_tickspace_hz=tickspace_hz,
         )
         _apply_compact_image_axis_style(
             axes[idx],

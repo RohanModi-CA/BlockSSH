@@ -14,9 +14,16 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from plotting.common import render_figure
+from plotting.common import apply_major_tick_spacing, render_figure, resolve_clipped_window
 from plotting.frequency import _link_fft_frequency_to_image_frequency, _plot_frequency_image
-from tools.cli import add_colormap_arg, add_output_args
+from tools.cli import (
+    add_colormap_arg,
+    add_frequency_window_args,
+    add_output_args,
+    add_tickspace_arg,
+    validate_frequency_window_args,
+    validate_tickspace_arg,
+)
 from tools.peaks import load_peaks_csv
 from tools.spectrasave import load_spectrum_msgpack, resolve_existing_spectrasave_path
 
@@ -102,8 +109,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.set_defaults(image_plot_scale="log")
 
-    parser.add_argument("--freq-min-hz", type=float, default=None, help="Lower frequency bound for both panels.")
-    parser.add_argument("--freq-max-hz", type=float, default=None, help="Upper frequency bound for both panels.")
+    add_frequency_window_args(parser, help_scope="displayed frequency range for both panels")
+    add_tickspace_arg(parser)
     parser.add_argument(
         "--image-cols",
         type=int,
@@ -137,15 +144,12 @@ def _compute_freq_bounds(freq: np.ndarray, requested_min: float | None, requeste
     if finite_freq.size == 0:
         raise ValueError("Spectrum frequency axis is empty or non-finite")
 
-    freq_min = float(np.min(finite_freq))
-    freq_max = float(np.max(finite_freq))
-    x_min = freq_min if requested_min is None else float(requested_min)
-    x_max = freq_max if requested_max is None else float(requested_max)
-
-    if x_max <= x_min:
-        raise ValueError(f"Invalid frequency bounds: {x_min} to {x_max}")
-
-    return x_min, x_max
+    return resolve_clipped_window(
+        float(np.min(finite_freq)),
+        float(np.max(finite_freq)),
+        requested_min,
+        requested_max,
+    )
 
 
 def _print_metadata(path: Path, spectrum: dict) -> None:
@@ -175,6 +179,7 @@ def plot_spectrasave_dual_panel(
     title: str | None,
     peaks_hz: list[float] | None = None,
     show_lines: bool = True,
+    tickspace_hz: float | None = None,
 ):
     freq = np.asarray(spectrum["freq"], dtype=float)
     amp = np.asarray(spectrum["amplitude"], dtype=float)
@@ -210,6 +215,7 @@ def plot_spectrasave_dual_panel(
     ax_fft.set_xlabel("Frequency (Hz)")
     ax_fft.set_ylabel("Amplitude")
     ax_fft.set_xlim(x_min, x_max)
+    apply_major_tick_spacing(ax_fft, tickspace_hz, axis="x")
     ax_fft.grid(True, alpha=0.3)
 
     _plot_frequency_image(
@@ -226,6 +232,7 @@ def plot_spectrasave_dual_panel(
         title="Full FFT Image",
         linear_color_label="Amplitude",
         log_color_label="Amplitude (dB)",
+        y_tickspace_hz=tickspace_hz,
     )
     ax_image.set_xticks([])
 
@@ -262,6 +269,14 @@ def plot_spectrasave_dual_panel(
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    freq_window_error = validate_frequency_window_args(args)
+    if freq_window_error is not None:
+        print(freq_window_error, file=sys.stderr)
+        return 1
+    tickspace_error = validate_tickspace_arg(args)
+    if tickspace_error is not None:
+        print(tickspace_error, file=sys.stderr)
+        return 1
 
     try:
         path = resolve_existing_spectrasave_path(args.spectrasave)
@@ -292,6 +307,7 @@ def main() -> int:
             title=args.title,
             peaks_hz=peaks_hz,
             show_lines=args.show_lines,
+            tickspace_hz=args.tickspace,
         )
         render_figure(fig, save=args.save)
         return 0
