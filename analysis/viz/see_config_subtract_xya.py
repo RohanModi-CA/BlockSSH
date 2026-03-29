@@ -65,7 +65,7 @@ from tools.spectral import (
 )
 
 CANONICAL_COMPONENTS = ("x", "y", "a")
-BASELINE_MATCH_MODES = ("none", "median-offset")
+BASELINE_MATCH_MODES = ("none", "offset", "constant-offset", "median-offset")
 DEFAULT_BASELINE_WINDOW_BINS = 101
 
 
@@ -90,6 +90,8 @@ class SubtractSpec:
         base_label = self.label()
         if self.baseline_match == "none":
             return base_label
+        if self.baseline_match in {"offset", "constant-offset"}:
+            return f"{base_label} [constant-offset]"
         return f"{base_label} [{self.baseline_match}:{self.baseline_window_bins}]"
 
 
@@ -120,6 +122,8 @@ def _parse_subtract_tail(
     if tail:
         baseline_match = str(tail[0]).strip().lower()
         tail = tail[1:]
+    if baseline_match == "offset":
+        baseline_match = "constant-offset"
     if tail:
         try:
             baseline_window_bins = int(tail[0])
@@ -329,7 +333,7 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Subtract COMPONENT from the current --show target as "
             "--subtract COMPONENT [SCALE] [BASELINE_MATCH] [BASELINE_WINDOW_BINS]. "
-            "BASELINE_MATCH choices: none, median-offset."
+            "BASELINE_MATCH choices: none, constant-offset (alias: offset), median-offset."
         ),
     )
     parser.add_argument(
@@ -342,7 +346,7 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Subtract the average spectrum from a plain config-selected bond set as "
             "--subtract-config CONFIG_JSON [SCALE] [BASELINE_MATCH] [BASELINE_WINDOW_BINS]. "
-            "BASELINE_MATCH choices: none, median-offset."
+            "BASELINE_MATCH choices: none, constant-offset (alias: offset), median-offset."
         ),
     )
     return parser
@@ -770,6 +774,12 @@ def _align_subtract_source_to_target(
     source_arr = np.asarray(source_amp, dtype=float)
     if spec.baseline_match == "none":
         return source_arr
+    if spec.baseline_match == "constant-offset":
+        finite = np.isfinite(target_arr) & np.isfinite(source_arr)
+        if not np.any(finite):
+            raise ValueError("Constant-offset alignment requires at least one finite overlapping bin")
+        offset = float(np.median(target_arr[finite] - source_arr[finite]))
+        return source_arr + offset
     if spec.baseline_match != "median-offset":
         raise ValueError(f"Unsupported baseline match mode: {spec.baseline_match}")
 
