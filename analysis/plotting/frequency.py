@@ -395,7 +395,7 @@ def plot_pair_frequency_grid(
             ax_fft = axes[row_idx][0]
             ax_spec = axes[row_idx][1]
 
-        pair_title_prefix = f"Pair {result.pair_index} ({str(result.label).upper()})"
+        pair_title_prefix = f"Pair {result.pair_index + 1} ({str(result.label).upper()})"
 
         if result.error_message is not None or result.processed is None or result.fft_result is None:
             _set_panel_message(
@@ -599,7 +599,7 @@ def plot_component_pair_frequency_grid(
                 axes_grid[row_idx, 0].sharex(lead_fft_ax)
 
     for row_idx, ref_result in enumerate(ref_results):
-        pair_title_prefix = f"Pair {ref_result.pair_index} ({str(ref_result.label).upper()})"
+        pair_title_prefix = f"Pair {ref_result.pair_index + 1} ({str(ref_result.label).upper()})"
         row_component_results = {
             component: component_results[component][row_idx]
             for component in components
@@ -902,7 +902,7 @@ def plot_component_pair_frequency_grid_single_row_groups(
                 _axis_at(pair_idx, 0).sharex(lead_fft_ax)
 
     for pair_idx, ref_result in enumerate(ref_results):
-        pair_title_prefix = f"Pair {ref_result.pair_index} ({str(ref_result.label).upper()})"
+        pair_title_prefix = f"Pair {ref_result.pair_index + 1} ({str(ref_result.label).upper()})"
         row_component_results = {
             component: component_results[component][pair_idx]
             for component in components
@@ -1165,7 +1165,7 @@ def plot_pair_welch_frequency_grid(
             ax_welch = axes[row_idx][0]
             ax_spec = axes[row_idx][1]
 
-        pair_title_prefix = f"Pair {result.pair_index} ({str(result.label).upper()})"
+        pair_title_prefix = f"Pair {result.pair_index + 1} ({str(result.label).upper()})"
 
         if result.error_message is not None or result.processed is None or result.welch_result is None:
             _set_panel_message(

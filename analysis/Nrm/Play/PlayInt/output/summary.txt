@@ -1,0 +1,52 @@
+dataset: IMG_0681_rot270
+component: x
+bond_spacing_mode: comoving
+welch_len_s: 100.0
+welch_overlap: 0.5
+peak_prominence: 0.05
+merge_hz: 0.12
+match_tol_hz: 0.12
+
+top generators:
+  G1: 3.354 Hz | amplitude=1.4763 | prominence=1.4470
+  G2: 0.417 Hz | amplitude=0.8152 | prominence=0.7686
+  G3: 3.970 Hz | amplitude=0.4418 | prominence=0.4075
+
+generator ladder:
+  K=1: explained_peaks=1/21 (0.048) | explained_amplitude_fraction=0.249
+  K=2: explained_peaks=6/21 (0.286) | explained_amplitude_fraction=0.496
+  K=3: explained_peaks=11/21 (0.524) | explained_amplitude_fraction=0.669
+  K=4: explained_peaks=18/21 (0.857) | explained_amplitude_fraction=0.905
+  K=5: explained_peaks=18/21 (0.857) | explained_amplitude_fraction=0.905
+  K=6: explained_peaks=19/21 (0.905) | explained_amplitude_fraction=0.951
+  K=7: explained_peaks=20/21 (0.952) | explained_amplitude_fraction=0.983
+  K=8: explained_peaks=20/21 (0.952) | explained_amplitude_fraction=0.983
+
+top-3 explanation assignments:
+  0.608 Hz <- diff(3.354,3.970) => 0.615 Hz | err=0.007
+  1.238 Hz <- 3x(0.417) => 1.252 Hz | err=0.015
+  1.677 Hz <- 4x(0.417) => 1.670 Hz | err=0.007
+  2.168 Hz <- 5x(0.417) => 2.087 Hz | err=0.081
+  3.054 Hz <- diff(3.354,0.417) => 2.937 Hz | err=0.117
+  3.640 Hz <- diff(0.417,3.970) => 3.552 Hz | err=0.088
+  4.373 Hz <- sum(0.417,3.970) => 4.387 Hz | err=0.015
+  12.004 Hz <- 3x(3.970) => 11.909 Hz | err=0.095
+
+top-3 unresolved peaks:
+  0.959 Hz | amplitude=0.2953
+  1.479 Hz | amplitude=0.3660
+  1.904 Hz | amplitude=0.1553
+  4.512 Hz | amplitude=0.1029
+  4.753 Hz | amplitude=0.0924
+  5.427 Hz | amplitude=0.1559
+  6.343 Hz | amplitude=0.2732
+  6.497 Hz | amplitude=0.1908
+  8.965 Hz | amplitude=0.2351
+  11.309 Hz | amplitude=0.1001
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt/output/int1_spectrum_ladder.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt/output/int1_topk_explanations.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt/output/observed_peaks.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt/output/explanations.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt/output/generator_ladder.csv

@@ -1,0 +1,44 @@
+source_catalog: /home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/catalog_output/peak_catalog_evidence.csv
+
+idea:
+Child evidence should count less when the proposed parent relation is itself weak. This refined pass weights the child penalty by the catalog support of the proposed parent peaks.
+
+top refined-score peaks:
+2.505 Hz | refined=5.247 | old=5.247 | best=2.062 @ IMG_0680_rot270:y | n_strong=8 | child=-0.01238 | parent_support=0.000 | relation=0.610 + 1.902
+2.184 Hz | refined=4.590 | old=4.508 | best=1.989 @ IMG_0680_rot270:y | n_strong=6 | child=0.06324 | parent_support=0.000 | relation=5 x 0.414
+3.974 Hz | refined=4.547 | old=4.547 | best=1.847 @ IMG_0681_rot270:a | n_strong=7 | child=-0.05491 | parent_support=0.000 | relation=1.902 + 2.095
+2.095 Hz | refined=4.529 | old=4.502 | best=1.921 @ IMG_0680_rot270:y | n_strong=6 | child=0.02048 | parent_support=0.000 | relation=5 x 0.414
+4.185 Hz | refined=4.419 | old=4.304 | best=1.876 @ IMG_0681_rot270:a | n_strong=6 | child=0.08792 | parent_support=0.000 | relation=0.414 + 3.776
+8.950 Hz | refined=4.181 | old=4.056 | best=1.445 @ CDX_10IC:x | n_strong=4 | child=0.09589 | parent_support=0.000 | relation=0.414 + 8.557
+3.776 Hz | refined=4.148 | old=4.138 | best=1.802 @ IMG_0681_rot270:a | n_strong=5 | child=0.00774 | parent_support=0.000 | relation=2 x 1.902
+2.944 Hz | refined=4.096 | old=3.987 | best=1.676 @ IMG_0681_rot270:y | n_strong=8 | child=0.08442 | parent_support=0.000 | relation=1.483 + 1.483
+5.451 Hz | refined=4.071 | old=4.043 | best=1.747 @ IMG_0681_rot270:a | n_strong=6 | child=0.02173 | parent_support=0.000 | relation=1.245 + 4.185
+6.369 Hz | refined=3.995 | old=3.948 | best=1.562 @ IMG_0680_rot270:x | n_strong=5 | child=0.03577 | parent_support=0.000 | relation=1.483 + 4.944
+3.329 Hz | refined=3.970 | old=3.970 | best=1.802 @ IMG_0681_rot270:x | n_strong=5 | child=-0.00078 | parent_support=0.000 | relation=4 x 0.858
+11.333 Hz | refined=3.941 | old=3.919 | best=1.369 @ IMG_0681_rot270:x | n_strong=5 | child=0.03744 | parent_support=0.558 | relation=3.329 + 7.956
+13.746 Hz | refined=3.749 | old=3.627 | best=1.222 @ CDX_10IC:a | n_strong=4 | child=0.09400 | parent_support=0.000 | relation=1.245 + 12.537
+4.766 Hz | refined=3.680 | old=3.541 | best=1.689 @ IMG_0680_rot270:y | n_strong=5 | child=0.10670 | parent_support=0.000 | relation=0.858 + 3.974
+4.944 Hz | refined=3.645 | old=3.509 | best=1.658 @ IMG_0680_rot270:y | n_strong=5 | child=0.10487 | parent_support=0.000 | relation=0.961 + 3.974
+12.016 Hz | refined=3.142 | old=3.125 | best=1.458 @ IMG_0680_rot270:y | n_strong=4 | child=0.02932 | parent_support=0.563 | relation=4.944 + 7.082
+12.537 Hz | refined=2.995 | old=2.969 | best=1.412 @ CDX_10IC:y | n_strong=3 | child=0.13634 | parent_support=0.853 | relation=3.639 + 8.950
+3.639 Hz | refined=2.938 | old=2.938 | best=1.861 @ IMG_0680_rot270:x | n_strong=4 | child=-0.01156 | parent_support=0.000 | relation=1.679 + 1.902
+5.190 Hz | refined=2.861 | old=2.800 | best=1.682 @ IMG_0681_rot270:a | n_strong=4 | child=0.04693 | parent_support=0.000 | relation=1.483 + 3.639
+8.557 Hz | refined=2.704 | old=2.616 | best=1.444 @ IMG_0681_rot270:x | n_strong=4 | child=0.06793 | parent_support=0.000 | relation=1.483 + 7.082
+8.742 Hz | refined=2.328 | old=2.328 | best=1.502 @ CDX_10IC:x | n_strong=2 | child=-0.01333 | parent_support=0.000 | relation=1.902 + 6.897
+12.934 Hz | refined=2.109 | old=2.090 | best=1.253 @ CDX_10IC:a | n_strong=3 | child=0.08947 | parent_support=0.834 | relation=4.185 + 8.742
+6.897 Hz | refined=1.832 | old=1.822 | best=1.224 @ CDX_10IC:x | n_strong=2 | child=0.00783 | parent_support=0.000 | relation=1.679 + 5.190
+7.628 Hz | refined=1.742 | old=1.742 | best=1.069 @ IMG_0681_rot270:y | n_strong=2 | child=0.03452 | parent_support=1.000 | relation=2 x 3.776
+9.403 Hz | refined=1.526 | old=1.519 | best=1.068 @ CDX_10IC:x | n_strong=1 | child=0.04958 | parent_support=0.889 | relation=4.185 + 5.190
+
+reference peaks:
+3.329 Hz | refined=3.970 | old=3.970 | parent_support=0.000 | weighted_child_penalty=0.00000 | relation=4 x 0.858
+6.369 Hz | refined=3.995 | old=3.948 | parent_support=0.000 | weighted_child_penalty=0.00000 | relation=1.483 + 4.944
+8.950 Hz | refined=4.181 | old=4.056 | parent_support=0.000 | weighted_child_penalty=0.00000 | relation=0.414 + 8.557
+12.016 Hz | refined=3.142 | old=3.125 | parent_support=0.563 | weighted_child_penalty=0.01650 | relation=4.944 + 7.082
+16.601 Hz | refined=1.099 | old=0.866 | parent_support=0.000 | weighted_child_penalty=0.00000 | relation=1.902 + 14.701
+18.361 Hz | refined=1.109 | old=1.030 | parent_support=0.566 | weighted_child_penalty=0.07921 | relation=7.082 + 11.333
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/catalog_refined_output/peak_catalog_refined.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/catalog_refined_output/001_penalty_compare.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/catalog_refined_output/002_relation_support.png

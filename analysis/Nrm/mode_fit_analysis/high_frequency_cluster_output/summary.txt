@@ -1,0 +1,10 @@
+idea:
+Nearby listed peaks may belong to one physical family. This view clusters nearby high-frequency peaks before comparing recurrence against parent-specificity.
+
+clusters:
+11.333, 12.016, 12.537, 12.934, 13.108, 13.257, 13.746, 14.248, 14.701 | center=13.098 Hz | members=9 | max_hf=3.886 | mean_hf=2.466 | min_parent_penalty=0.00000
+18.361 | center=18.361 Hz | members=1 | max_hf=2.143 | mean_hf=2.143 | min_parent_penalty=0.07921
+15.823, 16.025, 16.601 | center=16.150 Hz | members=3 | max_hf=1.679 | mean_hf=1.590 | min_parent_penalty=0.00000
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/high_frequency_cluster_output/001_cluster_frontier.png

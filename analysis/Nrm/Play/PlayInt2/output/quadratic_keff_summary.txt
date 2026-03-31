@@ -1,0 +1,38 @@
+dataset: IMG_0681_rot270
+component: x
+bond_spacing_mode: comoving
+welch_len_s: 100.0
+welch_overlap: 0.5
+peak_prominence: 0.05
+merge_hz: 0.12
+match_tol_hz: 0.06
+ambiguity_gap_hz: 0.03
+min_child_prominence: 0.08
+
+chosen generators:
+  G1: 3.354 Hz | amplitude=2.4420 | prominence=2.3898
+  G2: 0.417 Hz | amplitude=1.2036 | prominence=1.1371
+  G3: 8.965 Hz | amplitude=1.1753 | prominence=1.1273
+  G4: 3.970 Hz | amplitude=0.7867 | prominence=0.7266
+  G5: 6.343 Hz | amplitude=0.7790 | prominence=0.7289
+
+accepted second-order children: 6
+
+global coefficient spread in log10 space:
+  raw:       median=-0.597 | MAD=0.102 | std=0.255
+  flattened: median=-0.679 | MAD=0.129 | std=0.200
+
+per-relation spread in log10 space:
+  sum: n=4 | raw MAD=0.133, raw std=0.304 | flat MAD=0.141, flat std=0.227
+
+accepted matches:
+  0.608 Hz <- diff(3.354,3.970) => 0.615 | err=0.007 | raw_k=0.258 | flat_k=0.136
+  4.373 Hz <- sum(0.417,3.970) => 4.387 | err=0.015 | raw_k=0.455 | flat_k=0.349
+  7.947 Hz <- 2x(3.970) => 7.939 | err=0.007 | raw_k=0.162 | flat_k=0.246
+  9.419 Hz <- sum(0.417,8.965) => 9.382 | err=0.037 | raw_k=0.247 | flat_k=0.182
+  9.727 Hz <- sum(3.354,6.343) => 9.697 | err=0.029 | raw_k=0.067 | flat_k=0.084
+  12.927 Hz <- sum(8.965,3.970) => 12.935 | err=0.007 | raw_k=0.259 | flat_k=0.241
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt2/output/quadratic_keff_stability.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt2/output/quadratic_keff_matches.csv

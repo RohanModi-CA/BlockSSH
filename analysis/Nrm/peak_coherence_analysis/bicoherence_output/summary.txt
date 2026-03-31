@@ -1,0 +1,123 @@
+repo_root: /home/gram/Documents/FileFolder/Projects/BlocksSSH
+dataset: IMG_0681_rot270
+bond_spacing_mode: default
+component: x
+bond_index: 0
+welch_len_s: 10.0
+welch_overlap_fraction: 0.5
+
+quiet regions:
+region 3: t=[67.998, 91.998] s
+region 5: t=[109.998, 135.998] s
+region 6: t=[139.998, 171.998] s
+region 7: t=[175.998, 209.998] s
+region 9: t=[233.998, 257.998] s
+region 10: t=[261.998, 285.998] s
+region 11: t=[289.998, 343.998] s
+region 18: t=[411.998, 443.998] s
+region 19: t=[447.998, 475.998] s
+region 22: t=[495.998, 529.998] s
+
+triad results:
+8.96 + 8.96 -> 18.0: observed=0.22749, null mean=0.01208, null 95%=0.03665, regions=10, windows=46, corr(log |X1X2|, log |X3|)=0.843 | above null
+  region 3: bic=0.0358, phasePLV=0.324, windows=3, f1=8.965, f2=8.965, f3=17.871
+  region 5: bic=0.0657, phasePLV=0.342, windows=4, f1=8.936, f2=8.936, f3=18.149
+  region 6: bic=0.3743, phasePLV=0.382, windows=5, f1=8.977, f2=8.977, f3=17.906
+  region 7: bic=0.6849, phasePLV=0.652, windows=5, f1=8.965, f2=8.965, f3=17.953
+  region 9: bic=0.4691, phasePLV=0.423, windows=3, f1=8.965, f2=8.965, f3=17.949
+  region 10: bic=0.2434, phasePLV=0.411, windows=3, f1=8.965, f2=8.965, f3=17.969
+  region 11: bic=0.6334, phasePLV=0.285, windows=9, f1=8.965, f2=8.965, f3=17.969
+  region 18: bic=0.0690, phasePLV=0.450, windows=5, f1=8.965, f2=8.965, f3=18.070
+  region 19: bic=0.7292, phasePLV=0.355, windows=4, f1=8.965, f2=8.965, f3=18.003
+  region 22: bic=0.0822, phasePLV=0.195, windows=5, f1=8.953, f2=8.953, f3=18.059
+8.96 + 8.96 -> 17.5 (control): observed=0.02314, null mean=0.02495, null 95%=0.07986, regions=10, windows=46, corr(log |X1X2|, log |X3|)=0.491 | not above null
+  region 3: bic=0.1423, phasePLV=0.331, windows=3, f1=8.965, f2=8.965, f3=17.441
+  region 5: bic=0.4061, phasePLV=0.384, windows=4, f1=8.936, f2=8.936, f3=17.344
+  region 6: bic=0.1570, phasePLV=0.293, windows=5, f1=8.977, f2=8.977, f3=17.414
+  region 7: bic=0.0704, phasePLV=0.100, windows=5, f1=8.965, f2=8.965, f3=17.461
+  region 9: bic=0.0064, phasePLV=0.186, windows=3, f1=8.965, f2=8.965, f3=17.363
+  region 10: bic=0.5741, phasePLV=0.694, windows=3, f1=8.965, f2=8.965, f3=17.500
+  region 11: bic=0.1247, phasePLV=0.426, windows=9, f1=8.965, f2=8.965, f3=17.578
+  region 18: bic=0.0079, phasePLV=0.209, windows=5, f1=8.965, f2=8.965, f3=17.613
+  region 19: bic=0.0858, phasePLV=0.129, windows=4, f1=8.965, f2=8.965, f3=17.549
+  region 22: bic=0.2732, phasePLV=0.736, windows=5, f1=8.953, f2=8.953, f3=17.602
+8.96 + 8.96 -> 18.5 (control): observed=0.04756, null mean=0.01617, null 95%=0.05033, regions=10, windows=46, corr(log |X1X2|, log |X3|)=0.579 | not above null
+  region 3: bic=0.6261, phasePLV=0.810, windows=3, f1=8.965, f2=8.965, f3=18.359
+  region 5: bic=0.1340, phasePLV=0.412, windows=4, f1=8.936, f2=8.936, f3=18.545
+  region 6: bic=0.3263, phasePLV=0.245, windows=5, f1=8.977, f2=8.977, f3=18.586
+  region 7: bic=0.3038, phasePLV=0.182, windows=5, f1=8.965, f2=8.965, f3=18.398
+  region 9: bic=0.2839, phasePLV=0.390, windows=3, f1=8.965, f2=8.965, f3=18.496
+  region 10: bic=0.6257, phasePLV=0.337, windows=3, f1=8.965, f2=8.965, f3=18.340
+  region 11: bic=0.4305, phasePLV=0.403, windows=9, f1=8.965, f2=8.965, f3=18.424
+  region 18: bic=0.1115, phasePLV=0.538, windows=5, f1=8.965, f2=8.965, f3=18.398
+  region 19: bic=0.3965, phasePLV=0.533, windows=4, f1=8.965, f2=8.965, f3=18.574
+  region 22: bic=0.0174, phasePLV=0.175, windows=5, f1=8.953, f2=8.953, f3=18.563
+6.35 + 8.96 -> 15.31: observed=0.28139, null mean=0.02833, null 95%=0.07596, regions=10, windows=46, corr(log |X1X2|, log |X3|)=0.228 | above null
+  region 3: bic=0.8659, phasePLV=0.991, windows=3, f1=6.328, f2=8.965, f3=15.352
+  region 5: bic=0.3153, phasePLV=0.677, windows=4, f1=6.387, f2=8.936, f3=15.278
+  region 6: bic=0.6246, phasePLV=0.592, windows=5, f1=6.375, f2=8.977, f3=15.363
+  region 7: bic=0.4287, phasePLV=0.565, windows=5, f1=6.410, f2=8.965, f3=15.352
+  region 9: bic=0.4697, phasePLV=0.502, windows=3, f1=6.289, f2=8.965, f3=15.234
+  region 10: bic=0.8935, phasePLV=0.859, windows=3, f1=6.406, f2=8.965, f3=15.332
+  region 11: bic=0.5480, phasePLV=0.518, windows=9, f1=6.341, f2=8.965, f3=15.365
+  region 18: bic=0.1104, phasePLV=0.466, windows=5, f1=6.387, f2=8.965, f3=15.422
+  region 19: bic=0.1943, phasePLV=0.086, windows=4, f1=6.328, f2=8.965, f3=15.176
+  region 22: bic=0.2715, phasePLV=0.060, windows=5, f1=6.305, f2=8.953, f3=15.352
+6.35 + 6.35 -> 12.70: observed=0.04103, null mean=0.01484, null 95%=0.04385, regions=10, windows=46, corr(log |X1X2|, log |X3|)=0.925 | not above null
+  region 3: bic=0.4369, phasePLV=0.874, windows=3, f1=6.328, f2=6.328, f3=12.871
+  region 5: bic=0.3359, phasePLV=0.840, windows=4, f1=6.387, f2=6.387, f3=12.729
+  region 6: bic=0.5642, phasePLV=0.281, windows=5, f1=6.375, f2=6.375, f3=12.762
+  region 7: bic=0.4148, phasePLV=0.397, windows=5, f1=6.410, f2=6.410, f3=12.727
+  region 9: bic=0.8044, phasePLV=0.890, windows=3, f1=6.289, f2=6.289, f3=12.832
+  region 10: bic=0.8767, phasePLV=0.328, windows=3, f1=6.406, f2=6.406, f3=12.891
+  region 11: bic=0.0296, phasePLV=0.510, windows=9, f1=6.341, f2=6.341, f3=12.806
+  region 18: bic=0.0880, phasePLV=0.124, windows=5, f1=6.387, f2=6.387, f3=12.891
+  region 19: bic=0.2771, phasePLV=0.118, windows=4, f1=6.328, f2=6.328, f3=12.935
+  region 22: bic=0.0903, phasePLV=0.370, windows=5, f1=6.305, f2=6.305, f3=12.902
+3.35 + 8.96 -> 12.31: observed=0.00601, null mean=0.01868, null 95%=0.04780, regions=10, windows=46, corr(log |X1X2|, log |X3|)=0.832 | not above null
+  region 3: bic=0.1672, phasePLV=0.490, windows=3, f1=3.340, f2=8.965, f3=12.266
+  region 5: bic=0.0450, phasePLV=0.127, windows=4, f1=3.340, f2=8.936, f3=12.188
+  region 6: bic=0.3919, phasePLV=0.201, windows=5, f1=3.352, f2=8.977, f3=12.070
+  region 7: bic=0.0953, phasePLV=0.371, windows=5, f1=3.328, f2=8.965, f3=12.070
+  region 9: bic=0.1805, phasePLV=0.159, windows=3, f1=3.281, f2=8.965, f3=12.070
+  region 10: bic=0.1396, phasePLV=0.277, windows=3, f1=3.340, f2=8.965, f3=12.070
+  region 11: bic=0.4484, phasePLV=0.435, windows=9, f1=3.359, f2=8.965, f3=12.259
+  region 18: bic=0.1137, phasePLV=0.429, windows=5, f1=3.352, f2=8.965, f3=12.070
+  region 19: bic=0.3522, phasePLV=0.418, windows=4, f1=3.340, f2=8.965, f3=12.129
+  region 22: bic=0.0818, phasePLV=0.530, windows=5, f1=3.340, f2=8.953, f3=12.164
+3.35 + 6.35 -> 9.70: observed=0.08285, null mean=0.03664, null 95%=0.09704, regions=10, windows=46, corr(log |X1X2|, log |X3|)=0.862 | not above null
+  region 3: bic=0.4585, phasePLV=0.328, windows=3, f1=3.340, f2=6.328, f3=9.668
+  region 5: bic=0.0600, phasePLV=0.240, windows=4, f1=3.340, f2=6.387, f3=9.741
+  region 6: bic=0.4097, phasePLV=0.363, windows=5, f1=3.352, f2=6.375, f3=9.703
+  region 7: bic=0.4682, phasePLV=0.447, windows=5, f1=3.328, f2=6.410, f3=9.668
+  region 9: bic=0.4842, phasePLV=0.719, windows=3, f1=3.281, f2=6.289, f3=9.668
+  region 10: bic=0.2773, phasePLV=0.497, windows=3, f1=3.340, f2=6.406, f3=9.551
+  region 11: bic=0.2337, phasePLV=0.377, windows=9, f1=3.359, f2=6.341, f3=9.531
+  region 18: bic=0.3123, phasePLV=0.432, windows=5, f1=3.352, f2=6.387, f3=9.539
+  region 19: bic=0.5929, phasePLV=0.820, windows=4, f1=3.340, f2=6.328, f3=9.712
+  region 22: bic=0.1179, phasePLV=0.383, windows=5, f1=3.340, f2=6.305, f3=9.551
+0.41 + 8.96 -> 9.37: observed=0.01822, null mean=0.01113, null 95%=0.02897, regions=10, windows=46, corr(log |X1X2|, log |X3|)=0.875 | not above null
+  region 3: bic=0.2488, phasePLV=0.369, windows=3, f1=0.410, f2=8.965, f3=9.395
+  region 5: bic=0.1242, phasePLV=0.420, windows=4, f1=0.410, f2=8.936, f3=9.375
+  region 6: bic=0.7129, phasePLV=0.541, windows=5, f1=0.398, f2=8.977, f3=9.328
+  region 7: bic=0.3569, phasePLV=0.176, windows=5, f1=0.434, f2=8.965, f3=9.187
+  region 9: bic=0.7040, phasePLV=0.814, windows=3, f1=0.410, f2=8.965, f3=9.570
+  region 10: bic=0.7890, phasePLV=0.989, windows=3, f1=0.410, f2=8.965, f3=9.375
+  region 11: bic=0.2382, phasePLV=0.256, windows=9, f1=0.410, f2=8.965, f3=9.408
+  region 18: bic=0.0962, phasePLV=0.309, windows=5, f1=0.434, f2=8.965, f3=9.434
+  region 19: bic=0.5629, phasePLV=0.700, windows=4, f1=0.410, f2=8.965, f3=9.258
+  region 22: bic=0.1533, phasePLV=0.506, windows=5, f1=0.398, f2=8.953, f3=9.516
+
+target-18 pair scan:
+best pair among scanned fundamentals: f1=8.96 Hz, f2=8.96 Hz, observed bic=0.22749
+
+interpretation:
+Bicoherence is a stronger test than ordinary coherence here because it directly asks whether two frequencies predict the phase and amplitude of a third.
+If a line is a true independent mode, we usually do not expect a large, repeatable bicoherence tying it to other fundamentals by a simple sum relation.
+If a line is a nonlinear follower, a relation like f3 = f1 + f2 should create an elevated normalized bispectral statistic.
+In this first pass, 8.96 + 8.96 -> 18.0 is the key triad of interest. Compare its observed value to the circular-shift null and to the nearby control triads above rather than looking at the raw number alone.
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/bicoherence_output/001_triad_bicoherence_scores.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/bicoherence_output/002_regionwise_bicoherence.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/bicoherence_output/003_target18_pair_scan.png

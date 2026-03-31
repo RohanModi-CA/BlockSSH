@@ -1,0 +1,37 @@
+repo_root: /home/gram/Documents/FileFolder/Projects/BlocksSSH
+dataset: IMG_0681_rot270
+bond_spacing_mode: default
+component: x
+scan_range_hz: (2.0, 20.0)
+n_targets: 91
+
+idea:
+A mode-like line should emerge from the data as one that is stable in frequency across quiet regions, coherent across bonds, and close to linear when scaled against a leave-one-out modal proxy.
+
+top candidates by score:
+3.200 Hz | score=2.367 | corr=0.995 | slope=1.020 | meanR2=0.54729 | freq_rms=0.01809 | bond_freq_spread=0.02489
+3.400 Hz | score=2.367 | corr=0.995 | slope=1.020 | meanR2=0.54729 | freq_rms=0.01809 | bond_freq_spread=0.02489
+3.000 Hz | score=2.367 | corr=0.995 | slope=1.020 | meanR2=0.54729 | freq_rms=0.01809 | bond_freq_spread=0.02489
+3.800 Hz | score=2.105 | corr=0.991 | slope=0.857 | meanR2=0.57933 | freq_rms=0.19262 | bond_freq_spread=0.00044
+3.600 Hz | score=2.105 | corr=0.991 | slope=0.857 | meanR2=0.57933 | freq_rms=0.19262 | bond_freq_spread=0.00044
+2.800 Hz | score=1.911 | corr=0.996 | slope=1.099 | meanR2=0.29590 | freq_rms=0.15278 | bond_freq_spread=0.00533
+4.400 Hz | score=1.679 | corr=0.881 | slope=0.982 | meanR2=0.09849 | freq_rms=0.01272 | bond_freq_spread=0.05333
+9.200 Hz | score=1.495 | corr=0.943 | slope=1.193 | meanR2=0.03172 | freq_rms=0.01041 | bond_freq_spread=0.03778
+9.000 Hz | score=1.471 | corr=0.942 | slope=1.208 | meanR2=0.03172 | freq_rms=0.01041 | bond_freq_spread=0.05289
+9.400 Hz | score=1.468 | corr=0.943 | slope=1.192 | meanR2=0.03172 | freq_rms=0.01041 | bond_freq_spread=0.07289
+6.600 Hz | score=1.462 | corr=0.982 | slope=1.082 | meanR2=0.00984 | freq_rms=0.04744 | bond_freq_spread=0.00889
+6.000 Hz | score=1.462 | corr=0.982 | slope=1.082 | meanR2=0.00984 | freq_rms=0.04744 | bond_freq_spread=0.00889
+
+reference frequencies of interest:
+3.400 Hz near 3.35 | score=2.367 | corr=0.995 | slope=1.020 | meanR2=0.54729 | freq_rms=0.01809
+6.400 Hz near 6.35 | score=1.462 | corr=0.982 | slope=1.082 | meanR2=0.00984 | freq_rms=0.04744
+9.000 Hz near 8.96 | score=1.471 | corr=0.942 | slope=1.208 | meanR2=0.03172 | freq_rms=0.01041
+18.000 Hz near 18.00 | score=-0.061 | corr=0.544 | slope=0.598 | meanR2=0.00004 | freq_rms=0.26705
+
+what to look for:
+If the scan is doing something real, known fundamentals should rise toward the top and known non-fundamentals should not.
+Weak but real fundamentals may still have tiny absolute R^2, so cross-bond coherence and frequency stability matter at least as much as raw fit strength.
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/scan_output/001_score_scan.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/scan_output/002_top_candidates.png

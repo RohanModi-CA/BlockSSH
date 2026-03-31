@@ -1,0 +1,28 @@
+cross-dataset survey:
+0681 bond0: dataset=IMG_0681_rot270, bond_index=0, regions=10
+  8.96 + 8.96 -> 18.0: observed=0.22749, null95=0.03665, windows=46 | above null
+  8.96 + 8.96 -> 17.5: observed=0.02314, null95=0.07986, windows=46 | not above null
+  8.96 + 8.96 -> 18.5: observed=0.04756, null95=0.05033, windows=46 | not above null
+  6.35 + 8.96 -> 15.31: observed=0.28139, null95=0.07596, windows=46 | above null
+  3.97 + 12.0 -> 15.97: observed=0.09270, null95=0.05540, windows=46 | above null
+  3.97 + 12.0 -> 15.5: observed=0.00865, null95=0.04443, windows=46 | not above null
+  3.97 + 12.0 -> 16.5: observed=0.02387, null95=0.05105, windows=46 | not above null
+0680 bond1: dataset=IMG_0680_rot270, bond_index=1, regions=10
+  8.96 + 8.96 -> 18.0: observed=0.21620, null95=0.12164, windows=55 | above null
+  8.96 + 8.96 -> 17.5: observed=0.02440, null95=0.09221, windows=55 | not above null
+  8.96 + 8.96 -> 18.5: observed=0.36488, null95=0.16000, windows=55 | above null
+  6.35 + 8.96 -> 15.31: observed=0.05842, null95=0.08860, windows=55 | not above null
+  3.97 + 12.0 -> 15.97: observed=0.01369, null95=0.05521, windows=55 | not above null
+  3.97 + 12.0 -> 15.5: observed=0.03335, null95=0.03879, windows=55 | not above null
+  3.97 + 12.0 -> 16.5: observed=0.03969, null95=0.08462, windows=55 | not above null
+
+working read:
+The 8.96 + 8.96 -> 18 relation appears in both IMG_0681_rot270 and IMG_0680_rot270 when the bond observable is chosen sensibly.
+In IMG_0681_rot270 the 8.96-parent child-frequency scan is fairly narrow and peaks near 17.8-18.0 Hz. In IMG_0680_rot270 it is broader and shifted upward into an 18.1-18.5 Hz band, so that dataset supports an '18-ish' follower more than a razor-sharp 18.000 Hz line.
+The 3.97 + 12.0 -> 15.97 relation is clearly present in IMG_0681_rot270 and localizes near 16.0-16.2 Hz, but it does not reproduce cleanly in IMG_0680_rot270. So the ~16 Hz anomaly is currently dataset-specific rather than universal.
+That makes the 18 Hz family the stronger candidate for a conclusive non-fundamental line, while ~15.97/16 remains a plausible nonlinear feature that still needs troubleshooting.
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/cross_dataset_output/001_cross_dataset_triad_matrix.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/cross_dataset_output/002_cross_dataset_main_candidates.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/cross_dataset_output/003_cross_dataset_child_scans.png

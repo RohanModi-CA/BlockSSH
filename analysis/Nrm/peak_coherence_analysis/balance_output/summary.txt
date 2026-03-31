@@ -1,0 +1,44 @@
+parent-like:
+  F03 | 4.191 Hz | amp=0.2072 | incoming=nan | outgoing=0.22328 | outgoing_count=6 | mode_score=3.2085
+  F15 | 8.962 Hz | amp=0.3269 | incoming=-0.01964 | outgoing=0.15282 | outgoing_count=4 | mode_score=2.9990
+  F02 | 3.965 Hz | amp=0.6021 | incoming=nan | outgoing=0.04930 | outgoing_count=4 | mode_score=2.9732
+  F14 | 8.820 Hz | amp=0.1543 | incoming=-0.03029 | outgoing=0.14554 | outgoing_count=4 | mode_score=2.8855
+  F01 | 3.372 Hz | amp=1.7955 | incoming=nan | outgoing=0.03904 | outgoing_count=3 | mode_score=2.8834
+  F04 | 4.792 Hz | amp=0.0797 | incoming=nan | outgoing=0.24388 | outgoing_count=4 | mode_score=2.8718
+  F12 | 8.027 Hz | amp=0.0396 | incoming=0.04233 | outgoing=0.22546 | outgoing_count=6 | mode_score=2.6859
+  F16 | 9.407 Hz | amp=0.0788 | incoming=-0.06803 | outgoing=0.08148 | outgoing_count=3 | mode_score=2.6180
+  F05 | 4.903 Hz | amp=0.0782 | incoming=nan | outgoing=0.02530 | outgoing_count=3 | mode_score=2.5479
+  F11 | 7.891 Hz | amp=0.0416 | incoming=0.00779 | outgoing=0.24388 | outgoing_count=4 | mode_score=2.5418
+  F07 | 6.356 Hz | amp=0.2261 | incoming=nan | outgoing=0.04621 | outgoing_count=1 | mode_score=2.5386
+  F18 | 12.053 Hz | amp=0.0580 | incoming=0.01344 | outgoing=0.08148 | outgoing_count=3 | mode_score=2.5042
+  F17 | 11.311 Hz | amp=0.0633 | incoming=0.03904 | outgoing=0.13571 | outgoing_count=2 | mode_score=2.4441
+  F13 | 8.402 Hz | amp=0.0297 | incoming=-0.01700 | outgoing=0.22328 | outgoing_count=4 | mode_score=2.3867
+  F10 | 7.712 Hz | amp=0.0429 | incoming=nan | outgoing=0.10756 | outgoing_count=3 | mode_score=2.3791
+  F09 | 6.994 Hz | amp=0.0400 | incoming=nan | outgoing=0.13571 | outgoing_count=1 | mode_score=2.0832
+  F23 | 14.243 Hz | amp=0.0091 | incoming=0.04621 | outgoing=0.10869 | outgoing_count=4 | mode_score=1.9745
+
+mixed:
+  F20 | 13.049 Hz | amp=0.0492 | incoming=0.14554 | outgoing=0.02139 | outgoing_count=1 | mode_score=2.1455
+  F21 | 13.209 Hz | amp=0.0458 | incoming=0.15282 | outgoing=0.03557 | outgoing_count=1 | mode_score=2.0788
+  F19 | 12.607 Hz | amp=0.0368 | incoming=0.24388 | outgoing=0.02327 | outgoing_count=2 | mode_score=1.9777
+  F28 | 18.364 Hz | amp=0.0110 | incoming=0.13571 | outgoing=0.02717 | outgoing_count=2 | mode_score=1.7270
+  F27 | 16.598 Hz | amp=0.0123 | incoming=0.10756 | outgoing=0.02720 | outgoing_count=1 | mode_score=1.7259
+
+child-like:
+  F33 | 23.158 Hz | amp=0.0136 | incoming=0.10869 | outgoing=nan | outgoing_count=0 | mode_score=1.6256
+  F25 | 15.940 Hz | amp=0.0121 | incoming=0.21204 | outgoing=-0.03109 | outgoing_count=0 | mode_score=1.5167
+  F26 | 16.050 Hz | amp=0.0120 | incoming=0.22546 | outgoing=-0.03071 | outgoing_count=0 | mode_score=1.4756
+
+unclear:
+  F06 | 5.416 Hz | amp=0.1201 | incoming=nan | outgoing=-0.01825 | outgoing_count=0 | mode_score=2.2818
+  F08 | 6.889 Hz | amp=0.0466 | incoming=-0.06718 | outgoing=-0.02372 | outgoing_count=0 | mode_score=2.0273
+  F30 | 21.402 Hz | amp=0.0205 | incoming=0.08148 | outgoing=nan | outgoing_count=0 | mode_score=1.7078
+  F22 | 13.652 Hz | amp=0.0169 | incoming=-0.00164 | outgoing=-0.02519 | outgoing_count=0 | mode_score=1.7000
+  F29 | 20.757 Hz | amp=0.0106 | incoming=0.02720 | outgoing=-0.09220 | outgoing_count=0 | mode_score=1.4723
+  F24 | 14.707 Hz | amp=0.0082 | incoming=-0.02435 | outgoing=-0.03346 | outgoing_count=0 | mode_score=1.4091
+  F31 | 21.896 Hz | amp=0.0062 | incoming=-0.01506 | outgoing=-0.06312 | outgoing_count=0 | mode_score=1.3727
+  F32 | 22.598 Hz | amp=0.0061 | incoming=0.03396 | outgoing=-0.02032 | outgoing_count=0 | mode_score=1.3245
+  F34 | 28.854 Hz | amp=0.0039 | incoming=-0.02032 | outgoing=nan | outgoing_count=0 | mode_score=1.3000
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/balance_output/001_parent_child_balance.png

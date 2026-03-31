@@ -15,8 +15,8 @@ from .io import (
 )
 from .models import Track2Dataset
 
-BOND_SPACING_MODES = ("default", "comoving")
-BondSpacingMode = Literal["default", "comoving"]
+BOND_SPACING_MODES = ("default", "comoving", "purecomoving")
+BondSpacingMode = Literal["default", "comoving", "purecomoving"]
 
 
 @dataclass(frozen=True)
@@ -131,6 +131,69 @@ def _derive_comoving_signal_matrices(
     return longitudinal, transverse
 
 
+def _derive_purecomoving_signal_matrices(
+    track2_x: Track2Dataset,
+    track2_y: Track2Dataset,
+) -> tuple[np.ndarray, np.ndarray]:
+    x_pos = np.asarray(track2_x.x_positions, dtype=float)
+    y_pos = np.asarray(track2_y.x_positions, dtype=float)
+    n_frames, n_blocks = x_pos.shape
+    n_pairs = max(0, n_blocks - 1)
+
+    longitudinal = np.full((n_frames, n_pairs), np.nan, dtype=float)
+    transverse = np.full((n_frames, n_pairs), np.nan, dtype=float)
+
+    for pair_idx in range(n_pairs):
+        left_block = pair_idx
+        right_block = pair_idx + 1
+
+        for frame_idx in range(1, n_frames):
+            x_left = x_pos[frame_idx, left_block]
+            y_left = y_pos[frame_idx, left_block]
+            x_right = x_pos[frame_idx, right_block]
+            y_right = y_pos[frame_idx, right_block]
+
+            x_left_prev = x_pos[frame_idx - 1, left_block]
+            y_left_prev = y_pos[frame_idx - 1, left_block]
+            x_right_prev = x_pos[frame_idx - 1, right_block]
+            y_right_prev = y_pos[frame_idx - 1, right_block]
+
+            if not (np.isfinite(x_left) and np.isfinite(y_left) and
+                    np.isfinite(x_right) and np.isfinite(y_right) and
+                    np.isfinite(x_left_prev) and np.isfinite(y_left_prev) and
+                    np.isfinite(x_right_prev) and np.isfinite(y_right_prev)):
+                continue
+
+            bond_x = x_right - x_left
+            bond_y = y_right - y_left
+            bond_norm = np.hypot(bond_x, bond_y)
+            if not (np.isfinite(bond_norm) and bond_norm > 0):
+                continue
+
+            xhat_x = bond_x / bond_norm
+            xhat_y = bond_y / bond_norm
+
+            if xhat_x < 0:
+                xhat_x = -xhat_x
+                xhat_y = -xhat_y
+
+            yhat_x = -xhat_y
+            yhat_y = xhat_x
+
+            dx_left = x_left - x_left_prev
+            dy_left = y_left - y_left_prev
+            dx_right = x_right - x_right_prev
+            dy_right = y_right - y_right_prev
+
+            dl = dx_left * xhat_x + dy_left * xhat_y + dx_right * xhat_x + dy_right * xhat_y
+            dt = dx_left * yhat_x + dy_left * yhat_y + dx_right * yhat_x + dy_right * yhat_y
+
+            longitudinal[frame_idx, pair_idx] = dl
+            transverse[frame_idx, pair_idx] = dt
+
+    return longitudinal, transverse
+
+
 def load_bond_signal_dataset(
     *,
     dataset: str | None = None,
@@ -169,7 +232,7 @@ def load_bond_signal_dataset(
         )
 
     if resolved_dataset_name is None:
-        raise ValueError("Comoving bond spacing mode requires a dataset name or track2 path")
+        raise ValueError("Comoving/purecomoving bond spacing mode requires a dataset name or track2 path")
 
     base_dataset, _ = split_dataset_component(resolved_dataset_name)
     if requested_component == "a":
@@ -198,7 +261,10 @@ def load_bond_signal_dataset(
     )
     _validate_matching_track2(track2_x, track2_y)
 
-    longitudinal, transverse = _derive_comoving_signal_matrices(track2_x, track2_y)
+    if mode == "comoving":
+        longitudinal, transverse = _derive_comoving_signal_matrices(track2_x, track2_y)
+    else:
+        longitudinal, transverse = _derive_purecomoving_signal_matrices(track2_x, track2_y)
     signal_matrix = longitudinal if requested_component == "x" else transverse
 
     return BondSignalDataset(

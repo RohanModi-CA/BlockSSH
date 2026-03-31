@@ -1,0 +1,35 @@
+Key raw-peak triad specificity checks
+Datasets: 0681 bond0 and 0680 bond1
+
+8.950 + 8.950 -> 18.361
+  target f3=18.361 | 0681: obs=0.04467, null95=0.05745, excess=-0.01278, windows=46 | 0680: obs=0.36649, null95=0.16081, excess=0.20568, windows=55
+  control f3=18.000 | 0681: obs=0.22749, null95=0.03620, excess=0.19129, windows=46 | 0680: obs=0.21620, null95=0.12218, excess=0.09402, windows=55
+  control f3=18.700 | 0681: obs=0.02901, null95=0.02606, excess=0.00296, windows=46 | 0680: obs=0.19945, null95=0.14744, excess=0.05201, windows=55
+
+8.106 + 8.106 -> 16.025
+  target f3=16.025 | 0681: obs=0.28042, null95=0.06458, excess=0.21583, windows=46 | 0680: obs=0.22563, null95=0.10733, excess=0.11830, windows=55
+  control f3=15.750 | 0681: obs=0.04262, null95=0.04560, excess=-0.00298, windows=46 | 0680: obs=0.22174, null95=0.14944, excess=0.07230, windows=55
+  control f3=16.300 | 0681: obs=0.09533, null95=0.03569, excess=0.05964, windows=46 | 0680: obs=0.22060, null95=0.08194, excess=0.13867, windows=55
+
+7.956 + 8.106 -> 15.823
+  target f3=15.823 | 0681: obs=0.11142, null95=0.04304, excess=0.06838, windows=46 | 0680: obs=0.28334, null95=0.12935, excess=0.15400, windows=55
+  control f3=15.550 | 0681: obs=0.07473, null95=0.05437, excess=0.02036, windows=46 | 0680: obs=0.05392, null95=0.23020, excess=-0.17628, windows=55
+  control f3=16.100 | 0681: obs=0.25380, null95=0.07172, excess=0.18208, windows=46 | 0680: obs=0.33650, null95=0.08052, excess=0.25598, windows=55
+
+7.628 + 8.950 -> 16.601
+  target f3=16.601 | 0681: obs=0.07183, null95=0.03059, excess=0.04124, windows=46 | 0680: obs=0.06862, null95=0.05033, excess=0.01829, windows=55
+  control f3=16.300 | 0681: obs=0.05901, null95=0.06141, excess=-0.00240, windows=46 | 0680: obs=0.27588, null95=0.15079, excess=0.12510, windows=55
+  control f3=16.900 | 0681: obs=0.16011, null95=0.02623, excess=0.13387, windows=46 | 0680: obs=0.18722, null95=0.06361, excess=0.12361, windows=55
+
+16.601 + 6.369 -> 23.159
+  target f3=23.159 | 0681: obs=0.19341, null95=0.02248, excess=0.17093, windows=46 | 0680: obs=0.11611, null95=0.11076, excess=0.00534, windows=55
+  control f3=22.850 | 0681: obs=0.33312, null95=0.02127, excess=0.31185, windows=46 | 0680: obs=0.17034, null95=0.09074, excess=0.07960, windows=55
+  control f3=23.450 | 0681: obs=0.13676, null95=0.02908, excess=0.10768, windows=46 | 0680: obs=0.06944, null95=0.12376, excess=-0.05432, windows=55
+
+16.601 + 5.190 -> 21.960
+  target f3=21.960 | 0681: obs=0.01631, null95=0.02173, excess=-0.00542, windows=46 | 0680: obs=0.16890, null95=0.12486, excess=0.04404, windows=55
+  control f3=21.650 | 0681: obs=0.06950, null95=0.01752, excess=0.05198, windows=45 | 0680: obs=0.02400, null95=0.03096, excess=-0.00696, windows=55
+  control f3=22.250 | 0681: obs=0.02858, null95=0.02858, excess=-0.00000, windows=46 | 0680: obs=0.10236, null95=0.16878, excess=-0.06642, windows=55
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/key_peak_output/001_key_peak_specificity.png

@@ -1,0 +1,41 @@
+Resolved prior peaks:
+  f0.41: 0.417 Hz | role=fundamental | certainty=100% | amp=0.8416
+  f3.35: 3.329 Hz | role=fundamental | certainty=100% | amp=0.9470
+  f12.0: 11.985 Hz | role=fundamental | certainty=100% | amp=0.9478
+  f16.6: 16.617 Hz | role=fundamental | certainty=100% | amp=0.4242
+  f6.45: 6.490 Hz | role=fundamental | certainty=100% | amp=1.2425
+  f8.96: 8.956 Hz | role=fundamental | certainty=100% | amp=0.9404
+  u11.3: 11.334 Hz | role=suspect_child | certainty=not fundamental? | amp=0.5998
+  u15.9: 15.907 Hz | role=suspect_child | certainty=not fundamental? | amp=0.4210
+  u18.0: 18.080 Hz | role=child | certainty=not fundamental? | amp=0.2363
+  u18.3: 18.343 Hz | role=child | certainty=100% not fundamental | amp=0.2583
+
+Stage 1 strongest direct relations:
+  f0.41 sum f16.6 -> 17.078 | b2=0.905 | phase_lock=0.247 | p=0.091 | window=500.0-600.0s
+  f0.41 2x f0.41 -> 0.856 | b2=0.903 | phase_lock=0.461 | p=0.091 | window=500.0-600.0s
+  f8.96 sum f12.0 -> 20.919 | b2=0.899 | phase_lock=0.269 | p=0.091 | window=500.0-600.0s
+  f0.41 sum f8.96 -> 9.431 | b2=0.893 | phase_lock=0.248 | p=0.091 | window=500.0-600.0s
+  f8.96 2x f8.96 -> 17.912 | b2=0.864 | phase_lock=0.146 | p=0.091 | window=500.0-600.0s
+  f6.45 sum f16.6 -> 23.078 | b2=0.787 | phase_lock=0.682 | p=0.091 | window=500.0-600.0s
+  f0.41 sum f3.35 -> 3.651 | b2=0.692 | phase_lock=0.525 | p=0.182 | window=500.0-600.0s
+  f0.41 sum f12.0 -> 12.380 | b2=0.683 | phase_lock=0.225 | p=0.091 | window=350.0-450.0s
+  f16.6 diff f0.41 -> 16.244 | b2=0.651 | phase_lock=0.302 | p=0.182 | window=500.0-600.0s
+  f16.6 diff f12.0 -> 4.668 | b2=0.647 | phase_lock=0.343 | p=0.091 | window=500.0-600.0s
+
+Stage 2 strongest cascade relations:
+  c5.52 sum c12.29 -> 17.743 | b2=0.987 | phase_lock=0.659 | p=0.091 | window=500.0-600.0s
+  c0.86 sum c17.08 -> 17.912 | b2=0.986 | phase_lock=0.070 | p=0.182 | window=500.0-600.0s
+  c6.16 sum c11.52 -> 17.743 | b2=0.978 | phase_lock=0.213 | p=0.091 | window=500.0-600.0s
+  c23.08 diff c7.57 -> 15.636 | b2=0.977 | phase_lock=0.322 | p=0.091 | window=500.0-600.0s
+  c2.92 sum c8.59 -> 11.517 | b2=0.975 | phase_lock=0.182 | p=0.182 | window=500.0-600.0s
+  c23.08 diff c4.67 -> 18.424 | b2=0.969 | phase_lock=0.210 | p=0.091 | window=500.0-600.0s
+  f0.41 sum c18.42 -> 18.768 | b2=0.958 | phase_lock=0.259 | p=0.091 | window=500.0-600.0s
+  c5.52 sum c12.38 -> 17.912 | b2=0.951 | phase_lock=0.217 | p=0.091 | window=500.0-600.0s
+  c7.57 sum c8.59 -> 16.083 | b2=0.948 | phase_lock=0.042 | p=0.091 | window=500.0-600.0s
+  c20.92 diff c2.92 -> 18.080 | b2=0.938 | phase_lock=0.261 | p=0.091 | window=500.0-600.0s
+  c11.52 diff f0.41 -> 11.209 | b2=0.928 | phase_lock=0.088 | p=0.182 | window=500.0-600.0s
+  c17.91 diff c6.16 -> 11.744 | b2=0.927 | phase_lock=0.268 | p=0.091 | window=500.0-600.0s
+
+Saved files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt4/output/int1_phase_pipeline.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt4/output/int1_phase_pipeline.csv

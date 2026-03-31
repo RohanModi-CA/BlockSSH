@@ -1,0 +1,42 @@
+2026-03-29
+
+Round 8 goal
+- Separate two different questions that were still being mixed together:
+  - does a line look mode-like in recurrence/scaling?
+  - does it also have a specific reproducible parent relation?
+
+Main lesson entering this round
+- High-frequency recurrence alone is not enough to call something fundamental.
+- `18.36 Hz` can still look moderately recurrent under adaptive windows.
+- What makes `18` different is not just recurrence; it is that a very specific parent explanation survives targeted null tests in the right observable.
+
+New discriminator to build
+- For each high-frequency candidate:
+  - mode-likeness score from adaptive recurrence
+  - parent-consistency score from targeted null-based parent tests
+- A likely fundamental should have:
+  - moderate-to-strong mode-likeness
+  - weak or inconsistent parent-consistency
+- A likely child/follower should have:
+  - moderate mode-likeness can still happen
+  - but parent-consistency should be strong and specific
+
+Update after running the discriminator
+- Added `peak_coherence_analysis/run_16_vs_18_discriminator.py`.
+- Key result:
+  - in the stronger `16.6` view tested here, only one candidate parent relation is above the null and only weakly:
+    - `3.329 + 13.257 -> 16.586` with diff about `0.0328`
+    - the second-best candidate is already below null
+  - in the stronger `18` control view, one parent relation stands out much more decisively:
+    - `7.082 + 11.333 -> 18.415` with diff about `0.1284`
+    - all other tested alternatives are below null
+
+Interpretation
+- This is the cleanest conceptual separation so far:
+  - `18` can look somewhat recurrent under adaptive scaling, but it also has a much sharper parent explanation
+  - `16.6` currently looks more like a line with moderate recurrence and only weak / inconsistent parent explanations
+- So recurrence alone is not enough, and that was one of the hidden conceptual errors in earlier attempts.
+- The right discriminator for higher lines appears to be:
+  - recurrence / scaling evidence
+  - plus specificity of the best parent explanation
+

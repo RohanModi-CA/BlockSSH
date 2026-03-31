@@ -1,0 +1,36 @@
+# Event-Locked Phase-Only Analysis: Lessons Learned
+
+## The Problem with Sliding-Window Bicoherence on Impacts
+Earlier approaches to finding quadratic coupling (where $f_1 + f_2 \rightarrow f_3$) relied on sliding a window across the entire dataset and looking for the maximum Bicoherence (phase-locking). We used surrogate datasets (shuffling the time segments) to calculate a p-value to prove the correlation wasn't a fluke.
+
+**The Fatal Flaw:** The data consists of highly impulsive hits. At the exact millisecond of a hit, *every* frequency mode spikes in amplitude simultaneously. 
+Standard Bicoherence is an amplitude-weighted metric. When a window contains an impact, the single sample at the peak of the impact is thousands of times larger than the rest of the window. This completely dominates the vector average. 
+Because all modes spiked at the exact same time, the math falsely interpreted this "amplitude co-modulation" as a guaranteed physical phase-locking. 
+The surrogate test failed to catch this because shuffling the segments destroyed the aligned amplitude spikes, making the fake data easily "losable" to the real data.
+
+## The Solution: Event-Locked Phase Locking Value (PLV)
+Following expert advice, we designed a robust, event-locked method that strips away amplitude bias:
+
+1. **Target the Post-Impact Sweet Spot:** We extract a 15-second window immediately following each known hit.
+2. **Censor the Impact Core:** We calculate the broadband energy of the triad ($f_1, f_2, f_3$) and discard the top 5% of energy samples. This completely removes the single-sample amplitude spike that breaks the math.
+3. **Phase-Only Metric (PLV):** We calculate the instantaneous phase residual $\Delta\phi(t) = \phi_1(t) + \phi_2(t) - \phi_3(t)$. We drop the amplitude entirely and only look at the phase vectors $e^{i\Delta\phi(t)}$. 
+4. **Ensemble Pooling:** We pool these surviving phase vectors across *all* hit events to build robust statistical power. The magnitude of the average vector is the pooled PLV.
+5. **Envelope-Preserving Nulls:** To calculate a true p-value, our surrogate test applies a single, random phase shift to $f_3$ for each event. This perfectly preserves the amplitude envelopes and event timing but destroys true cross-frequency phase coupling.
+
+## Why P-Values Often Hit 0.000
+A p-value of exactly `0.000` does not mean the probability is mathematically zero. It is an empirical p-value based on $N=200$ surrogate datasets. 
+
+Even truly random phases will accidentally produce a small non-zero PLV due to the "random walk" effect over a finite number of samples (roughly $1/\sqrt{N_{samples}}$). By testing 200 phase-randomized datasets, we map out the maximum accidental PLV we expect to see by chance.
+
+If the real PLV is higher than *all 200* fake datasets, the calculation is $0 / 200 = 0.000$. It simply means $p < 0.005$, indicating the physical phase-locking is incredibly strong and completely survives the removal of the impact core.
+
+## The Greedy Taxonomy Algorithm
+We automated this robust PLV test to crawl the spectrum and build a Family Tree:
+1. Seed the largest unexplained peak as a Fundamental.
+2. Mathematically calculate all Sums, Differences, and Harmonics of the known Fundamentals.
+3. Check the actual spectrum for peaks near those theoretical frequencies.
+4. For any match, run the Event-Locked PLV test.
+5. If $p < 0.05$, the peak is physically verified as a Child mode.
+6. If a large peak cannot be explained as a Child, promote it to a Fundamental and repeat.
+
+This successfully categorized 33 distinct peaks as 1st-generation nonlinear children from just 15 fundamentals in the `CDX_10IC` dataset.

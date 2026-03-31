@@ -8,6 +8,7 @@ if __package__ in (None, ""):
 
 import argparse
 import sys
+from collections.abc import Collection
 from pathlib import Path
 
 import numpy as np
@@ -36,11 +37,21 @@ from tools.cli import (
 )
 from tools.flattening import (
     apply_flattening_to_average_result,
+    apply_flattening_to_pair_result,
     flattening_metadata,
     plot_flattening_diagnostic,
 )
 from tools.io import load_track2_dataset
-from tools.models import AverageSpectrumResult, FFTResult, FlatteningResult, SignalRecord, SpectrumContribution, SpacingDataset
+from tools.models import (
+    AverageSpectrumResult,
+    FFTResult,
+    FlatteningResult,
+    PairFrequencyAnalysisResult,
+    PairWelchFrequencyAnalysisResult,
+    SignalRecord,
+    SpectrumContribution,
+    SpacingDataset,
+)
 from tools.spectrasave import (
     add_spectrasave_arg,
     build_default_spectrasave_name,
@@ -54,6 +65,33 @@ from tools.spectral import (
 )
 
 COMPONENT_SUFFIXES = ("x", "y", "a")
+
+
+def _maybe_apply_flattening_to_results(
+    args,
+    results: list[PairFrequencyAnalysisResult | PairWelchFrequencyAnalysisResult],
+) -> list[PairFrequencyAnalysisResult | PairWelchFrequencyAnalysisResult]:
+    if not args.flatten:
+        return results
+    return [
+        apply_flattening_to_pair_result(
+            result,
+            reference_band=tuple(float(value) for value in args.flatten_reference_band),
+        )
+        for result in results
+    ]
+
+
+def _maybe_apply_flattening_to_component_results(
+    args,
+    component_results: dict[str, list[PairFrequencyAnalysisResult | PairWelchFrequencyAnalysisResult]],
+) -> dict[str, list[PairFrequencyAnalysisResult | PairWelchFrequencyAnalysisResult]]:
+    if not args.flatten:
+        return component_results
+    return {
+        component: _maybe_apply_flattening_to_results(args, results)
+        for component, results in component_results.items()
+    }
 
 
 def _spacing_dataset_from_track2(track2, *, bond_spacing_mode: str, component: str | None = None) -> SpacingDataset:
@@ -77,6 +115,16 @@ def _parse_bool_arg(value: str) -> bool:
     if lowered in {"0", "false", "f", "no", "n", "off"}:
         return False
     raise argparse.ArgumentTypeError(f"Invalid boolean value: {value}")
+
+
+def _convert_pair_indices_to_zero_based(indices: list[int] | None) -> list[int] | None:
+    if indices is None:
+        return None
+    return [i - 1 for i in indices]
+
+
+def _filter_to_only_pairs(results: list, only_pairs_zero_based: Collection[int]) -> list:
+    return [r for r in results if r.pair_index in only_pairs_zero_based]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -170,7 +218,14 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         action="append",
         default=[],
-        help="Disable pair index (0-based). Can be used multiple times.",
+        help="Disable pair index (1-based). Can be used multiple times.",
+    )
+    parser.add_argument(
+        "--only-pairs",
+        type=int,
+        nargs="+",
+        default=None,
+        help="Only include these pair indices (1-based). If not specified, all non-disabled pairs are included.",
     )
     parser.add_argument(
         "--disable-component",
@@ -178,6 +233,13 @@ def build_parser() -> argparse.ArgumentParser:
         action="append",
         default=[],
         help="Disable one of the suffixed component datasets: x, y, or a. Can be used multiple times.",
+    )
+    parser.add_argument(
+        "--only-component",
+        choices=COMPONENT_SUFFIXES,
+        action="append",
+        default=[],
+        help="Only include this component (x, y, or a). Can be used multiple times.",
     )
     add_flattening_args(parser)
     add_spectrasave_arg(parser)
@@ -249,27 +311,28 @@ def _prompt_pair_choice(component: str, results: list, *, use_welch: bool) -> in
 
     print(f"Available pairs for component '{component}':")
     for result in available_pairs:
-        print(f"  {result.pair_index}: {result.label}")
+        print(f"  {result.pair_index + 1}: {result.label}")
 
-    valid = {int(result.pair_index) for result in available_pairs}
-    default_choice = int(available_pairs[0].pair_index)
+    valid = {int(result.pair_index) + 1 for result in available_pairs}
+    default_choice = int(available_pairs[0].pair_index) + 1
     while True:
-        response = input(f"Which pair should be exported? [default: {default_choice}] ").strip()
+        response = input(f"Which pair should be exported (1-based)? [default: {default_choice}] ").strip()
         if response == "":
-            return default_choice
+            return default_choice - 1
         try:
             pair_index = int(response)
         except ValueError:
-            print("Please enter a 0-based pair index.")
+            print("Please enter a 1-based pair index.")
             continue
         if pair_index in valid:
-            return pair_index
+            return pair_index - 1
         print(f"Please choose one of: {sorted(valid)}")
 
 
 def _load_component_results(args) -> tuple[dict[str, list], dict[str, object]]:
     base_dataset, data_root = _base_dataset_context(args.dataset, args.track2, args.track_data_root)
     disabled_components = set(args.disable_component)
+    only_components = set(args.only_component)
 
     component_results: dict[str, list] = {}
     component_track2: dict[str, object] = {}
@@ -277,6 +340,8 @@ def _load_component_results(args) -> tuple[dict[str, list], dict[str, object]]:
 
     for component in COMPONENT_SUFFIXES:
         if component in disabled_components:
+            continue
+        if only_components and component not in only_components:
             continue
 
         dataset_name = f"{base_dataset}_{component}"
@@ -660,6 +725,9 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
+    args.disable = _convert_pair_indices_to_zero_based(args.disable)
+    args.only_pairs = _convert_pair_indices_to_zero_based(args.only_pairs)
+
     freq_window_error = validate_frequency_window_args(args)
     if freq_window_error is not None:
         print(freq_window_error, file=sys.stderr)
@@ -675,9 +743,17 @@ def main() -> int:
 
     try:
         component_results, component_track2 = _load_component_results(args)
+        if args.only_pairs is not None:
+            only_pairs_set = set(args.only_pairs)
+            component_results = {
+                comp: _filter_to_only_pairs(results, only_pairs_set)
+                for comp, results in component_results.items()
+            }
         if len(component_results) == 0:
             print("No component sibling datasets were found; using single-dataset mode.", file=sys.stderr)
             results, track2 = _load_single_results(args)
+            if args.only_pairs is not None:
+                results = _filter_to_only_pairs(results, set(args.only_pairs))
             if args.average:
                 dataset_name = track2.dataset_name or Path(track2.track2_path).resolve().parent.name
                 averaged_raw = _average_result_from_pair_results(results, dataset_name=dataset_name, use_welch=args.welch)
@@ -709,6 +785,7 @@ def main() -> int:
                     tickspace_hz=args.tickspace,
                 )
             else:
+                results = _maybe_apply_flattening_to_results(args, results)
                 if args.spectrasave is not None:
                     _export_single_spectrum(args, results, track2)
 
@@ -787,6 +864,7 @@ def main() -> int:
                     tickspace_hz=args.tickspace,
                 )
             else:
+                component_results = _maybe_apply_flattening_to_component_results(args, component_results)
                 if args.spectrasave is not None:
                     _export_selected_spectrum(args, component_results, component_track2)
                 plot_fn = (

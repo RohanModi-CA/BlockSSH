@@ -1,0 +1,50 @@
+Peak-to-family band mapping for 0681ROT270X > 3 Hz
+
+3.329 Hz | F01 @ 3.372 Hz | class=fundamental-leaning | bands=- | notes=-
+3.639 Hz | F01 @ 3.372 Hz | class=fundamental-leaning | bands=- | notes=-
+3.776 Hz | F02 @ 3.965 Hz | class=fundamental-leaning | bands=- | notes=-
+3.974 Hz | F02 @ 3.965 Hz | class=fundamental-leaning | bands=- | notes=-
+4.185 Hz | F02 @ 3.965 Hz | class=fundamental-leaning | bands=- | notes=-
+4.359 Hz | F03 @ 4.191 Hz | class=unclear | bands=- | notes=-
+4.766 Hz | F04 @ 4.792 Hz | class=unclear | bands=- | notes=-
+4.944 Hz | F05 @ 4.903 Hz | class=unclear | bands=- | notes=-
+5.190 Hz | F06 @ 5.416 Hz | class=fundamental-leaning | bands=- | notes=-
+5.451 Hz | F06 @ 5.416 Hz | class=fundamental-leaning | bands=- | notes=-
+6.369 Hz | F07 @ 6.356 Hz | class=fundamental-leaning | bands=- | notes=-
+6.897 Hz | F08 @ 6.889 Hz | class=unclear | bands=- | notes=-
+7.082 Hz | F09 @ 6.994 Hz | class=unclear | bands=- | notes=-
+7.628 Hz | F10 @ 7.712 Hz | class=unclear | bands=- | notes=-
+7.956 Hz | F11 @ 7.891 Hz | class=unclear | bands=- | notes=-
+8.106 Hz | F12 @ 8.027 Hz | class=unclear | bands=- | notes=-
+8.332 Hz | F13 @ 8.402 Hz | class=unclear | bands=- | notes=-
+8.557 Hz | F14 @ 8.820 Hz | class=fundamental-leaning | bands=- | notes=-
+8.742 Hz | F15 @ 8.962 Hz | class=fundamental-leaning | bands=- | notes=-
+8.950 Hz | F15 @ 8.962 Hz | class=fundamental-leaning | bands=- | notes=-
+9.403 Hz | F16 @ 9.407 Hz | class=unclear | bands=- | notes=-
+11.333 Hz | F17 @ 11.311 Hz | class=fundamental-leaning | bands=- | notes=-
+12.016 Hz | F18 @ 12.053 Hz | class=fundamental-leaning | bands=- | notes=-
+12.537 Hz | F19 @ 12.607 Hz | class=nonfundamental-leaning | bands=B12p6 | notes=strong incoming family edge around 12.61
+12.934 Hz | F20 @ 13.049 Hz | class=nonfundamental-leaning | bands=- | notes=-
+13.108 Hz | F20 @ 13.049 Hz | class=nonfundamental-leaning | bands=B13p0 | notes=strong incoming family edges around 13.05-13.21
+13.257 Hz | F21 @ 13.209 Hz | class=nonfundamental-leaning | bands=B13p0 | notes=strong incoming family edges around 13.05-13.21
+13.746 Hz | F22 @ 13.652 Hz | class=mixed-coupled | bands=- | notes=-
+14.248 Hz | F23 @ 14.243 Hz | class=mixed-coupled | bands=- | notes=-
+14.701 Hz | F24 @ 14.707 Hz | class=unclear | bands=- | notes=-
+15.823 Hz | F25 @ 15.940 Hz | class=nonfundamental-leaning | bands=- | notes=-
+16.025 Hz | F26 @ 16.050 Hz | class=nonfundamental-leaning | bands=B16p0 | notes=child band from 8.106+8.106 and 7.956+8.106
+16.601 Hz | F27 @ 16.598 Hz | class=mixed-coupled | bands=B16p6 | notes=broad coupled band containing 16.60; not a clean follower proof
+18.361 Hz | F28 @ 18.364 Hz | class=mixed-coupled | bands=B18ish | notes=18-ish child band linked to 8.95+8.95; exact peak shifts by dataset
+20.788 Hz | F29 @ 20.757 Hz | class=unclear | bands=- | notes=-
+21.399 Hz | F30 @ 21.402 Hz | class=unclear | bands=- | notes=-
+21.960 Hz | F31 @ 21.896 Hz | class=unclear | bands=- | notes=-
+22.563 Hz | F32 @ 22.598 Hz | class=unclear | bands=- | notes=-
+23.159 Hz | F33 @ 23.158 Hz | class=unclear | bands=B22p8 | notes=broad 22.8-23.2 band seen in 16.60+6.37 scan
+28.864 Hz | F34 @ 28.854 Hz | class=unclear | bands=- | notes=-
+
+bands:
+B12p6 | [12.50, 12.75] Hz | nonfundamental-leaning | strong incoming family edge around 12.61
+B13p0 | [12.95, 13.28] Hz | nonfundamental-leaning | strong incoming family edges around 13.05-13.21
+B16p0 | [15.95, 16.20] Hz | nonfundamental-leaning | child band from 8.106+8.106 and 7.956+8.106
+B16p6 | [16.35, 16.95] Hz | mixed-coupled | broad coupled band containing 16.60; not a clean follower proof
+B18ish | [17.90, 18.45] Hz | mixed-coupled | 18-ish child band linked to 8.95+8.95; exact peak shifts by dataset
+B22p8 | [22.75, 23.20] Hz | mixed-coupled | broad 22.8-23.2 band seen in 16.60+6.37 scan

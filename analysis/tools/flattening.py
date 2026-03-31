@@ -6,7 +6,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import savgol_filter
 
-from .models import AverageSpectrumResult, FlatteningResult
+from .models import (
+    AverageSpectrumResult,
+    FFTResult,
+    FlatteningResult,
+    PairFrequencyAnalysisResult,
+    PairWelchFrequencyAnalysisResult,
+    WelchSpectrumResult,
+)
 
 
 DEFAULT_FLATTEN_METHOD = "quantile-envelope"
@@ -120,6 +127,63 @@ def apply_flattening_to_average_result(
         method=method,
     )
     return replace(result, avg_amp=flattening.flattened), flattening
+
+
+def apply_flattening_to_pair_result(
+    result: PairFrequencyAnalysisResult | PairWelchFrequencyAnalysisResult,
+    *,
+    reference_band: tuple[float, float] = (20.0, 30.0),
+    baseline_quantile: float = 0.15,
+    baseline_envelope_hz: float = 1.5,
+    baseline_smooth_hz: float = 1.2,
+    response_smooth_hz: float = 4.0,
+    method: str = DEFAULT_FLATTEN_METHOD,
+) -> PairFrequencyAnalysisResult | PairWelchFrequencyAnalysisResult:
+    if result.error_message is not None:
+        return result
+
+    if isinstance(result, PairFrequencyAnalysisResult):
+        if result.fft_result is None:
+            return result
+        freq = result.fft_result.freq
+        amp = result.fft_result.amplitude
+    else:
+        if result.welch_result is None:
+            return result
+        freq = result.welch_result.freq
+        amp = result.welch_result.amplitude
+
+    flattening = compute_flattening(
+        freq,
+        amp,
+        reference_band=reference_band,
+        baseline_quantile=baseline_quantile,
+        baseline_envelope_hz=baseline_envelope_hz,
+        baseline_smooth_hz=baseline_smooth_hz,
+        response_smooth_hz=response_smooth_hz,
+        method=method,
+    )
+
+    if isinstance(result, PairFrequencyAnalysisResult):
+        new_spectral = FFTResult(freq=freq, amplitude=flattening.flattened)
+        result = replace(result, fft_result=new_spectral)
+    else:
+        new_spectral = replace(
+            result.welch_result,
+            amplitude=flattening.flattened,
+            power=flattening.flattened**2,
+        )
+        result = replace(result, welch_result=new_spectral)
+
+    if result.spectrogram_result is not None:
+        f_spec = result.spectrogram_result.f
+        # Interpolate the transfer function to the spectrogram frequency grid
+        transfer_spec = np.interp(f_spec, freq, flattening.transfer)
+        new_s_complex = result.spectrogram_result.S_complex * transfer_spec[:, None]
+        new_spec_result = replace(result.spectrogram_result, S_complex=new_s_complex)
+        result = replace(result, spectrogram_result=new_spec_result)
+
+    return result
 
 
 def flattening_metadata(flattening: FlatteningResult) -> dict[str, object]:

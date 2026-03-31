@@ -1,0 +1,19 @@
+16.6 family in its stronger views:
+  8.106 + 8.557 -> 16.663: observed=0.00171, null95=0.02397, diff=-0.02226 | not above null
+  7.956 + 8.742 -> 16.698: observed=0.00951, null95=0.02162, diff=-0.01211 | not above null
+  4.766 + 12.016 -> 16.782: observed=0.00361, null95=0.03722, diff=-0.03361 | not above null
+  3.329 + 13.257 -> 16.586: observed=0.05133, null95=0.01857, diff=0.03276 | above null
+  1.902 + 14.701 -> 16.602: observed=0.00641, null95=0.03293, diff=-0.02653 | not above null
+  best_parent_diff=0.03276
+  second_best_diff=-0.01211
+18 family in its stronger control view:
+  8.950 + 8.950 -> 18.361: observed=0.04467, null95=0.05096, diff=-0.00629 | not above null
+  7.082 + 11.333 -> 18.415: observed=0.17026, null95=0.04191, diff=0.12835 | above null
+  6.369 + 12.016 -> 18.385: observed=0.01774, null95=0.04633, diff=-0.02859 | not above null
+  best_parent_diff=0.12835
+  second_best_diff=-0.00629
+working read:
+A follower line should have a specific parent relation that stands out clearly over alternatives in a sensible view.
+If the target only shows scattered weak positives across many different parent guesses, that is not the same thing as a clean follower signature.
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/discriminator_output/001_case_bars.png

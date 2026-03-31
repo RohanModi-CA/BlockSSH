@@ -373,12 +373,28 @@ def load_bond_peak_phase_csv(path: str | Path) -> LoadedBondPhaseTable:
     )
 
 
+def _normalize_per_peak(phase: np.ndarray) -> np.ndarray:
+    phase = np.asarray(phase, dtype=float)
+    normalized = phase.copy()
+    for col in range(phase.shape[1]):
+        col_phases = phase[:, col]
+        valid = np.isfinite(col_phases)
+        if not np.any(valid):
+            continue
+        mean_complex = np.mean(np.exp(1j * col_phases[valid]))
+        mean_angle = np.angle(mean_complex)
+        target = 0.0 if np.cos(mean_angle) >= 0 else np.pi
+        normalized[:, col] = col_phases + (target - mean_angle)
+    return normalized
+
+
 def transform_bond_phase_table(
     phase_table: LoadedBondPhaseTable,
     *,
     flip: bool = False,
     flip_bond_ids: list[int] | None = None,
     forcereal: bool = False,
+    posphase: bool = False,
 ) -> LoadedBondPhaseTable:
     phase = np.asarray(phase_table.relative_phase_rad, dtype=float)
     if flip:
@@ -388,6 +404,8 @@ def transform_bond_phase_table(
         for row_idx, bond_id in enumerate(np.asarray(phase_table.bond_ids, dtype=int)):
             if int(bond_id) in requested:
                 phase[row_idx, :] = phase[row_idx, :] + np.pi
+    if posphase:
+        phase = _normalize_per_peak(phase)
     if forcereal:
         wrapped = np.angle(np.exp(1j * phase))
         phase = np.where(np.cos(wrapped) >= 0.0, 0.0, np.pi)

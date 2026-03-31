@@ -1,0 +1,77 @@
+peak_csv: /home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/configs/peaks/0681ROT270X.csv
+dataset: IMG_0681_rot270
+bond_index: 0
+min_freq_hz: 3.0
+n_raw_peaks_used: 40
+n_families: 34
+n_pair_candidates_evaluated: 105
+n_harmonic_candidates_evaluated: 20
+
+family table:
+F01 | repr=3.372 Hz | child_evidence=nan | outgoing=3 | relation= | tag=parent-like-or-unresolved | peaks=3.329 3.639
+F02 | repr=3.965 Hz | child_evidence=nan | outgoing=4 | relation= | tag=parent-like-or-unresolved | peaks=3.776 3.974 4.185
+F03 | repr=4.191 Hz | child_evidence=nan | outgoing=6 | relation= | tag=parent-like-or-unresolved | peaks=4.359
+F04 | repr=4.792 Hz | child_evidence=nan | outgoing=4 | relation= | tag=parent-like-or-unresolved | peaks=4.766
+F05 | repr=4.903 Hz | child_evidence=nan | outgoing=3 | relation= | tag=parent-like-or-unresolved | peaks=4.944
+F06 | repr=5.416 Hz | child_evidence=nan | outgoing=0 | relation= | tag=parent-like-or-unresolved | peaks=5.190 5.451
+F07 | repr=6.356 Hz | child_evidence=nan | outgoing=1 | relation= | tag=parent-like-or-unresolved | peaks=6.369
+F08 | repr=6.889 Hz | child_evidence=-0.06718 | outgoing=0 | relation=2 x F01 | tag=parent-like-or-unresolved | peaks=6.897
+F09 | repr=6.994 Hz | child_evidence=nan | outgoing=1 | relation= | tag=parent-like-or-unresolved | peaks=7.082
+F10 | repr=7.712 Hz | child_evidence=nan | outgoing=3 | relation= | tag=parent-like-or-unresolved | peaks=7.628
+F11 | repr=7.891 Hz | child_evidence=0.00779 | outgoing=4 | relation=2 x F02 | tag=parent-like-or-unresolved | peaks=7.956
+F12 | repr=8.027 Hz | child_evidence=0.04233 | outgoing=8 | relation=2 x F02 | tag=child-like | peaks=8.106
+F13 | repr=8.402 Hz | child_evidence=-0.01700 | outgoing=4 | relation=2 x F03 | tag=parent-like-or-unresolved | peaks=8.332
+F14 | repr=8.820 Hz | child_evidence=-0.03029 | outgoing=4 | relation=F01 + F06 | tag=parent-like-or-unresolved | peaks=8.557
+F15 | repr=8.962 Hz | child_evidence=-0.01964 | outgoing=4 | relation=F03 + F04 | tag=parent-like-or-unresolved | peaks=8.742 8.950
+F16 | repr=9.407 Hz | child_evidence=-0.06803 | outgoing=3 | relation=F02 + F06 | tag=parent-like-or-unresolved | peaks=9.403
+F17 | repr=11.311 Hz | child_evidence=0.03904 | outgoing=2 | relation=F01 + F11 | tag=parent-like-or-unresolved | peaks=11.333
+F18 | repr=12.053 Hz | child_evidence=0.01344 | outgoing=3 | relation=F02 + F12 | tag=parent-like-or-unresolved | peaks=12.016
+F19 | repr=12.607 Hz | child_evidence=0.24388 | outgoing=2 | relation=F04 + F11 | tag=child-like | peaks=12.537
+F20 | repr=13.049 Hz | child_evidence=0.14554 | outgoing=1 | relation=F03 + F14 | tag=child-like | peaks=12.934 13.108
+F21 | repr=13.209 Hz | child_evidence=0.15282 | outgoing=1 | relation=F03 + F15 | tag=child-like | peaks=13.257
+F22 | repr=13.652 Hz | child_evidence=-0.00164 | outgoing=0 | relation=F04 + F14 | tag=parent-like-or-unresolved | peaks=13.746
+F23 | repr=14.243 Hz | child_evidence=0.04621 | outgoing=4 | relation=F07 + F11 | tag=child-like | peaks=14.248
+F24 | repr=14.707 Hz | child_evidence=-0.02435 | outgoing=0 | relation=F08 + F10 | tag=parent-like-or-unresolved | peaks=14.701
+F25 | repr=15.940 Hz | child_evidence=0.21204 | outgoing=0 | relation=F11 + F12 | tag=child-like | peaks=15.823
+F26 | repr=16.050 Hz | child_evidence=0.22546 | outgoing=0 | relation=F12 + F12 | tag=child-like | peaks=16.025
+F27 | repr=16.598 Hz | child_evidence=0.10756 | outgoing=1 | relation=F10 + F14 | tag=child-like | peaks=16.601
+F28 | repr=18.364 Hz | child_evidence=0.13571 | outgoing=2 | relation=F09 + F17 | tag=child-like | peaks=18.361
+F29 | repr=20.757 Hz | child_evidence=0.02720 | outgoing=0 | relation=F03 + F27 | tag=parent-like-or-unresolved | peaks=20.788
+F30 | repr=21.402 Hz | child_evidence=0.08148 | outgoing=0 | relation=F16 + F18 | tag=child-like | peaks=21.399
+F31 | repr=21.896 Hz | child_evidence=-0.01506 | outgoing=0 | relation=F10 + F23 | tag=parent-like-or-unresolved | peaks=21.960
+F32 | repr=22.598 Hz | child_evidence=0.03396 | outgoing=0 | relation=F13 + F23 | tag=parent-like-or-unresolved | peaks=22.563
+F33 | repr=23.158 Hz | child_evidence=0.10869 | outgoing=0 | relation=F14 + F23 | tag=child-like | peaks=23.159
+F34 | repr=28.854 Hz | child_evidence=-0.02032 | outgoing=0 | relation=F07 + F32 | tag=parent-like-or-unresolved | peaks=28.864
+
+high child-evidence families:
+F01 | repr=3.372 Hz | child_evidence=nan | relation= | outgoing=3
+F02 | repr=3.965 Hz | child_evidence=nan | relation= | outgoing=4
+F03 | repr=4.191 Hz | child_evidence=nan | relation= | outgoing=6
+F04 | repr=4.792 Hz | child_evidence=nan | relation= | outgoing=4
+F05 | repr=4.903 Hz | child_evidence=nan | relation= | outgoing=3
+F06 | repr=5.416 Hz | child_evidence=nan | relation= | outgoing=0
+F07 | repr=6.356 Hz | child_evidence=nan | relation= | outgoing=1
+F09 | repr=6.994 Hz | child_evidence=nan | relation= | outgoing=1
+F10 | repr=7.712 Hz | child_evidence=nan | relation= | outgoing=3
+F19 | repr=12.607 Hz | child_evidence=0.24388 | relation=F04 + F11 | outgoing=2
+F26 | repr=16.050 Hz | child_evidence=0.22546 | relation=F12 + F12 | outgoing=0
+F25 | repr=15.940 Hz | child_evidence=0.21204 | relation=F11 + F12 | outgoing=0
+
+low child-evidence families:
+F16 | repr=9.407 Hz | child_evidence=-0.06803 | relation=F02 + F06 | outgoing=3
+F08 | repr=6.889 Hz | child_evidence=-0.06718 | relation=2 x F01 | outgoing=0
+F14 | repr=8.820 Hz | child_evidence=-0.03029 | relation=F01 + F06 | outgoing=4
+F24 | repr=14.707 Hz | child_evidence=-0.02435 | relation=F08 + F10 | outgoing=0
+F34 | repr=28.854 Hz | child_evidence=-0.02032 | relation=F07 + F32 | outgoing=0
+F15 | repr=8.962 Hz | child_evidence=-0.01964 | relation=F03 + F04 | outgoing=4
+F13 | repr=8.402 Hz | child_evidence=-0.01700 | relation=2 x F03 | outgoing=4
+F31 | repr=21.896 Hz | child_evidence=-0.01506 | relation=F10 + F23 | outgoing=0
+F22 | repr=13.652 Hz | child_evidence=-0.00164 | relation=F04 + F14 | outgoing=0
+F11 | repr=7.891 Hz | child_evidence=0.00779 | relation=2 x F02 | outgoing=4
+F18 | repr=12.053 Hz | child_evidence=0.01344 | relation=F02 + F12 | outgoing=3
+F29 | repr=20.757 Hz | child_evidence=0.02720 | relation=F03 + F27 | outgoing=0
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/family_taxonomy_output/family_taxonomy.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/family_taxonomy_output/001_family_overview.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/family_taxonomy_output/002_family_taxonomy.png

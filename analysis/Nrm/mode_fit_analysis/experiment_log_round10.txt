@@ -1,0 +1,16 @@
+2026-03-29
+
+Round 10 goal
+- Collapse nearby listed high-frequency peaks into families.
+
+Why
+- The hand-picked peak list may include several nearby entries that belong to one physical family.
+- If so, scoring each line separately can artificially weaken that family.
+- The strongest current suspect is the `15.8-16.6` cluster:
+  - `15.823`
+  - `16.025`
+  - `16.601`
+
+Question
+- Does the `15.8-16.6` family look more competitive against `18.361` once the nearby listed peaks are grouped together?
+

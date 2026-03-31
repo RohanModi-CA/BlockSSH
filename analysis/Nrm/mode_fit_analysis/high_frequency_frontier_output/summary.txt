@@ -1,0 +1,26 @@
+idea:
+This frontier separates high-frequency recurrence from parent-specificity. The peaks we most want to call fundamental-like should sit to the right and low; follower-like peaks should move upward because their child explanation is specific and supported.
+
+rows sorted by high-frequency score:
+11.333 Hz | hf_score=3.886 | parent_penalty=0.02088 | parent_support=0.558 | best_view=IMG_0681_rot270:x | relation=3.329 + 7.956
+12.016 Hz | hf_score=3.144 | parent_penalty=0.01650 | parent_support=0.563 | best_view=IMG_0680_rot270:y | relation=4.944 + 7.082
+13.746 Hz | hf_score=3.125 | parent_penalty=0.00000 | parent_support=0.000 | best_view=CDX_10IC:a | relation=1.245 + 12.537
+12.537 Hz | hf_score=3.118 | parent_penalty=0.11626 | parent_support=0.853 | best_view=CDX_10IC:y | relation=3.639 + 8.950
+18.361 Hz | hf_score=2.143 | parent_penalty=0.07921 | parent_support=0.566 | best_view=IMG_0681_rot270:y | relation=7.082 + 11.333
+13.257 Hz | hf_score=2.104 | parent_penalty=0.13444 | parent_support=0.819 | best_view=IMG_0680_rot270:x | relation=4.766 + 8.557
+14.248 Hz | hf_score=2.065 | parent_penalty=0.02489 | parent_support=0.624 | best_view=IMG_0681_rot270:y | relation=4.766 + 9.403
+14.701 Hz | hf_score=1.927 | parent_penalty=0.00000 | parent_support=0.524 | best_view=IMG_0681_rot270:y | relation=6.369 + 8.332
+16.601 Hz | hf_score=1.679 | parent_penalty=0.00000 | parent_support=0.000 | best_view=IMG_0680_rot270:y | relation=1.902 + 14.701
+15.823 Hz | hf_score=1.674 | parent_penalty=0.02753 | parent_support=0.492 | best_view=IMG_0680_rot270:y | relation=7.082 + 8.742
+13.108 Hz | hf_score=1.668 | parent_penalty=0.12533 | parent_support=0.942 | best_view=IMG_0681_rot270:y | relation=4.185 + 8.950
+16.025 Hz | hf_score=1.416 | parent_penalty=0.05896 | parent_support=0.314 | best_view=IMG_0680_rot270:y | relation=7.956 + 8.106
+12.934 Hz | hf_score=1.162 | parent_penalty=0.07466 | parent_support=0.834 | best_view=IMG_0681_rot270:y | relation=4.185 + 8.742
+
+reference comparison:
+11.333 Hz | hf_score=3.886 | parent_penalty=0.02088 | relation=3.329 + 7.956
+12.016 Hz | hf_score=3.144 | parent_penalty=0.01650 | relation=4.944 + 7.082
+16.601 Hz | hf_score=1.679 | parent_penalty=0.00000 | relation=1.902 + 14.701
+18.361 Hz | hf_score=2.143 | parent_penalty=0.07921 | relation=7.082 + 11.333
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/high_frequency_frontier_output/001_frontier.png

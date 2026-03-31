@@ -1,0 +1,43 @@
+0681 calibrated family taxonomy
+Scoring intent: reward amplitude, persistence, reproducibility, and outgoing couplings; penalize only positive incoming-coupling evidence.
+
+ranked families:
+F03 | 4.191 Hz | score=3.2085 | amp=0.2072 | persist=1.00 | incoming=nan | outgoing=0.22328 | outgoing_count=6 | amp0680=0.06499
+F15 | 8.962 Hz | score=2.9990 | amp=0.3269 | persist=1.00 | incoming=-0.01964 | outgoing=0.15282 | outgoing_count=4 | amp0680=0.09847
+F02 | 3.965 Hz | score=2.9732 | amp=0.6021 | persist=1.00 | incoming=nan | outgoing=0.04930 | outgoing_count=4 | amp0680=0.07267
+F14 | 8.820 Hz | score=2.8855 | amp=0.1543 | persist=1.00 | incoming=-0.03029 | outgoing=0.14554 | outgoing_count=4 | amp0680=0.09855
+F01 | 3.372 Hz | score=2.8834 | amp=1.7955 | persist=1.00 | incoming=nan | outgoing=0.03904 | outgoing_count=3 | amp0680=0.94068
+F04 | 4.792 Hz | score=2.8718 | amp=0.0797 | persist=1.00 | incoming=nan | outgoing=0.24388 | outgoing_count=4 | amp0680=0.02968
+F12 | 8.027 Hz | score=2.6859 | amp=0.0396 | persist=1.00 | incoming=0.04233 | outgoing=0.22546 | outgoing_count=6 | amp0680=0.02548
+F16 | 9.407 Hz | score=2.6180 | amp=0.0788 | persist=1.00 | incoming=-0.06803 | outgoing=0.08148 | outgoing_count=3 | amp0680=0.03677
+F05 | 4.903 Hz | score=2.5479 | amp=0.0782 | persist=1.00 | incoming=nan | outgoing=0.02530 | outgoing_count=3 | amp0680=0.03021
+F11 | 7.891 Hz | score=2.5418 | amp=0.0416 | persist=1.00 | incoming=0.00779 | outgoing=0.24388 | outgoing_count=4 | amp0680=0.02575
+F07 | 6.356 Hz | score=2.5386 | amp=0.2261 | persist=1.00 | incoming=nan | outgoing=0.04621 | outgoing_count=1 | amp0680=0.27343
+F18 | 12.053 Hz | score=2.5042 | amp=0.0580 | persist=1.00 | incoming=0.01344 | outgoing=0.08148 | outgoing_count=3 | amp0680=0.09557
+F17 | 11.311 Hz | score=2.4441 | amp=0.0633 | persist=1.00 | incoming=0.03904 | outgoing=0.13571 | outgoing_count=2 | amp0680=0.01502
+F13 | 8.402 Hz | score=2.3867 | amp=0.0297 | persist=1.00 | incoming=-0.01700 | outgoing=0.22328 | outgoing_count=4 | amp0680=0.02748
+F10 | 7.712 Hz | score=2.3791 | amp=0.0429 | persist=1.00 | incoming=nan | outgoing=0.10756 | outgoing_count=3 | amp0680=0.02490
+F06 | 5.416 Hz | score=2.2818 | amp=0.1201 | persist=1.00 | incoming=nan | outgoing=-0.01825 | outgoing_count=0 | amp0680=0.08738
+F20 | 13.049 Hz | score=2.1455 | amp=0.0492 | persist=1.00 | incoming=0.14554 | outgoing=0.02139 | outgoing_count=1 | amp0680=0.03566
+F09 | 6.994 Hz | score=2.0832 | amp=0.0400 | persist=1.00 | incoming=nan | outgoing=0.13571 | outgoing_count=1 | amp0680=0.05000
+F21 | 13.209 Hz | score=2.0788 | amp=0.0458 | persist=1.00 | incoming=0.15282 | outgoing=0.03557 | outgoing_count=1 | amp0680=0.03149
+F08 | 6.889 Hz | score=2.0273 | amp=0.0466 | persist=1.00 | incoming=-0.06718 | outgoing=-0.02372 | outgoing_count=0 | amp0680=0.06750
+F19 | 12.607 Hz | score=1.9777 | amp=0.0368 | persist=1.00 | incoming=0.24388 | outgoing=0.02327 | outgoing_count=2 | amp0680=0.03476
+F23 | 14.243 Hz | score=1.9745 | amp=0.0091 | persist=1.00 | incoming=0.04621 | outgoing=0.10869 | outgoing_count=4 | amp0680=0.01169
+F28 | 18.364 Hz | score=1.7270 | amp=0.0110 | persist=1.00 | incoming=0.13571 | outgoing=0.02717 | outgoing_count=2 | amp0680=0.01623
+F27 | 16.598 Hz | score=1.7259 | amp=0.0123 | persist=1.00 | incoming=0.10756 | outgoing=0.02720 | outgoing_count=1 | amp0680=0.01052
+F30 | 21.402 Hz | score=1.7078 | amp=0.0205 | persist=1.00 | incoming=0.08148 | outgoing=nan | outgoing_count=0 | amp0680=0.01987
+F22 | 13.652 Hz | score=1.7000 | amp=0.0169 | persist=1.00 | incoming=-0.00164 | outgoing=-0.02519 | outgoing_count=0 | amp0680=0.01912
+F33 | 23.158 Hz | score=1.6256 | amp=0.0136 | persist=1.00 | incoming=0.10869 | outgoing=nan | outgoing_count=0 | amp0680=0.01569
+F25 | 15.940 Hz | score=1.5167 | amp=0.0121 | persist=1.00 | incoming=0.21204 | outgoing=-0.03109 | outgoing_count=0 | amp0680=0.01352
+F26 | 16.050 Hz | score=1.4756 | amp=0.0120 | persist=1.00 | incoming=0.22546 | outgoing=-0.03071 | outgoing_count=0 | amp0680=0.01355
+F29 | 20.757 Hz | score=1.4723 | amp=0.0106 | persist=1.00 | incoming=0.02720 | outgoing=-0.09220 | outgoing_count=0 | amp0680=0.00894
+F24 | 14.707 Hz | score=1.4091 | amp=0.0082 | persist=1.00 | incoming=-0.02435 | outgoing=-0.03346 | outgoing_count=0 | amp0680=0.01125
+F31 | 21.896 Hz | score=1.3727 | amp=0.0062 | persist=1.00 | incoming=-0.01506 | outgoing=-0.06312 | outgoing_count=0 | amp0680=0.00868
+F32 | 22.598 Hz | score=1.3245 | amp=0.0061 | persist=1.00 | incoming=0.03396 | outgoing=-0.02032 | outgoing_count=0 | amp0680=0.00915
+F34 | 28.854 Hz | score=1.3000 | amp=0.0039 | persist=1.00 | incoming=-0.02032 | outgoing=nan | outgoing_count=0 | amp0680=0.00570
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/calibrated_taxonomy_output/calibrated_taxonomy.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/calibrated_taxonomy_output/001_calibrated_scorecard.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/calibrated_taxonomy_output/002_amp_vs_mode_score.png

@@ -1,0 +1,47 @@
+Key child-frequency scans
+Datasets: 0681 bond0 and 0680 bond1
+
+8.950 + 8.950 -> f3
+  0681 best: f3=17.950, excess=0.20914
+  0680 best: f3=18.050, excess=0.22022
+  marked 18.000: 0681 excess=0.19400, 0680 excess=0.09402
+  marked 18.361: 0681 excess=-0.00641, 0680 excess=0.20761
+  marked 18.700: 0681 excess=0.00296, 0680 excess=0.04771
+
+8.106 + 8.106 -> f3
+  0681 best: f3=16.200, excess=0.22910
+  0680 best: f3=16.100, excess=0.23873
+  marked 15.823: 0681 excess=-0.00840, 0680 excess=0.06818
+  marked 16.025: 0681 excess=0.21968, 0680 excess=0.15545
+  marked 16.301: 0681 excess=0.06347, 0680 excess=0.13876
+
+7.956 + 8.106 -> f3
+  0681 best: f3=16.150, excess=0.18980
+  0680 best: f3=16.150, excess=0.34981
+  marked 15.823: 0681 excess=0.00011, 0680 excess=0.13525
+  marked 16.025: 0681 excess=0.18601, 0680 excess=0.16647
+  marked 16.100: 0681 excess=0.18942, 0680 excess=0.25695
+
+7.628 + 8.950 -> f3
+  0681 best: f3=16.400, excess=0.16659
+  0680 best: f3=16.050, excess=0.26809
+  marked 16.301: 0681 excess=0.00205, 0680 excess=0.12585
+  marked 16.601: 0681 excess=0.04092, 0680 excess=0.01828
+  marked 16.901: 0681 excess=0.13596, 0680 excess=0.12458
+
+16.601 + 6.369 -> f3
+  0681 best: f3=22.800, excess=0.32336
+  0680 best: f3=23.600, excess=0.17135
+  marked 22.850: 0681 excess=0.31120, 0680 excess=0.07957
+  marked 23.159: 0681 excess=0.17062, 0680 excess=0.00424
+  marked 23.450: 0681 excess=0.10768, 0680 excess=-0.06326
+
+16.601 + 5.190 -> f3
+  0681 best: f3=21.800, excess=0.12734
+  0680 best: f3=22.350, excess=0.18744
+  marked 21.650: 0681 excess=0.05237, 0680 excess=-0.00697
+  marked 21.960: 0681 excess=-0.01083, 0680 excess=0.03347
+  marked 22.250: 0681 excess=-0.00087, 0680 excess=-0.06786
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/child_scan_output/001_key_child_scans.png

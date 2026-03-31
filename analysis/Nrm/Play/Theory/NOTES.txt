@@ -1,0 +1,166 @@
+Play/Theory notes
+=================
+
+Goal
+----
+Build a theory-side comparison tool that uses the latest data and keeps a single
+model throughout:
+- beta = 0 is only the verification limit
+- beta != 0 adds the candidate quadratic nonlinearity
+- no separate linear and nonlinear models
+
+Current script
+--------------
+- int1.py
+
+What int1.py does
+-----------------
+- Uses the same dgnic linear matrix H as the base dynamics.
+- Adds one asymmetric quadratic bond-force term:
+
+  F_quad = beta * k * (delta)^2
+
+  with delta = x_{i+1} - x_i
+
+- Drives the chain sinusoidally near the lowest observed line.
+- Computes average Welch spectra of bond stretches, matching the kind of observable
+  we use on the data side.
+- Resolves the current data-side low-frequency pair automatically from the latest
+  flattened comoving x spectrum.
+
+Parameters currently used by default
+------------------------------------
+- N = 10
+- k = 194
+- m1 = 28.04 g
+- m2 = 60.04 g
+- L = 59 in
+- drive frequency = 0.41748 Hz
+- beta sweep = 0, 250, 500, 750, 1000
+
+Verification limit
+------------------
+Using the updated masses, the beta=0 linear spectrum from the same model gives
+the expected dgnic-like mode set:
+- 0.407
+- 3.324
+- 6.492
+- 9.397
+- 11.751
+- 16.039
+- 19.402
+- 20.645
+- 21.734
+- 22.438
+
+So the intended beta->0 consistency check is working.
+
+Current data target
+-------------------
+From the latest flattened comoving x spectrum, the automatic low-frequency target
+pair is:
+- fundamental-like line: 0.41748 Hz
+- nearby 2f-like line selected by nearest observed peak to 0.91 Hz: 0.95947 Hz
+- amplitude ratio A(2f-like) / A(f) = 0.39860
+
+Current result
+--------------
+The current quadratic-bond model runs and is stable over the default sweep, but it
+does NOT reproduce the observed low-frequency harmonic ratio.
+
+Default sweep results:
+- beta =    0  -> ratio = 0.005560
+- beta =  250  -> ratio = 0.005489
+- beta =  500  -> ratio = 0.005418
+- beta =  750  -> ratio = 0.005348
+- beta = 1000  -> ratio = 0.005277
+
+So in this implementation:
+- the theory ratio is tiny compared with the data ratio 0.39860
+- increasing beta in the stable range slightly decreases the ratio rather than
+  increasing it
+
+Interpretation
+--------------
+This means one of the following is true:
+- this quadratic force law is not the right one
+- the drive/readout choice is not representing the experiment properly
+- the observed low-frequency "0.91" family is not captured by this simple single-tone
+  forced test
+- or the asymmetry/sign of the quadratic term is wrong
+
+What is still useful
+--------------------
+- The tool is now in the right structural form:
+  one model only, with beta->0 as the internal check
+- The latest masses are wired in
+- The data comparison is automated
+- The result is already informative because it says the first obvious quadratic
+  implementation is not enough
+
+Files
+-----
+- output/int1_quadratic_theory_compare.png
+- output/int1_quadratic_theory_compare.csv
+- output/int1_quadratic_theory_compare_summary.txt
+
+
+Normalized beta model
+---------------------
+New script:
+- int2.py
+
+Why it exists:
+- The first int1 theory script used a quadratic force prefactor that was not cleanly
+  comparable to the data-side fitted beta ~ 0.91.
+- The user wanted one nonlinear model whose beta->0 limit reproduces dgnic, while the
+  nonlinear coefficient itself is meaningfully comparable to the extracted quadratic
+  strength from the data.
+
+What int2.py changes:
+- Keeps the same linear dgnic matrix H for every run.
+- Adds a normalized quadratic bond force:
+
+  F_quad = k * beta * delta^2 / delta_ref
+
+- delta_ref is taken from the beta=0 run as the characteristic RMS bond displacement.
+- That makes the model beta dimensionless at the response scale.
+- So beta ~ 1 means the quadratic bond force is comparable to the linear bond force
+  when delta is of order delta_ref.
+
+Main result:
+- In this normalized model, beta ~ 0.91 is not a mild correction.
+- The stable sweep only reaches beta_model about 0.10 before the dynamics become
+  non-finite for the current drive level.
+- So this specific quadratic force law cannot plausibly explain the observed data if
+  the intended interpretation is really beta ~ 0.91.
+
+Stable sweep results:
+- beta_model = 0.00 -> harmonic ratio = 0.000458
+- beta_model = 0.02 -> harmonic ratio = 0.018420
+- beta_model = 0.04 -> harmonic ratio = 0.037397
+- beta_model = 0.06 -> harmonic ratio = 0.057770
+- beta_model = 0.08 -> harmonic ratio = 0.080905
+- beta_model = 0.10 -> harmonic ratio = 0.110512
+
+Compared with data:
+- data-side low-frequency ratio is still about 0.39860
+- target model beta marker is 0.91
+- the model only reaches ratio about 0.11 while staying stable
+- therefore this normalized quadratic-contact implementation underproduces the harmonic
+  and destabilizes far before beta reaches the target scale
+
+Important caveat:
+- The strict exact-closure low-frequency triad fit inside int2 lands near
+  0.410 + 0.410 -> 0.820
+  while the observed side peak used in the amplitude comparison is nearer 0.959.
+- So the most trustworthy comparison in int2 is:
+  1. the beta->0 linear verification
+  2. the stable-range boundary in model beta
+  3. the harmonic ratio curve vs beta
+- The low-frequency extracted beta_abs panel is secondary and should not be overread.
+
+Files from int2:
+- output/int2_beta_calibrated_compare.png
+- output/int2_beta_calibrated_compare.csv
+- output/int2_beta_calibrated_compare_summary.txt

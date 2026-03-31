@@ -1,0 +1,67 @@
+Cross-dataset family edge survey
+Datasets: 0681 bond0 and 0680 bond1
+Edge score = excess_0681 + 0.6 * max(0, excess_0680)
+
+top edges:
+F04 + F11 -> F19 | freqs=(4.792, 7.891, 12.607) | ex0681=0.24411 | ex0680=0.20848 | child/parent_amp=0.639 | repro=1
+F12 + F12 -> F25 | freqs=(8.027, 8.027, 15.940) | ex0681=0.21017 | ex0680=0.26401 | child/parent_amp=0.306 | repro=1
+F11 + F12 -> F25 | freqs=(7.891, 8.027, 15.940) | ex0681=0.20722 | ex0680=0.26537 | child/parent_amp=0.298 | repro=1
+F03 + F14 -> F20 | freqs=(4.191, 8.820, 13.049) | ex0681=0.14392 | ex0680=0.30014 | child/parent_amp=0.275 | repro=1
+F03 + F15 -> F20 | freqs=(4.191, 8.962, 13.049) | ex0681=0.14392 | ex0680=0.29935 | child/parent_amp=0.189 | repro=1
+F12 + F12 -> F26 | freqs=(8.027, 8.027, 16.050) | ex0681=0.22188 | ex0680=0.14504 | child/parent_amp=0.303 | repro=1
+F05 + F12 -> F20 | freqs=(4.903, 8.027, 13.049) | ex0681=0.02709 | ex0680=0.39736 | child/parent_amp=0.885 | repro=1
+F03 + F13 -> F19 | freqs=(4.191, 8.402, 12.607) | ex0681=0.22256 | ex0680=-0.03153 | child/parent_amp=0.470 | repro=0
+F10 + F15 -> F27 | freqs=(7.712, 8.962, 16.598) | ex0681=0.10735 | ex0680=0.15590 | child/parent_amp=0.104 | repro=1
+F10 + F14 -> F27 | freqs=(7.712, 8.820, 16.598) | ex0681=0.10735 | ex0680=0.15534 | child/parent_amp=0.151 | repro=1
+F06 + F10 -> F21 | freqs=(5.416, 7.712, 13.209) | ex0681=-0.02701 | ex0680=0.37853 | child/parent_amp=0.639 | repro=0
+F04 + F17 -> F26 | freqs=(4.792, 11.311, 16.050) | ex0681=0.09605 | ex0680=0.10211 | child/parent_amp=0.169 | repro=1
+F03 + F15 -> F21 | freqs=(4.191, 8.962, 13.209) | ex0681=0.15305 | ex0680=-0.03238 | child/parent_amp=0.176 | repro=0
+F09 + F17 -> F28 | freqs=(6.994, 11.311, 18.364) | ex0681=0.13909 | ex0680=0.00525 | child/parent_amp=0.218 | repro=1
+F16 + F18 -> F30 | freqs=(9.407, 12.053, 21.402) | ex0681=0.08165 | ex0680=0.08044 | child/parent_amp=0.304 | repro=1
+F15 + F23 -> F33 | freqs=(8.962, 14.243, 23.158) | ex0681=0.10949 | ex0680=0.02273 | child/parent_amp=0.249 | repro=1
+F14 + F23 -> F33 | freqs=(8.820, 14.243, 23.158) | ex0681=0.10949 | ex0680=0.02243 | child/parent_amp=0.362 | repro=1
+F13 + F23 -> F32 | freqs=(8.402, 14.243, 22.598) | ex0681=0.03421 | ex0680=0.10985 | child/parent_amp=0.372 | repro=1
+F05 + F14 -> F22 | freqs=(4.903, 8.820, 13.652) | ex0681=-0.01144 | ex0680=0.15999 | child/parent_amp=0.153 | repro=0
+F04 + F16 -> F23 | freqs=(4.792, 9.407, 14.243) | ex0681=0.03242 | ex0680=0.08507 | child/parent_amp=0.115 | repro=1
+
+family balance:
+F01 | 3.372 Hz | amp=1.7955 | in_best=nan | out_best=0.05827 | in_repro=0 | out_repro=0 | in_edges=0 | out_edges=7
+F02 | 3.965 Hz | amp=0.6021 | in_best=nan | out_best=0.08127 | in_repro=0 | out_repro=1 | in_edges=0 | out_edges=12
+F15 | 8.962 Hz | amp=0.3269 | in_best=0.02484 | out_best=0.32353 | in_repro=0 | out_repro=3 | in_edges=2 | out_edges=11
+F07 | 6.356 Hz | amp=0.2261 | in_best=nan | out_best=0.04928 | in_repro=0 | out_repro=1 | in_edges=0 | out_edges=8
+F03 | 4.191 Hz | amp=0.2072 | in_best=nan | out_best=0.32400 | in_repro=0 | out_repro=2 | in_edges=0 | out_edges=12
+F14 | 8.820 Hz | amp=0.1543 | in_best=0.08127 | out_best=0.32400 | in_repro=0 | out_repro=3 | in_edges=3 | out_edges=10
+F06 | 5.416 Hz | amp=0.1201 | in_best=nan | out_best=0.20011 | in_repro=0 | out_repro=0 | in_edges=0 | out_edges=11
+F04 | 4.792 Hz | amp=0.0797 | in_best=nan | out_best=0.36920 | in_repro=0 | out_repro=4 | in_edges=0 | out_edges=14
+F16 | 9.407 Hz | amp=0.0788 | in_best=-0.06455 | out_best=0.12991 | in_repro=0 | out_repro=3 | in_edges=1 | out_edges=10
+F05 | 4.903 Hz | amp=0.0782 | in_best=nan | out_best=0.26551 | in_repro=0 | out_repro=3 | in_edges=0 | out_edges=11
+F17 | 11.311 Hz | amp=0.0633 | in_best=0.04082 | out_best=0.15732 | in_repro=0 | out_repro=2 | in_edges=3 | out_edges=6
+F18 | 12.053 Hz | amp=0.0580 | in_best=0.04182 | out_best=0.12991 | in_repro=1 | out_repro=1 | in_edges=2 | out_edges=5
+F20 | 13.049 Hz | amp=0.0492 | in_best=0.32400 | out_best=0.03271 | in_repro=3 | out_repro=0 | in_edges=4 | out_edges=5
+F08 | 6.889 Hz | amp=0.0466 | in_best=nan | out_best=0.00132 | in_repro=0 | out_repro=0 | in_edges=0 | out_edges=5
+F21 | 13.209 Hz | amp=0.0458 | in_best=0.20011 | out_best=0.03542 | in_repro=0 | out_repro=0 | in_edges=6 | out_edges=2
+F10 | 7.712 Hz | amp=0.0429 | in_best=nan | out_best=0.20089 | in_repro=0 | out_repro=3 | in_edges=0 | out_edges=12
+F11 | 7.891 Hz | amp=0.0416 | in_best=-0.05507 | out_best=0.36920 | in_repro=0 | out_repro=3 | in_edges=1 | out_edges=9
+F09 | 6.994 Hz | amp=0.0400 | in_best=nan | out_best=0.14225 | in_repro=0 | out_repro=1 | in_edges=0 | out_edges=7
+F12 | 8.027 Hz | amp=0.0396 | in_best=-0.04116 | out_best=0.36858 | in_repro=0 | out_repro=7 | in_edges=1 | out_edges=9
+F19 | 12.607 Hz | amp=0.0368 | in_best=0.36920 | out_best=0.02379 | in_repro=1 | out_repro=0 | in_edges=5 | out_edges=5
+F13 | 8.402 Hz | amp=0.0297 | in_best=-0.04834 | out_best=0.22256 | in_repro=0 | out_repro=2 | in_edges=1 | out_edges=8
+F30 | 21.402 Hz | amp=0.0205 | in_best=0.12991 | out_best=nan | in_repro=1 | out_repro=0 | in_edges=8 | out_edges=0
+F22 | 13.652 Hz | amp=0.0169 | in_best=0.08456 | out_best=0.03782 | in_repro=0 | out_repro=0 | in_edges=4 | out_edges=5
+F33 | 23.158 Hz | amp=0.0136 | in_best=0.12313 | out_best=nan | in_repro=4 | out_repro=0 | in_edges=7 | out_edges=0
+F27 | 16.598 Hz | amp=0.0123 | in_best=0.20089 | out_best=0.02832 | in_repro=2 | out_repro=0 | in_edges=5 | out_edges=4
+F25 | 15.940 Hz | amp=0.0121 | in_best=0.36858 | out_best=-0.02977 | in_repro=2 | out_repro=0 | in_edges=6 | out_edges=3
+F26 | 16.050 Hz | amp=0.0120 | in_best=0.30890 | out_best=-0.02730 | in_repro=3 | out_repro=0 | in_edges=6 | out_edges=3
+F28 | 18.364 Hz | amp=0.0110 | in_best=0.14225 | out_best=0.07967 | in_repro=1 | out_repro=2 | in_edges=6 | out_edges=3
+F29 | 20.757 Hz | amp=0.0106 | in_best=0.02832 | out_best=-0.08568 | in_repro=0 | out_repro=0 | in_edges=8 | out_edges=1
+F23 | 14.243 Hz | amp=0.0091 | in_best=0.08347 | out_best=0.12313 | in_repro=3 | out_repro=3 | in_edges=4 | out_edges=6
+F24 | 14.707 Hz | amp=0.0082 | in_best=0.00132 | out_best=-0.01150 | in_repro=0 | out_repro=0 | in_edges=6 | out_edges=3
+F31 | 21.896 Hz | amp=0.0062 | in_best=0.01685 | out_best=-0.06291 | in_repro=0 | out_repro=0 | in_edges=5 | out_edges=2
+F32 | 22.598 Hz | amp=0.0061 | in_best=0.10013 | out_best=-0.01923 | in_repro=1 | out_repro=0 | in_edges=6 | out_edges=1
+F34 | 28.854 Hz | amp=0.0039 | in_best=-0.01923 | out_best=nan | in_repro=0 | out_repro=0 | in_edges=5 | out_edges=0
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/edge_survey_output/family_edges.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/edge_survey_output/family_balance.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/edge_survey_output/001_top_family_edges.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/edge_survey_output/002_family_edge_balance.png

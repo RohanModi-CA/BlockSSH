@@ -1,0 +1,304 @@
+PlayInt2 notes
+==============
+
+Goal
+----
+Build a more integrated amplitude-first pipeline on corrected comoving x data:
+- averaged Welch spectra across bonds 0-2
+- automatic peak detection
+- generator ladder
+- compare raw spectra to transfer-flattened spectra
+
+Why this exists
+---------------
+The first integrated pass in PlayInt showed that a small generator set can explain most
+of the observed peak inventory, but raw amplitude ranking is heavily biased by the
+moving low-frequency response envelope. The flattening code in analysis/go/Play looked
+useful specifically for peak discovery and generator ranking.
+
+Things tried
+------------
+1. PlayInt/int1.py
+- Raw averaged Welch amplitude only.
+- find_peaks + merge nearby maxima.
+- Generator ladder from harmonics, sums, differences.
+- Outcome: works structurally, but top generators are biased by the raw baseline.
+
+2. PlayInt2/int1.py
+- Copied the first integrated script into PlayInt2.
+- Added use of analysis/go/Play/fft_flattening.py.
+- Added raw vs flattened comparison mode.
+- Switched amplitude plots to log scale.
+
+Main raw-spectrum findings
+--------------------------
+- Top generators:
+  G1 3.354 Hz
+  G2 0.417 Hz
+  G3 3.970 Hz
+- Ladder:
+  K=1 explains 1/21 peaks and 24.9% of amplitude
+  K=2 explains 6/21 peaks and 49.6% of amplitude
+  K=3 explains 11/21 peaks and 66.9% of amplitude
+  K=4 explains 18/21 peaks and 90.5% of amplitude
+- Important unresolved peaks under top-3:
+  6.343 Hz
+  8.965 Hz
+- Interpretation:
+  raw spectra do retain meaningful structure, but response shape suppresses 6.34/8.97 as generators.
+
+Main flattened-spectrum findings
+--------------------------------
+- Top generators:
+  G1 3.354 Hz
+  G2 0.417 Hz
+  G3 8.965 Hz
+  G4 3.970 Hz
+  G5 6.343 Hz
+- Flattening pushes 8.965 and 6.343 up much earlier, which is physically more plausible.
+- Top-3 flattened relations now naturally surface:
+  9.419 Hz  <- 0.417 + 8.965
+  8.547 Hz  <- |8.965 - 0.417|
+  12.253 Hz <- 3.354 + 8.965
+  13.433 Hz <- 4 x 3.354
+- Ladder is less "efficient" in raw count because flattening exposes many more real small peaks:
+  K=3 explains 15/63 peaks and 36.0% of amplitude
+  K=8 explains 45/63 peaks and 80.1% of amplitude
+- Interpretation:
+  flattening is doing what it should for discovery:
+  it reveals more real peak structure and gives a more sensible generator ranking.
+
+What seems trustworthy
+----------------------
+- The corrected comoving representation should be used, not the old drifting version.
+- Log-spectrum plotting is the right default for amplitude work.
+- Flattening is useful for amplitude/taxonomy discovery.
+- Flattening should NOT be treated as direct nonlinear evidence.
+- A small generator set really does explain a lot of the spectrum family structure.
+- 6.343 and 8.965 still behave like genuine generators, not just descendants of the first two lines.
+
+What seems untrustworthy or incomplete
+--------------------------------------
+- Pure amplitude matching still misidentifies some real peaks as nonlinear children.
+- Closely spaced lines and finite resolution make exact assignment unstable.
+- The current ledger does not yet use coherence/bicoherence to reject false arithmetic matches.
+- The top-K ladder is a discovery aid, not a confirmatory nonlinear argument.
+
+Current figure set
+------------------
+- output/raw_spectrum_ladder.png
+- output/raw_topk_explanations.png
+- output/flattened_spectrum_ladder.png
+- output/flattened_topk_explanations.png
+- output/compare_raw_flattened.png
+
+Current output tables
+---------------------
+- output/raw_observed_peaks.csv
+- output/raw_explanations.csv
+- output/raw_generator_ladder.csv
+- output/raw_summary.txt
+- output/flattened_observed_peaks.csv
+- output/flattened_explanations.csv
+- output/flattened_generator_ladder.csv
+- output/flattened_summary.txt
+
+Next likely steps
+-----------------
+1. Add a second-stage validation layer:
+   for each amplitude-based proposed relation, check coherence/bicoherence on the original complex segment data.
+
+2. Separate "candidate generators" from "candidate children":
+   do not let every strong flattened peak become a generator immediately.
+
+3. Add family-aware ranking:
+   merge close peaks more intelligently and avoid duplicate substructure near the same parent line.
+
+4. Investigate effective quadratic coefficients on flattened spectra:
+   test whether A_child / (A_parent1 * A_parent2) is at least roughly stable for plausible quadratic families.
+
+Quadratic coefficient investigation
+-----------------------------------
+Question
+--------
+If the system is strongly quadratic and the transfer-function flattening is doing
+the intended normalization, does an effective
+
+  k_eff = A_child / (A_parent1 * A_parent2)
+
+look materially more stable on flattened amplitudes than on raw amplitudes?
+
+Important caveat
+----------------
+- This is still amplitude-only.
+- It does not prove nonlinear coupling by itself.
+- Close peak crowding and finite frequency resolution can still make some family
+  assignments wrong.
+- So the narrower question here is:
+  does flattening make second-order amplitude bookkeeping internally cleaner on a
+  reasonably filtered matched set?
+
+New scripts
+-----------
+3. PlayInt2/int2.py
+- Uses one canonical flattened peak inventory.
+- Chooses the top 5 flattened generators:
+  3.354, 0.417, 8.965, 3.970, 6.343 Hz
+- Builds only second-order predictions:
+  2x, sum, diff
+- Rejects ambiguous matches.
+- Compares the exact same matched children in raw and flattened coordinates.
+
+4. PlayInt2/int2_sweep.py
+- Sweeps the match tolerance.
+- Checks whether any flattening benefit survives stricter or looser matching.
+
+Default int2 findings
+---------------------
+- Accepted 10 second-order child peaks.
+- Global log10(k_eff) spread:
+  raw:       MAD = 0.204, std = 0.332
+  flattened: MAD = 0.084, std = 0.170
+- So flattening cut the global coefficient spread by about half on this matched set.
+
+Accepted examples
+-----------------
+- 9.419 Hz <- 0.417 + 8.965
+  raw k_eff = 0.247
+  flat k_eff = 0.182
+
+- 12.927 Hz <- 8.965 + 3.970
+  raw k_eff = 0.259
+  flat k_eff = 0.241
+
+- 2.534 Hz <- |8.965 - 6.343|
+  raw k_eff = 1.264
+  flat k_eff = 0.154
+  This is the clearest raw outlier that the flattening largely normalizes away.
+
+Tolerance sweep findings
+------------------------
+- tol = 0.05: n = 6, raw std = 0.255, flat std = 0.200
+- tol = 0.06: n = 6, raw std = 0.255, flat std = 0.200
+- tol = 0.08: n = 7, raw std = 0.293, flat std = 0.187
+- tol = 0.10: n = 9, raw std = 0.343, flat std = 0.175
+- tol = 0.12: n = 10, raw std = 0.332, flat std = 0.170
+- tol = 0.14: n = 11, raw std = 0.318, flat std = 0.171
+
+Interpretation
+--------------
+- The flattening advantage survives stricter matching.
+- So this is probably not just a single loose-threshold artifact.
+- Flattening does appear to make a simple second-order amplitude coefficient more
+  stable.
+- But it is not globally constant in any strong sense.
+- Even flattened, there is still real spread, which is expected if:
+  - some assignments are wrong,
+  - some peaks are cascaded or higher-order rather than direct quadratic children,
+  - spatial overlap or mode-shape factors matter in addition to the transfer function.
+
+What seems trustworthy now
+--------------------------
+- Flattening is useful not just for discovery, but also for normalizing second-order
+  amplitude bookkeeping.
+- The amplitude-only coefficient is improved by flattening, but still too noisy to
+  stand on its own as nonlinear evidence.
+- The next serious step should be coherence-aware validation of the same proposed
+  families rather than more amplitude-only over-interpretation.
+
+New files from this stage
+-------------------------
+- output/quadratic_keff_stability.png
+- output/quadratic_keff_summary.txt
+- output/quadratic_keff_matches.csv
+- output/quadratic_keff_tolerance_sweep.png
+- output/quadratic_keff_tolerance_sweep.csv
+
+Phase / bicoherence integration
+-------------------------------
+New script:
+- PlayInt2/int3.py
+
+Purpose:
+- Move beyond amplitude-only family bookkeeping.
+- Use the earlier play5/play6/play7 phase machinery in a more integrated way.
+- Treat the user-provided "fundamental vs not fundamental" labels as priors on roles,
+  but re-resolve the actual frequencies from the current flattened comoving spectrum.
+- Test direct quadratic children from the prior fundamentals first.
+- Then allow a second stage of cascades, but only using stage-1 children that actually
+  survive a localized bicoherence scan.
+
+Resolved prior peaks used by int3:
+- f0.42   -> 0.417 Hz
+- f8.96   -> 8.965 Hz
+- f12     -> 12.004 Hz
+- f16.63  -> 16.626 Hz
+- f23+    -> 23.137 Hz
+- u11.31  -> 11.309 Hz
+- u14     -> 14.238 Hz
+- u18.35  -> 18.354 Hz
+
+Method:
+- Segment the corrected comoving x traces using the same equal-length complex FFT idea
+  as play5-7.
+- Scan fixed time windows.
+- For each candidate relation, evaluate the maximum localized bicoherence.
+- Estimate a surrogate p-value using segment-permuted nulls on the same scan family.
+
+Most important phase result so far
+----------------------------------
+- Stage 2 found:
+  8.965 + 9.419 -> 18.354
+  max localized bicoherence = 0.853
+  phase lock = 0.331
+  surrogate p = 0.049
+  best window = 350 s to 450 s
+
+This is the first clean integrated phase result that really matters here.
+It means the pipeline can now do something stronger than amplitude arithmetic:
+it can pick out a plausible nonlinear cascade feeding the known non-fundamental 18.35 peak.
+
+Important supporting stage-1 result
+-----------------------------------
+- Direct sideband:
+  0.417 + 8.965 -> 9.419
+  max localized bicoherence = 0.681
+  phase lock = 0.651
+  surrogate p = 0.148
+  best window = 100 s to 200 s
+
+This one is weaker than the 18.354 cascade result in p-value, but it is still the
+best direct route into the 9.42 family and it is exactly the relation we expected.
+
+What did not work cleanly yet
+-----------------------------
+- 2 * 8.965 -> 17.966 was found in the candidate table, but with weak significance in
+  the current fixed-window scan:
+  bicoherence = 0.384, p = 0.754
+- 14.238 appears in one arithmetic relation table:
+  23.137 - 8.965 -> 14.238
+  but phase support is weak:
+  bicoherence = 0.385, p = 0.705
+- 11.309 itself did not yet emerge as a convincingly phase-supported direct child.
+  The nearest thing found was:
+  12.004 - 0.857 -> 11.140
+  with high phase lock but poor surrogate significance.
+
+Current interpretation
+----------------------
+- The integrated phase pipeline is now genuinely working in at least one important case:
+  it supports a nonlinear route into the non-fundamental 18.35 line.
+- The strongest present story is:
+  0.417 + 8.965 -> 9.419
+  then
+  8.965 + 9.419 -> 18.354
+- That is substantially more meaningful than the earlier amplitude-only bookkeeping.
+- The 11.31 and 14 families remain unresolved in this phase-based pass.
+- The 2 * 8.965 relation may still need a different window family or segment length to
+  show up clearly if it is real.
+
+Files from this stage
+---------------------
+- output/int3_phase_pipeline.png
+- output/int3_phase_pipeline.csv
+- output/int3_phase_pipeline_summary.txt

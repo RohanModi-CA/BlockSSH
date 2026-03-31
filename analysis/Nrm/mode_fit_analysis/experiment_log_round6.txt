@@ -1,0 +1,25 @@
+2026-03-29
+
+Round 6 goal
+- Test 16.6 as a direct parent-vs-fundamental question.
+- Use the known non-fundamental 18 family as a control.
+
+Core idea
+- A line can look moderately mode-like in scaling and still be a nonlinear child if it has a strong, reproducible parent relation.
+- So the right test for 16.6 is:
+  - compare several plausible lower-frequency sum-rule explanations for ~16.6
+  - see whether any of them survive a null-based bicoherence test
+  - compare that to the known control relation `8.96 + 8.96 -> 18`
+
+Planned candidate parent sets for ~16.6
+- `8.106 + 8.557 -> 16.663`
+- `7.956 + 8.742 -> 16.698`
+- `4.766 + 12.016 -> 16.782`
+- `3.329 + 13.257 -> 16.586`
+- `1.902 + 14.701 -> 16.602`
+
+Views chosen for this test
+- `IMG_0681_rot270` in the stronger `y` observable for the 16.6 neighborhood
+- `IMG_0680_rot270` in `y`
+- `CDX_10IC` in `x`
+

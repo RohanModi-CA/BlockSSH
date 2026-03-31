@@ -1,0 +1,29 @@
+repo_root: /home/gram/Documents/FileFolder/Projects/BlocksSSH
+dataset: IMG_0681_rot270
+
+expectation:
+If mean|x| is a reasonable proxy for oscillation size, a genuinely fundamental line should scale roughly linearly with it.
+In practice, slope near 1 is the cleanest case; slopes well above 1 can happen when the proxy includes other modes or the fitted line becomes dominant only at larger amplitudes.
+Visible log-FFT peaks can still have poor time-domain scaling if they are weak, drifting, or not the dominant content in the selected variable.
+
+primary comparison (x bond 0):
+3.35 Hz: default corr=0.981, slope=1.427, meanR2=0.489 | comoving corr=0.910, slope=1.480, meanR2=0.460
+  default best freqs: [3.325 3.32  2.965 3.31  3.3   3.335 3.365 3.345 3.34  3.36 ]
+  comoving best freqs: [3.325 2.965 3.31  3.3   3.335 3.365 3.39  3.345 3.34  3.355]
+12.0 Hz: default corr=0.285, slope=1.128, meanR2=0.002 | comoving corr=0.186, slope=0.686, meanR2=0.003
+  default best freqs: [11.12 12.09 11.31 11.3  12.01 11.3  11.31 12.   11.99 12.01]
+  comoving best freqs: [11.3  11.3  11.3  12.01 11.3  11.31 12.04 12.   11.99 12.01]
+16.65 Hz: default corr=-0.117, slope=0.064, meanR2=0.000 | comoving corr=-0.221, slope=-0.153, meanR2=0.000
+  default best freqs: [16.06 15.84 16.65 16.57 16.79 16.61 16.04 16.1  16.02 16.02]
+  comoving best freqs: [16.08 16.6  16.57 16.79 16.61 16.05 16.48 16.1  16.03 16.25]
+
+interpretation:
+Default mode is slightly better than comoving for the main 3.35 Hz scaling in x bond 0, and similarly strong or stronger on the other x bonds.
+That makes the comoving transform look unnecessary at best, and mildly harmful for the primary scaling question.
+For 3.35 Hz, the log-log slope is around 1.4 to 1.5 in x bond 0 for both modes. That is not perfectly linear, but it is much closer to a fundamental-like trend than the higher bands.
+For 12.0 Hz and 16.65 Hz, the fitted scaling remains weak in the time domain even though those lines are visible on log FFTs. The data supports 'present but not dominant in this observable' more than 'cleanly fundamental in this specific scaling metric'.
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/compare_output/001_mode_heatmaps.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/compare_output/002_primary_mode_comparison.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/compare_output/003_frequency_stability.png

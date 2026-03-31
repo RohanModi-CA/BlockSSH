@@ -1,0 +1,31 @@
+Resolved prior peaks:
+  f0.42: 0.417 Hz | role=fundamental | certainty=100% | amp=1.2036
+  f8.96: 8.965 Hz | role=fundamental | certainty=80% | amp=1.1753
+  f12: 12.004 Hz | role=fundamental | certainty=75% | amp=0.6784
+  f16.63: 16.626 Hz | role=fundamental | certainty=100% | amp=0.5746
+  f23+: 23.137 Hz | role=fundamental | certainty=100% | amp=0.3471
+  u11.31: 11.309 Hz | role=suspect_child | certainty=not fundamental? | amp=0.7489
+  u14: 14.238 Hz | role=child | certainty=100% not fundamental | amp=0.1174
+  u18.35: 18.354 Hz | role=child | certainty=100% not fundamental | amp=0.1985
+
+Stage 1 strongest direct relations:
+  f0.42 2x f0.42 -> 0.857 | b2=0.832 | phase_lock=0.905 | p=0.016 | window=75.0-175.0s
+  f0.42 sum f16.63 -> 17.014 | b2=0.832 | phase_lock=0.288 | p=0.082 | window=75.0-175.0s
+  f0.42 sum f8.96 -> 9.419 | b2=0.681 | phase_lock=0.651 | p=0.148 | window=100.0-200.0s
+  f16.63 diff f0.42 -> 16.165 | b2=0.679 | phase_lock=0.325 | p=0.328 | window=150.0-250.0s
+  f16.63 diff f8.96 -> 7.632 | b2=0.646 | phase_lock=0.231 | p=0.262 | window=200.0-300.0s
+  f8.96 diff f0.42 -> 8.547 | b2=0.506 | phase_lock=0.345 | p=0.475 | window=75.0-175.0s
+  f8.96 sum f16.63 -> 25.562 | b2=0.462 | phase_lock=0.212 | p=0.656 | window=200.0-300.0s
+  f23+ diff f0.42 -> 22.705 | b2=0.424 | phase_lock=0.257 | p=0.721 | window=100.0-200.0s
+  f12 diff f8.96 -> 3.054 | b2=0.397 | phase_lock=0.293 | p=0.836 | window=75.0-175.0s
+  f23+ diff f8.96 -> 14.238 | b2=0.385 | phase_lock=0.626 | p=0.705 | window=350.0-450.0s
+
+Stage 2 strongest cascade relations:
+  f8.96 sum c9.42 -> 18.354 | b2=0.853 | phase_lock=0.331 | p=0.049 | window=350.0-450.0s
+  c0.86 sum c17.01 -> 17.966 | b2=0.629 | phase_lock=0.148 | p=0.295 | window=300.0-400.0s
+  f12 diff c0.86 -> 11.140 | b2=0.571 | phase_lock=0.849 | p=0.492 | window=75.0-175.0s
+  c9.42 2x c9.42 -> 18.757 | b2=0.546 | phase_lock=0.470 | p=0.590 | window=400.0-500.0s
+
+Saved files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt2/output/int3_phase_pipeline.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt2/output/int3_phase_pipeline.csv

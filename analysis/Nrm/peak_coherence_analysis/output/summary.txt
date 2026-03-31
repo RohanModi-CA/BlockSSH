@@ -1,0 +1,131 @@
+repo_root: /home/gram/Documents/FileFolder/Projects/BlocksSSH
+dataset: IMG_0681_rot270
+primary_component: x
+primary_bond_index: 0
+segmentation_mode: default
+comparison_modes: ['default', 'comoving']
+segmentation_peak_times_s: [ 31.998  45.998  67.998  95.998 109.998 139.998 175.998 213.998 233.998
+ 261.998 289.998 347.998 359.998 373.998 391.998 400.    405.998 411.998
+ 447.998 479.998 494.    495.998 533.998]
+
+working conclusion:
+Treating 0.41, 3.35, 6.35, and 8.96 Hz as known fundamentals, the useful operational signature is not 'high coherence' by itself.
+The stronger signature is: a fundamental line should recur cleanly across quiet regions and should not be predictably phase-locked to the other fundamentals by a simple integer relation.
+A likely non-fundamental line should instead look parasitic: weaker, more regime-dependent, and more predictable from other lines in amplitude and/or phase.
+
+default-mode quiet regions:
+region 3: t=[67.998, 91.998] s | rms=1.9229
+region 5: t=[109.998, 135.998] s | rms=1.3308
+region 6: t=[139.998, 171.998] s | rms=1.6431
+region 7: t=[175.998, 209.998] s | rms=1.9057
+region 9: t=[233.998, 257.998] s | rms=4.4780
+region 10: t=[261.998, 285.998] s | rms=3.0423
+region 11: t=[289.998, 343.998] s | rms=4.0928
+region 18: t=[411.998, 443.998] s | rms=4.0570
+region 19: t=[447.998, 475.998] s | rms=5.4304
+region 22: t=[495.998, 529.998] s | rms=5.2706
+
+most recurrent default-mode x0 FFT peaks:
+3.336 Hz | occurrences=10 | mean_amp=1.6270 | max_amp=2.8203
+3.967 Hz | occurrences=9 | mean_amp=0.5770 | max_amp=1.1377
+2.973 Hz | occurrences=9 | mean_amp=0.4821 | max_amp=1.0703
+1.499 Hz | occurrences=9 | mean_amp=0.3496 | max_amp=0.5398
+0.975 Hz | occurrences=7 | mean_amp=0.3077 | max_amp=0.5754
+8.960 Hz | occurrences=6 | mean_amp=0.4078 | max_amp=0.6669
+6.348 Hz | occurrences=6 | mean_amp=0.2294 | max_amp=0.3093
+0.620 Hz | occurrences=2 | mean_amp=0.2188 | max_amp=0.2351
+3.125 Hz | occurrences=1 | mean_amp=0.3743 | max_amp=0.3743
+4.336 Hz | occurrences=1 | mean_amp=0.1760 | max_amp=0.1760
+
+tracked line summaries:
+0.41 Hz: global mean tracked freq=0.4147 Hz, global freq std=0.0315 Hz, global mean amp=0.57280
+3.35 Hz: global mean tracked freq=3.3401 Hz, global freq std=0.0259 Hz, global mean amp=1.78119
+6.35 Hz: global mean tracked freq=6.3556 Hz, global freq std=0.0501 Hz, global mean amp=0.22609
+8.96 Hz: global mean tracked freq=8.9616 Hz, global freq std=0.0199 Hz, global mean amp=0.32686
+18.00 Hz: global mean tracked freq=18.0676 Hz, global freq std=0.1818 Hz, global mean amp=0.00937
+
+same-frequency bond coherence summary:
+default
+  b0-b1: 3.35 Hz=0.998, 6.35 Hz=0.982, 8.96 Hz=0.982, 12.00 Hz=0.992, 16.65 Hz=0.961
+  b0-b2: 3.35 Hz=0.974, 6.35 Hz=0.943, 8.96 Hz=0.960, 12.00 Hz=0.800, 16.65 Hz=0.961
+  b1-b2: 3.35 Hz=0.976, 6.35 Hz=0.967, 8.96 Hz=0.940, 12.00 Hz=0.789, 16.65 Hz=0.907
+comoving
+  b0-b1: 3.35 Hz=0.999, 6.35 Hz=0.991, 8.96 Hz=0.981, 12.00 Hz=0.993, 16.65 Hz=0.963
+  b0-b2: 3.35 Hz=0.974, 6.35 Hz=0.959, 8.96 Hz=0.961, 12.00 Hz=0.812, 16.65 Hz=0.959
+  b1-b2: 3.35 Hz=0.976, 6.35 Hz=0.970, 8.96 Hz=0.937, 12.00 Hz=0.800, 16.65 Hz=0.908
+
+independence checks between known fundamentals:
+0.41 !-> 3.35 (x8 check): observed PLV=0.1168, null mean=0.1416, null 95%=0.2587, regions=10, windows=203 | passes independence check
+3.35 !-> 6.35 (x2 check): observed PLV=0.0374, null mean=0.0439, null 95%=0.0874, regions=10, windows=211 | passes independence check
+3.35 !-> 8.96 (x3-ish check): observed PLV=0.1748, null mean=0.1475, null 95%=0.2489, regions=10, windows=211 | passes independence check
+6.35 !-> 8.96 (x1 check): observed PLV=0.0575, null mean=0.0342, null 95%=0.0632, regions=10, windows=202 | passes independence check
+
+candidate non-fundamental checks for 18.00 Hz:
+2 x 8.96 -> 18: observed PLV=0.1887, null mean=0.0825, null 95%=0.1562, regions=10, windows=200, log-amp corr=0.502 | above null
+  region 3: PLV=0.391, windows=15, parent_mean=8.965 Hz, target_mean=18.043 Hz
+  region 5: PLV=0.244, windows=16, parent_mean=8.939 Hz, target_mean=18.142 Hz
+  region 6: PLV=0.221, windows=22, parent_mean=8.968 Hz, target_mean=17.962 Hz
+  region 7: PLV=0.568, windows=25, parent_mean=8.965 Hz, target_mean=18.030 Hz
+  region 9: PLV=0.107, windows=14, parent_mean=8.965 Hz, target_mean=18.072 Hz
+  region 10: PLV=0.198, windows=13, parent_mean=8.965 Hz, target_mean=18.142 Hz
+  region 11: PLV=0.179, windows=34, parent_mean=8.963 Hz, target_mean=18.042 Hz
+  region 18: PLV=0.145, windows=19, parent_mean=8.956 Hz, target_mean=18.176 Hz
+  region 19: PLV=0.438, windows=19, parent_mean=8.965 Hz, target_mean=18.031 Hz
+  region 22: PLV=0.239, windows=23, parent_mean=8.960 Hz, target_mean=18.072 Hz
+3 x 6.35 -> 18: observed PLV=0.0499, null mean=0.0623, null 95%=0.1115, regions=10, windows=200, log-amp corr=0.468 | not above null
+  region 3: PLV=0.261, windows=15, parent_mean=6.340 Hz, target_mean=18.043 Hz
+  region 5: PLV=0.238, windows=14, parent_mean=6.383 Hz, target_mean=18.152 Hz
+  region 6: PLV=0.419, windows=22, parent_mean=6.381 Hz, target_mean=17.962 Hz
+  region 7: PLV=0.197, windows=21, parent_mean=6.398 Hz, target_mean=18.027 Hz
+  region 9: PLV=0.172, windows=14, parent_mean=6.295 Hz, target_mean=18.072 Hz
+  region 10: PLV=0.332, windows=10, parent_mean=6.393 Hz, target_mean=18.158 Hz
+  region 11: PLV=0.111, windows=40, parent_mean=6.344 Hz, target_mean=18.051 Hz
+  region 18: PLV=0.059, windows=20, parent_mean=6.372 Hz, target_mean=18.182 Hz
+  region 19: PLV=0.342, windows=19, parent_mean=6.310 Hz, target_mean=18.031 Hz
+  region 22: PLV=0.258, windows=25, parent_mean=6.326 Hz, target_mean=18.089 Hz
+5 x 3.35 -> 18: observed PLV=0.0570, null mean=0.0552, null 95%=0.1052, regions=10, windows=209, log-amp corr=0.347 | not above null
+  region 3: PLV=0.044, windows=15, parent_mean=3.340 Hz, target_mean=18.043 Hz
+  region 5: PLV=0.140, windows=16, parent_mean=3.340 Hz, target_mean=18.142 Hz
+  region 6: PLV=0.272, windows=22, parent_mean=3.348 Hz, target_mean=17.962 Hz
+  region 7: PLV=0.049, windows=25, parent_mean=3.323 Hz, target_mean=18.030 Hz
+  region 9: PLV=0.087, windows=14, parent_mean=3.281 Hz, target_mean=18.072 Hz
+  region 10: PLV=0.133, windows=13, parent_mean=3.340 Hz, target_mean=18.142 Hz
+  region 11: PLV=0.145, windows=40, parent_mean=3.360 Hz, target_mean=18.051 Hz
+  region 18: PLV=0.173, windows=20, parent_mean=3.352 Hz, target_mean=18.182 Hz
+  region 19: PLV=0.103, windows=19, parent_mean=3.340 Hz, target_mean=18.031 Hz
+  region 22: PLV=0.051, windows=25, parent_mean=3.342 Hz, target_mean=18.089 Hz
+44 x 0.41 -> 18: observed PLV=0.0415, null mean=0.0637, null 95%=0.1311, regions=10, windows=192, log-amp corr=0.062 | not above null
+  region 3: PLV=0.324, windows=15, parent_mean=0.410 Hz, target_mean=18.043 Hz
+  region 5: PLV=0.230, windows=16, parent_mean=0.410 Hz, target_mean=18.142 Hz
+  region 6: PLV=0.099, windows=17, parent_mean=0.414 Hz, target_mean=17.981 Hz
+  region 7: PLV=0.096, windows=20, parent_mean=0.413 Hz, target_mean=18.056 Hz
+  region 9: PLV=0.346, windows=14, parent_mean=0.410 Hz, target_mean=18.072 Hz
+  region 10: PLV=0.347, windows=13, parent_mean=0.419 Hz, target_mean=18.142 Hz
+  region 11: PLV=0.262, windows=40, parent_mean=0.409 Hz, target_mean=18.051 Hz
+  region 18: PLV=0.292, windows=18, parent_mean=0.426 Hz, target_mean=18.177 Hz
+  region 19: PLV=0.046, windows=19, parent_mean=0.410 Hz, target_mean=18.031 Hz
+  region 22: PLV=0.076, windows=20, parent_mean=0.410 Hz, target_mean=18.114 Hz
+
+region-scale log-amplitude correlations:
+0.41 Hz -> 3.35:0.398, 6.35:-0.087, 8.96:-0.190, 18.00:0.115
+3.35 Hz -> 0.41:0.398, 6.35:0.587, 8.96:0.458, 18.00:0.546
+6.35 Hz -> 0.41:-0.087, 3.35:0.587, 8.96:0.961, 18.00:0.792
+8.96 Hz -> 0.41:-0.190, 3.35:0.458, 6.35:0.961, 18.00:0.752
+18.00 Hz -> 0.41:0.115, 3.35:0.546, 6.35:0.792, 8.96:0.752
+
+interpretation:
+Default mode still looks like the better observable for this question because the known fundamentals recur cleanly there and the quiet-region segmentation is sharper.
+The known fundamentals 0.41, 3.35, 6.35, and 8.96 all recur across regions with stable tracked frequencies. That supports calling them real modes in this observable.
+The phase-lock independence tests mostly behave the way you want for fundamentals: 0.41 vs 3.35 and 3.35 vs 6.35 are not above the null, so they are not acting like simple harmonics of each other. 6.35 vs 8.96 is near-null as well. 3.35 vs 8.96 is only mildly elevated and not decisive.
+The ~18 Hz line is different. It is much weaker than the fundamentals, and its region-scale amplitude co-varies strongly with both 6.35 and 8.96, especially the latter.
+Unlike the other tested integer-lock relations, the 2 x 8.96 -> 18 hypothesis does rise above the 95% circular-shift null in the pooled phase-lock metric. That is not a full proof yet, but it is exactly the sort of predictable coherence signature you would expect from a non-fundamental follower line.
+Operationally, the current data supports a 'proof of fundamentality' for the known lines by recurrence plus failure of simple lock relations, and it gives a first positive non-fundamental signature for 18 through its amplitude covariance and weak-but-real 2 x 8.96 phase-lock excess. The natural next step is a bicoherence or trispectrum-style test centered on 8.96 and 18.
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/output/001_default_mode_recurrent_region_peaks.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/output/002_same_frequency_bond_coherence_compare.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/output/003_line_amplitude_matrix.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/output/004_line_amplitude_correlation_matrix.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/output/005_fundamental_independence_scores.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/output/006_candidate_18_scores.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/output/007_candidate_18_regionwise_phase_lock.png

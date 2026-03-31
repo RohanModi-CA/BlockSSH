@@ -1,0 +1,81 @@
+peak_csv: /home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/configs/peaks/0681ROT270X.csv
+taxonomy_csv: /home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/taxonomy_output/peak_taxonomy.csv
+n_listed_peaks: 54
+
+idea:
+A candidate looks more fundamental-like if it recurs as a mode-like family across multiple views, lands on a strong bond-agnostic scaling score, and does not already look well explained as a child of lower frequencies.
+
+top combined-evidence peaks:
+2.505 Hz | combined=5.247 | best=2.062 @ IMG_0680_rot270:y | n_strong=8 | n_family=6 | child=-0.01238 | tag=unexplained-or-parent-like | relation=0.610 + 1.902
+3.974 Hz | combined=4.547 | best=1.847 @ IMG_0681_rot270:a | n_strong=7 | n_family=5 | child=-0.05491 | tag=unexplained-or-parent-like | relation=1.902 + 2.095
+2.184 Hz | combined=4.508 | best=1.989 @ IMG_0680_rot270:y | n_strong=6 | n_family=6 | child=0.06324 | tag=child-like | relation=5 x 0.414
+2.095 Hz | combined=4.502 | best=1.921 @ IMG_0680_rot270:y | n_strong=6 | n_family=6 | child=0.02048 | tag=unexplained-or-parent-like | relation=5 x 0.414
+4.185 Hz | combined=4.304 | best=1.876 @ IMG_0681_rot270:a | n_strong=6 | n_family=5 | child=0.08792 | tag=child-like | relation=0.414 + 3.776
+3.776 Hz | combined=4.138 | best=1.802 @ IMG_0681_rot270:a | n_strong=5 | n_family=5 | child=0.00774 | tag=unexplained-or-parent-like | relation=2 x 1.902
+8.950 Hz | combined=4.056 | best=1.445 @ CDX_10IC:x | n_strong=4 | n_family=8 | child=0.09589 | tag=child-like | relation=0.414 + 8.557
+5.451 Hz | combined=4.043 | best=1.747 @ IMG_0681_rot270:a | n_strong=6 | n_family=3 | child=0.02173 | tag=unexplained-or-parent-like | relation=1.245 + 4.185
+2.944 Hz | combined=3.987 | best=1.676 @ IMG_0681_rot270:y | n_strong=8 | n_family=1 | child=0.08442 | tag=child-like | relation=1.483 + 1.483
+3.329 Hz | combined=3.970 | best=1.802 @ IMG_0681_rot270:x | n_strong=5 | n_family=4 | child=-0.00078 | tag=unexplained-or-parent-like | relation=4 x 0.858
+6.369 Hz | combined=3.948 | best=1.562 @ IMG_0680_rot270:x | n_strong=5 | n_family=5 | child=0.03577 | tag=child-like | relation=1.483 + 4.944
+11.333 Hz | combined=3.919 | best=1.369 @ IMG_0681_rot270:x | n_strong=5 | n_family=6 | child=0.03744 | tag=child-like | relation=3.329 + 7.956
+13.746 Hz | combined=3.627 | best=1.222 @ CDX_10IC:a | n_strong=4 | n_family=7 | child=0.09400 | tag=child-like | relation=1.245 + 12.537
+4.766 Hz | combined=3.541 | best=1.689 @ IMG_0680_rot270:y | n_strong=5 | n_family=2 | child=0.10670 | tag=child-like | relation=0.858 + 3.974
+4.944 Hz | combined=3.509 | best=1.658 @ IMG_0680_rot270:y | n_strong=5 | n_family=2 | child=0.10487 | tag=child-like | relation=0.961 + 3.974
+12.016 Hz | combined=3.125 | best=1.458 @ IMG_0680_rot270:y | n_strong=4 | n_family=3 | child=0.02932 | tag=unexplained-or-parent-like | relation=4.944 + 7.082
+12.537 Hz | combined=2.969 | best=1.412 @ CDX_10IC:y | n_strong=3 | n_family=4 | child=0.13634 | tag=child-like | relation=3.639 + 8.950
+3.639 Hz | combined=2.938 | best=1.861 @ IMG_0680_rot270:x | n_strong=4 | n_family=1 | child=-0.01156 | tag=unexplained-or-parent-like | relation=1.679 + 1.902
+5.190 Hz | combined=2.800 | best=1.682 @ IMG_0681_rot270:a | n_strong=4 | n_family=0 | child=0.04693 | tag=child-like | relation=1.483 + 3.639
+8.557 Hz | combined=2.616 | best=1.444 @ IMG_0681_rot270:x | n_strong=4 | n_family=0 | child=0.06793 | tag=child-like | relation=1.483 + 7.082
+8.742 Hz | combined=2.328 | best=1.502 @ CDX_10IC:x | n_strong=2 | n_family=2 | child=-0.01333 | tag=unexplained-or-parent-like | relation=1.902 + 6.897
+12.934 Hz | combined=2.090 | best=1.253 @ CDX_10IC:a | n_strong=3 | n_family=1 | child=0.08947 | tag=child-like | relation=4.185 + 8.742
+6.897 Hz | combined=1.822 | best=1.224 @ CDX_10IC:x | n_strong=2 | n_family=1 | child=0.00783 | tag=unexplained-or-parent-like | relation=1.679 + 5.190
+7.628 Hz | combined=1.742 | best=1.069 @ IMG_0681_rot270:y | n_strong=2 | n_family=0 | child=0.03452 | tag=child-like | relation=2 x 3.776
+9.403 Hz | combined=1.519 | best=1.068 @ CDX_10IC:x | n_strong=1 | n_family=0 | child=0.04958 | tag=child-like | relation=4.185 + 5.190
+
+reference neighborhoods:
+near 3.35 Hz
+  3.329 Hz | combined=3.970 | best=1.802 @ IMG_0681_rot270:x | n_strong=5 | child=-0.00078
+  3.639 Hz | combined=2.938 | best=1.861 @ IMG_0680_rot270:x | n_strong=4 | child=-0.01156
+  2.944 Hz | combined=3.987 | best=1.676 @ IMG_0681_rot270:y | n_strong=8 | child=0.08442
+  3.776 Hz | combined=4.138 | best=1.802 @ IMG_0681_rot270:a | n_strong=5 | child=0.00774
+  3.974 Hz | combined=4.547 | best=1.847 @ IMG_0681_rot270:a | n_strong=7 | child=-0.05491
+near 6.35 Hz
+  6.369 Hz | combined=3.948 | best=1.562 @ IMG_0680_rot270:x | n_strong=5 | child=0.03577
+  6.897 Hz | combined=1.822 | best=1.224 @ CDX_10IC:x | n_strong=2 | child=0.00783
+  7.082 Hz | combined=1.195 | best=1.013 @ CDX_10IC:x | n_strong=0 | child=0.00270
+  5.451 Hz | combined=4.043 | best=1.747 @ IMG_0681_rot270:a | n_strong=6 | child=0.02173
+  5.190 Hz | combined=2.800 | best=1.682 @ IMG_0681_rot270:a | n_strong=4 | child=0.04693
+near 8.96 Hz
+  8.950 Hz | combined=4.056 | best=1.445 @ CDX_10IC:x | n_strong=4 | child=0.09589
+  8.742 Hz | combined=2.328 | best=1.502 @ CDX_10IC:x | n_strong=2 | child=-0.01333
+  8.557 Hz | combined=2.616 | best=1.444 @ IMG_0681_rot270:x | n_strong=4 | child=0.06793
+  9.403 Hz | combined=1.519 | best=1.068 @ CDX_10IC:x | n_strong=1 | child=0.04958
+  8.332 Hz | combined=0.991 | best=0.810 @ IMG_0681_rot270:y | n_strong=0 | child=0.00473
+near 12.00 Hz
+  12.016 Hz | combined=3.125 | best=1.458 @ IMG_0680_rot270:y | n_strong=4 | child=0.02932
+  12.537 Hz | combined=2.969 | best=1.412 @ CDX_10IC:y | n_strong=3 | child=0.13634
+  11.333 Hz | combined=3.919 | best=1.369 @ IMG_0681_rot270:x | n_strong=5 | child=0.03744
+  12.934 Hz | combined=2.090 | best=1.253 @ CDX_10IC:a | n_strong=3 | child=0.08947
+  13.108 Hz | combined=0.693 | best=0.737 @ IMG_0681_rot270:y | n_strong=0 | child=0.13308
+near 16.65 Hz
+  16.601 Hz | combined=0.866 | best=0.847 @ CDX_10IC:x | n_strong=0 | child=0.17925
+  16.025 Hz | combined=0.550 | best=0.798 @ IMG_0681_rot270:y | n_strong=0 | child=0.18770
+  15.823 Hz | combined=0.731 | best=0.712 @ IMG_0681_rot270:y | n_strong=0 | child=0.05591
+  18.361 Hz | combined=1.030 | best=0.793 @ IMG_0680_rot270:y | n_strong=0 | child=0.13990
+  14.701 Hz | combined=1.018 | best=0.829 @ IMG_0680_rot270:y | n_strong=0 | child=-0.00870
+near 18.00 Hz
+  18.361 Hz | combined=1.030 | best=0.793 @ IMG_0680_rot270:y | n_strong=0 | child=0.13990
+  16.601 Hz | combined=0.866 | best=0.847 @ CDX_10IC:x | n_strong=0 | child=0.17925
+  16.025 Hz | combined=0.550 | best=0.798 @ IMG_0681_rot270:y | n_strong=0 | child=0.18770
+  15.823 Hz | combined=0.731 | best=0.712 @ IMG_0681_rot270:y | n_strong=0 | child=0.05591
+  20.788 Hz | combined=-1.083 | best=nan @ IMG_0681_rot270:x | n_strong=0 | child=0.06379
+
+notes:
+This ranking is still heuristic. It is designed to elevate peaks that repeatedly look mode-like across views while discounting peaks that already have strong lower-frequency explanations.
+Higher-frequency fundamentals do not have to win in every observable; recurrence across several views matters more than a single best view.
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/catalog_output/peak_catalog_evidence.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/catalog_output/001_combined_ranking.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/catalog_output/002_child_vs_recurrence.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/catalog_output/003_reference_panel.png
