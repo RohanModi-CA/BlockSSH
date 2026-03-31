@@ -263,7 +263,7 @@ def plot_spacing_timeseries(
 
         local_avg = np.nanmean(spacing[:, i])
         ax.set_ylabel("Dist (px)")
-        ax.set_title(f"Pair {i}: {label.upper()}  |  Avg: {local_avg:.1f}px")
+        ax.set_title(f"Pair {i + 1}: {label.upper()}  |  Avg: {local_avg:.1f}px")
         ax.grid(True, linestyle="--", alpha=0.3)
         ax.tick_params(labelbottom=True)
 
