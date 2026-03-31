@@ -1,0 +1,84 @@
+2026-03-29
+
+Round 3 goal
+- Remove the fixed-bond bias from the current analysis.
+- Check whether higher-frequency fundamentals become clearer once the response bond is allowed to vary.
+- Build a family-level scan across multiple datasets and components, rather than only testing preselected targets on one observable.
+
+Hypothesis entering this round
+- The current method may be unfairly weak on higher-frequency fundamentals because it always treats bond 0 as the response channel.
+- For higher modes, one bond can sit near a node while another bond carries the line much more clearly.
+- A better test is to scan candidate frequencies and, at each one, let the best leave-one-out response bond emerge from the data.
+
+Planned work
+- Build a bond-agnostic family scan over `IMG_0681_rot270`, `IMG_0680_rot270`, and `CDX_10IC`.
+- Run that scan on `x`, `y`, and `a` components.
+- For each candidate frequency:
+  - fit local sinusoids by bond and region
+  - compute leave-one-out scaling metrics for every possible response bond
+  - keep the strongest response bond rather than forcing bond 0
+  - cluster the score curve into candidate mode families
+- Compare where the known reference neighborhoods land:
+  - 3.35
+  - 6.35
+  - 8.96
+  - 12.0
+  - 16.65
+  - 18.0
+
+Update after implementing the bond-agnostic family scan
+- Added `run_mode_family_scan.py`.
+- Main change:
+  - the scan no longer forces bond 0 to be the response channel
+  - at each candidate frequency, every bond is tested as the response bond against a leave-one-out proxy built from the other bonds
+  - the best response bond is allowed to emerge from the data
+- Also fixed a compute mistake in the first version:
+  - I was recomputing FFTs inside every target evaluation
+  - FFTs are now cached per region and bond
+
+What the bond-agnostic family scan changed
+- On `IMG_0681_rot270 | x`, the label-free family scan now recovers:
+  - `3.3 Hz`
+  - `6.3 Hz`
+  - `9.0 Hz`
+  - `11.3 Hz`
+  - and a weaker `16.4 Hz` family
+- This matters because `11.3-12.0` and `16.4-16.7` were not showing up cleanly when the analysis was forced through bond 0.
+
+Concrete results from `family_scan_output/summary.txt`
+- Near `12.0 Hz`:
+  - `IMG_0680_rot270 | y`: score about `1.458`, corr about `0.990`, slope about `1.125`
+  - `CDX_10IC | x`: score about `1.255`, corr about `0.981`, slope about `1.158`
+  - `IMG_0681_rot270 | x`: score about `1.158`, corr about `0.993`, slope about `1.082`
+- So `12 Hz` now looks clearly mode-like in multiple independent views, without assuming it first.
+
+- Near `16.65 Hz`:
+  - `CDX_10IC | x`: score about `0.847`, corr about `0.935`, slope about `1.117`
+  - `IMG_0681_rot270 | y`: score about `0.756`, corr about `0.853`, slope about `0.863`
+  - `IMG_0680_rot270 | y`: score about `0.645`, corr about `0.883`, slope about `1.034`
+- This is the first strong sign that the earlier failure around `16.65` was at least partly a response-bond / observable-selection problem, not only a physics problem.
+
+- Near `18.0 Hz`:
+  - the scores are generally lower or comparable, and when they look decent they usually come with worse frequency stability or weaker overall family support than the stronger fundamental-like families
+  - for example:
+    - `CDX_10IC | x` near `16.6`: score about `0.847`
+    - `CDX_10IC | x` near `18.0`: score about `0.578`
+  - so in at least one dataset where the higher line is clean, the bond-agnostic scan now separates `16.6` from `18`
+
+Current interpretation
+- Hidden error number one was the broadband amplitude proxy.
+- Hidden error number two was forcing the test through bond 0.
+- After removing both of those errors:
+  - `3.35`, `6.35`, `8.96`, and `12` all look much more mode-like
+  - `16.65` is still not universally strong in every view, but it is no longer failing everywhere
+  - the data now suggest that `16.65` is visible only in some observables / bond patterns, which is physically plausible for a higher mode
+
+What still seems true
+- A genuinely weak but real fundamental can still have tiny absolute time-domain `R^2`.
+- So the useful evidence stack is still:
+  - local frequency stability
+  - leave-one-out scaling
+  - bond-agnostic response selection
+  - local FFT prominence
+  - and agreement across multiple datasets / observables
+

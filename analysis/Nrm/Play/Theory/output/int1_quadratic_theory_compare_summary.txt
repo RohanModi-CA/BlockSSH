@@ -1,0 +1,22 @@
+Single-model quadratic theory comparison
+
+Model:
+  Uses the dgnic linear matrix H as the exact beta=0 limit.
+  Adds one asymmetric quadratic bond-force term: F_quad = beta * k * (delta)^2.
+  This is intentionally a single approach; beta->0 is the verification limit, not a separate model.
+
+Data targets: f=0.417480 Hz, 2f-like=0.959473 Hz, ratio=0.398601
+
+Beta sweep:
+  beta=   0.000 | theory ratio=0.000003 | A(f)=8.512e-06 | A(2f)=2.666e-11
+  beta=  20.000 | theory ratio=0.000154 | A(f)=8.512e-06 | A(2f)=1.311e-09
+  beta=  40.000 | theory ratio=0.000310 | A(f)=8.512e-06 | A(2f)=2.640e-09
+  beta=  60.000 | theory ratio=0.000466 | A(f)=8.512e-06 | A(2f)=3.970e-09
+  beta=  80.000 | theory ratio=0.000623 | A(f)=8.512e-06 | A(2f)=5.299e-09
+  beta= 100.000 | theory ratio=0.000779 | A(f)=8.512e-06 | A(2f)=6.629e-09
+
+Closest match to data ratio: beta=100.000 with theory ratio=0.000779 (data=0.398601)
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/Theory/output/int1_quadratic_theory_compare.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/Theory/output/int1_quadratic_theory_compare.csv

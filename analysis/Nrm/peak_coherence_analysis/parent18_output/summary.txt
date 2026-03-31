@@ -1,0 +1,24 @@
+0681 bond0:
+  bicoherence 8.96+8.96->18: observed=0.22749, null95=0.03665
+  phase 2 x 8.96 -> 18: observed=0.18875, null95=0.15546, diff=0.03329
+  phase 3 x 6.35 -> 18: observed=0.04985, null95=0.11891, diff=-0.06905
+  phase 5 x 3.35 -> 18: observed=0.05701, null95=0.10526, diff=-0.04825
+  phase 44 x 0.41 -> 18: observed=0.04146, null95=0.12547, diff=-0.08401
+
+0680 bond1:
+  bicoherence 8.96+8.96->18: observed=0.21620, null95=0.12164
+  phase 2 x 8.96 -> 18: observed=0.02201, null95=0.11132, diff=-0.08931
+  phase 3 x 6.35 -> 18: observed=0.04388, null95=0.10934, diff=-0.06546
+  phase 5 x 3.35 -> 18: observed=0.01439, null95=0.07803, diff=-0.06365
+  phase 44 x 0.41 -> 18: observed=0.04318, null95=0.10434, diff=-0.06116
+
+how much stronger in IMG_0681_rot270 bond0?
+  Against the phase-lock null, 2 x 8.96 -> 18 is higher by 0.03329.
+  3 x 6.35 -> 18 is lower than its null threshold by 0.06905.
+  5 x 3.35 -> 18 is lower than its null threshold by 0.04825.
+  So relative to the null-threshold margin, the 8.96 parent hypothesis beats the 6.35 one by 0.10234 and the 3.35 one by 0.08154.
+  In plain terms: 8.96 is the only tested parent that produces a positive phase-lock excess for 18 in 0681; the 3.35 and 6.35 alternatives do not.
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/parent18_output/001_phase_parent_comparison.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/parent18_output/002_bicoherence_18_comparison.png

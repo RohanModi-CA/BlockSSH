@@ -1,0 +1,26 @@
+Normalized single-model quadratic theory
+
+Model:
+  Same dgnic H matrix for all runs.
+  Quadratic bond force = k * beta * delta^2 / delta_ref
+  delta_ref is the characteristic bond-displacement scale from the beta=0 run.
+  This makes the model beta dimensionless; target comparison is against the data-side beta ~ 0.91.
+
+delta_ref = 9.507383e-05 m
+Target model beta from data-side fit: 0.910000
+Data low-frequency triad: 0.410156 + 0.410156 -> 0.820313 | beta_abs=0.869268 | b2=0.755627 | ratio=0.398601
+
+Sweep:
+  beta_model=0.000 | extracted_beta=0.825895 | b2=0.000000 | ratio=0.000458
+  beta_model=0.020 | extracted_beta=0.999757 | b2=0.000000 | ratio=0.018420
+  beta_model=0.040 | extracted_beta=0.999847 | b2=0.000000 | ratio=0.037397
+  beta_model=0.060 | extracted_beta=0.999923 | b2=0.000000 | ratio=0.057770
+  beta_model=0.080 | extracted_beta=0.999966 | b2=0.000000 | ratio=0.080905
+  beta_model=0.100 | extracted_beta=0.999615 | b2=0.000000 | ratio=0.110512
+
+Closest extracted-beta match: beta_model=0.000, extracted_beta=0.825895, data_beta=0.869268
+Stable range observed in this sweep is only beta_model <= ~0.10; beta ~ 0.91 lies far outside it.
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/Theory/output/int2_beta_calibrated_compare.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/Theory/output/int2_beta_calibrated_compare.csv

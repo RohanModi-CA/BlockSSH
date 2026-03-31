@@ -1,3 +1,6 @@
+.env
+env
+
 # Video files
 *.mp4
 *.mov

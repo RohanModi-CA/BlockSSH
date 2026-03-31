@@ -1,0 +1,56 @@
+2026-03-29
+
+Main logs
+- experiment_log.txt
+- experiment_log_round2.txt
+- experiment_log_round3.txt
+- experiment_log_round4.txt
+- experiment_log_round5.txt
+- experiment_log_round6.txt
+- experiment_log_round8.txt
+- experiment_log_round9.txt
+- experiment_log_round10.txt
+
+Main mode-scaling scripts
+- run_mode_family_scan.py
+- run_peak_catalog_evidence.py
+- run_peak_catalog_refined.py
+- run_high_frequency_window_study.py
+- run_high_frequency_catalog.py
+- run_high_frequency_frontier.py
+- run_high_frequency_cluster_frontier.py
+
+Main mode-scaling outputs
+- family_scan_output/
+- catalog_output/
+- catalog_refined_output/
+- high_frequency_output/
+- high_frequency_catalog_output/
+- high_frequency_frontier_output/
+- high_frequency_cluster_output/
+
+Key coherence / parent-test scripts
+- ../peak_coherence_analysis/run_0681_peak_taxonomy.py
+- ../peak_coherence_analysis/run_18_parent_comparison.py
+- ../peak_coherence_analysis/run_166_parent_comparison.py
+- ../peak_coherence_analysis/run_16_vs_18_discriminator.py
+
+Key coherence / parent-test outputs
+- ../peak_coherence_analysis/taxonomy_output/
+- ../peak_coherence_analysis/parent18_output/
+- ../peak_coherence_analysis/parent166_output/
+- ../peak_coherence_analysis/discriminator_output/
+
+Quick working read
+- 3.33, 6.37, 8.95, and 12.02 now look strongly mode-like under the bond-agnostic scaling workflow.
+- 18.36 can still look moderately recurrent in adaptive high-frequency scoring, so recurrence alone is not enough.
+- What separates 18 better is parent-specificity: it has sharper targeted parent evidence in the right control views.
+- 16.60 remains the hardest line:
+  - adaptive scaling helps it
+  - broad low-frequency-biased scoring undersells it
+  - but it still does not yet have the same broad recurrence as 12
+  - and it also does not have one clean parent explanation that dominates the way a follower line should
+- So the current position is:
+  - 16.6 remains plausibly fundamental-like or at least not cleanly explainable as a follower
+  - 18 is still the cleaner non-fundamental control
+

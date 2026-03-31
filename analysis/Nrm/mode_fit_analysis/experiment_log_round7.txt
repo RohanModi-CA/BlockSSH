@@ -1,0 +1,19 @@
+2026-03-29
+
+Round 7 goal
+- Build a high-frequency-only catalog that does not inherit the low-frequency scoring assumptions.
+- Focus on listed peaks between 10 and 20 Hz.
+
+Why this is needed
+- The broad all-frequency catalog is excellent at lifting the strongest low and mid-frequency families.
+- But it can still undersell higher-frequency fundamentals because:
+  - the score was tuned in a regime dominated by low-frequency lines
+  - child-evidence penalties and broad windows can work against weaker high-frequency lines
+- So this round isolates the 10-20 Hz subset and scores it with:
+  - adaptive windows
+  - no child penalty
+  - recurrence across views
+
+Primary question
+- In a high-frequency-only ranking, does the `16.6` family climb above clearly follower-like lines such as `18.36`, or does it still remain ambiguous?
+

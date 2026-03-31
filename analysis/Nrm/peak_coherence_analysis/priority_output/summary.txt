@@ -1,0 +1,31 @@
+0681 priority report for strongest >3 Hz families
+
+F01 | 3.372 Hz | amp=1.7955 | outgoing=3 | best_incoming= () | excess=nan | child/parent_amp=nan
+F02 | 3.965 Hz | amp=0.6021 | outgoing=4 | best_incoming= () | excess=nan | child/parent_amp=nan
+F15 | 8.962 Hz | amp=0.3269 | outgoing=4 | best_incoming=F03 + F04 (pair) | excess=-0.02040 | child/parent_amp=2.543
+  F03 + F04 | kind=pair | excess=-0.02040 | obs=0.02968 | null95=0.05008 | parent_amp=0.12852
+  F02 + F05 | kind=pair | excess=-0.04630 | obs=0.00107 | null95=0.04737 | parent_amp=0.21696
+F07 | 6.356 Hz | amp=0.2261 | outgoing=1 | best_incoming= () | excess=nan | child/parent_amp=nan
+F03 | 4.191 Hz | amp=0.2072 | outgoing=6 | best_incoming= () | excess=nan | child/parent_amp=nan
+F14 | 8.820 Hz | amp=0.1543 | outgoing=4 | best_incoming=F01 + F06 (pair) | excess=-0.03123 | child/parent_amp=0.332
+  F01 + F06 | kind=pair | excess=-0.03123 | obs=0.01390 | null95=0.04513 | parent_amp=0.46437
+  F02 + F04 | kind=pair | excess=-0.04058 | obs=0.00232 | null95=0.04291 | parent_amp=0.21910
+  F02 + F05 | kind=pair | excess=-0.04630 | obs=0.00107 | null95=0.04737 | parent_amp=0.21696
+F06 | 5.416 Hz | amp=0.1201 | outgoing=0 | best_incoming= () | excess=nan | child/parent_amp=nan
+F04 | 4.792 Hz | amp=0.0797 | outgoing=4 | best_incoming= () | excess=nan | child/parent_amp=nan
+F16 | 9.407 Hz | amp=0.0788 | outgoing=3 | best_incoming=F02 + F06 (pair) | excess=-0.06455 | child/parent_amp=0.293
+  F02 + F06 | kind=pair | excess=-0.06455 | obs=0.02525 | null95=0.08980 | parent_amp=0.26892
+  2 x F04 | kind=harmonic | excess=-0.07762 | obs=0.03005 | null95=0.10766 | parent_amp=0.07973
+F05 | 4.903 Hz | amp=0.0782 | outgoing=3 | best_incoming= () | excess=nan | child/parent_amp=nan
+F17 | 11.311 Hz | amp=0.0633 | outgoing=2 | best_incoming=F01 + F11 (pair) | excess=0.04082 | child/parent_amp=0.232
+  F01 + F11 | kind=pair | excess=0.04082 | obs=0.13684 | null95=0.09602 | parent_amp=0.27328
+  F01 + F12 | kind=pair | excess=0.03257 | obs=0.09307 | null95=0.06050 | parent_amp=0.26669
+  F05 + F07 | kind=pair | excess=-0.01483 | obs=0.01373 | null95=0.02856 | parent_amp=0.13295
+F18 | 12.053 Hz | amp=0.0580 | outgoing=3 | best_incoming=F02 + F12 (pair) | excess=0.01427 | child/parent_amp=0.375
+  F02 + F12 | kind=pair | excess=0.01427 | obs=0.07562 | null95=0.06135 | parent_amp=0.15444
+  F03 + F11 | kind=pair | excess=-0.01013 | obs=0.03786 | null95=0.04800 | parent_amp=0.09283
+  3 x F02 | kind=harmonic | excess=-0.01863 | obs=0.08418 | null95=0.10281 | parent_amp=0.60215
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/priority_output/priority_report.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/priority_output/001_priority_summary.png

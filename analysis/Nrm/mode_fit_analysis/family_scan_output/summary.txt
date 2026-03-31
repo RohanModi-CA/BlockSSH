@@ -1,0 +1,166 @@
+repo_root: /home/gram/Documents/FileFolder/Projects/BlocksSSH
+bond_spacing_mode: default
+datasets: ('IMG_0681_rot270', 'IMG_0680_rot270', 'CDX_10IC')
+components: ('x', 'y', 'a')
+scan_range_hz: (2.0, 20.0)
+n_targets: 181
+
+idea:
+The response bond should be allowed to vary with frequency. A higher mode can place a near-node on bond 0, so the scan now lets the strongest leave-one-out response bond emerge from the data at each candidate frequency.
+
+IMG_0681_rot270 | x | n_regions=10 | n_bonds=3
+  family 3.300 Hz | score=1.792 | best_bond=0 | corr=0.995 | slope=1.020 | prom=17.058 | freq_rms=0.0177 | consensus_gap=0.0168
+  family 6.300 Hz | score=1.535 | best_bond=0 | corr=0.981 | slope=1.081 | prom=9.746 | freq_rms=0.0483 | consensus_gap=0.0058
+  family 9.000 Hz | score=1.432 | best_bond=0 | corr=0.942 | slope=1.193 | prom=13.397 | freq_rms=0.0093 | consensus_gap=0.0246
+  family 11.300 Hz | score=1.294 | best_bond=0 | corr=0.990 | slope=1.134 | prom=7.596 | freq_rms=0.0707 | consensus_gap=0.0360
+  family 13.600 Hz | score=0.751 | best_bond=1 | corr=0.947 | slope=1.246 | prom=3.443 | freq_rms=0.0840 | consensus_gap=0.1544
+  family 17.900 Hz | score=0.483 | best_bond=1 | corr=0.885 | slope=1.079 | prom=2.063 | freq_rms=0.2182 | consensus_gap=0.1877
+  family 16.400 Hz | score=0.317 | best_bond=1 | corr=0.765 | slope=0.767 | prom=3.156 | freq_rms=0.2016 | consensus_gap=0.1893
+  family 15.400 Hz | score=0.169 | best_bond=0 | corr=0.347 | slope=0.716 | prom=2.144 | freq_rms=0.1717 | consensus_gap=0.2111
+
+IMG_0681_rot270 | y | n_regions=11 | n_bonds=3
+  family 3.100 Hz | score=1.630 | best_bond=1 | corr=0.991 | slope=1.017 | prom=12.500 | freq_rms=0.0359 | consensus_gap=0.0379
+  family 4.800 Hz | score=1.586 | best_bond=1 | corr=0.983 | slope=1.025 | prom=19.550 | freq_rms=0.0174 | consensus_gap=0.0223
+  family 11.300 Hz | score=1.363 | best_bond=1 | corr=0.963 | slope=0.914 | prom=9.471 | freq_rms=0.0643 | consensus_gap=0.0536
+  family 12.700 Hz | score=1.258 | best_bond=0 | corr=0.990 | slope=1.094 | prom=12.777 | freq_rms=0.0409 | consensus_gap=0.0685
+  family 6.500 Hz | score=1.255 | best_bond=1 | corr=0.990 | slope=1.116 | prom=8.215 | freq_rms=0.0848 | consensus_gap=0.0487
+  family 8.900 Hz | score=1.232 | best_bond=1 | corr=0.865 | slope=0.976 | prom=5.829 | freq_rms=0.1059 | consensus_gap=0.0289
+  family 13.700 Hz | score=1.026 | best_bond=1 | corr=0.924 | slope=1.162 | prom=7.578 | freq_rms=0.0486 | consensus_gap=0.0924
+  family 18.300 Hz | score=0.754 | best_bond=1 | corr=0.894 | slope=0.972 | prom=2.137 | freq_rms=0.1844 | consensus_gap=0.1572
+
+IMG_0681_rot270 | a | n_regions=10 | n_bonds=3
+  family 4.000 Hz | score=1.798 | best_bond=1 | corr=1.000 | slope=1.031 | prom=37.963 | freq_rms=0.0049 | consensus_gap=0.0200
+  family 5.500 Hz | score=1.732 | best_bond=0 | corr=0.961 | slope=0.984 | prom=26.852 | freq_rms=0.0144 | consensus_gap=0.0026
+  family 2.300 Hz | score=1.475 | best_bond=0 | corr=0.937 | slope=1.020 | prom=55.573 | freq_rms=0.0084 | consensus_gap=0.1023
+  family 9.000 Hz | score=1.109 | best_bond=0 | corr=0.887 | slope=1.279 | prom=8.822 | freq_rms=0.0484 | consensus_gap=0.0279
+  family 12.500 Hz | score=0.922 | best_bond=1 | corr=0.794 | slope=0.955 | prom=7.838 | freq_rms=0.0297 | consensus_gap=0.0881
+  family 18.700 Hz | score=0.918 | best_bond=1 | corr=0.881 | slope=1.123 | prom=3.341 | freq_rms=0.1055 | consensus_gap=0.0823
+  family 11.300 Hz | score=0.897 | best_bond=1 | corr=0.954 | slope=1.516 | prom=8.479 | freq_rms=0.0120 | consensus_gap=0.0662
+  family 13.500 Hz | score=0.638 | best_bond=0 | corr=0.723 | slope=1.148 | prom=8.365 | freq_rms=0.1263 | consensus_gap=0.1909
+
+IMG_0680_rot270 | x | n_regions=7 | n_bonds=3
+  family 3.300 Hz | score=1.722 | best_bond=2 | corr=0.978 | slope=1.015 | prom=15.973 | freq_rms=0.1257 | consensus_gap=0.0425
+  family 6.400 Hz | score=1.502 | best_bond=0 | corr=0.993 | slope=0.976 | prom=9.524 | freq_rms=0.0379 | consensus_gap=0.0202
+  family 9.000 Hz | score=1.167 | best_bond=1 | corr=0.999 | slope=1.051 | prom=6.052 | freq_rms=0.1865 | consensus_gap=0.0767
+  family 2.300 Hz | score=1.166 | best_bond=0 | corr=0.982 | slope=0.814 | prom=10.746 | freq_rms=0.0333 | consensus_gap=0.1481
+  family 12.000 Hz | score=1.082 | best_bond=2 | corr=0.927 | slope=0.947 | prom=4.275 | freq_rms=0.1226 | consensus_gap=0.1067
+  family 19.100 Hz | score=0.860 | best_bond=2 | corr=0.970 | slope=1.133 | prom=1.911 | freq_rms=0.1483 | consensus_gap=0.1020
+  family 13.200 Hz | score=0.740 | best_bond=2 | corr=0.884 | slope=1.019 | prom=2.092 | freq_rms=0.0612 | consensus_gap=0.1180
+  family 15.000 Hz | score=0.394 | best_bond=1 | corr=0.828 | slope=1.368 | prom=2.127 | freq_rms=0.1404 | consensus_gap=0.1551
+
+IMG_0680_rot270 | y | n_regions=13 | n_bonds=3
+  family 2.300 Hz | score=1.877 | best_bond=1 | corr=0.996 | slope=1.163 | prom=117.193 | freq_rms=0.0075 | consensus_gap=0.0165
+  family 4.800 Hz | score=1.633 | best_bond=2 | corr=0.966 | slope=1.067 | prom=29.101 | freq_rms=0.0102 | consensus_gap=0.0139
+  family 4.000 Hz | score=1.633 | best_bond=0 | corr=0.999 | slope=0.947 | prom=25.229 | freq_rms=0.0598 | consensus_gap=0.0510
+  family 12.000 Hz | score=1.441 | best_bond=1 | corr=0.990 | slope=1.125 | prom=11.854 | freq_rms=0.0439 | consensus_gap=0.0345
+  family 13.700 Hz | score=1.068 | best_bond=1 | corr=0.969 | slope=1.145 | prom=4.660 | freq_rms=0.0414 | consensus_gap=0.0813
+  family 9.000 Hz | score=0.980 | best_bond=2 | corr=0.931 | slope=0.957 | prom=4.051 | freq_rms=0.1263 | consensus_gap=0.1245
+  family 17.300 Hz | score=0.752 | best_bond=2 | corr=0.918 | slope=0.975 | prom=2.427 | freq_rms=0.1289 | consensus_gap=0.1361
+
+IMG_0680_rot270 | a | n_regions=12 | n_bonds=3
+  family 2.300 Hz | score=1.550 | best_bond=1 | corr=0.970 | slope=1.099 | prom=23.369 | freq_rms=0.0218 | consensus_gap=0.0206
+  family 5.500 Hz | score=1.410 | best_bond=2 | corr=0.988 | slope=1.161 | prom=9.222 | freq_rms=0.0373 | consensus_gap=0.0319
+  family 4.000 Hz | score=1.380 | best_bond=1 | corr=0.959 | slope=1.227 | prom=15.577 | freq_rms=0.0528 | consensus_gap=0.0213
+  family 9.000 Hz | score=0.948 | best_bond=2 | corr=0.981 | slope=1.383 | prom=4.104 | freq_rms=0.0730 | consensus_gap=0.0728
+  family 11.300 Hz | score=0.857 | best_bond=2 | corr=0.935 | slope=0.933 | prom=2.200 | freq_rms=0.1041 | consensus_gap=0.1066
+  family 13.800 Hz | score=0.840 | best_bond=2 | corr=0.894 | slope=1.126 | prom=2.630 | freq_rms=0.0693 | consensus_gap=0.0700
+  family 18.000 Hz | score=0.643 | best_bond=2 | corr=0.866 | slope=1.099 | prom=2.261 | freq_rms=0.2239 | consensus_gap=0.1448
+  family 15.900 Hz | score=0.306 | best_bond=1 | corr=0.597 | slope=1.009 | prom=2.125 | freq_rms=0.1832 | consensus_gap=0.1416
+
+CDX_10IC | x | n_regions=13 | n_bonds=9
+  family 6.500 Hz | score=1.552 | best_bond=6 | corr=0.995 | slope=1.034 | prom=7.252 | freq_rms=0.0863 | consensus_gap=0.0270
+  family 9.000 Hz | score=1.450 | best_bond=7 | corr=0.997 | slope=0.986 | prom=4.588 | freq_rms=0.0354 | consensus_gap=0.0419
+  family 3.400 Hz | score=1.306 | best_bond=3 | corr=0.980 | slope=1.049 | prom=5.997 | freq_rms=0.0943 | consensus_gap=0.0791
+  family 12.000 Hz | score=1.157 | best_bond=3 | corr=0.981 | slope=1.158 | prom=5.008 | freq_rms=0.0586 | consensus_gap=0.0545
+  family 16.700 Hz | score=0.822 | best_bond=6 | corr=0.939 | slope=1.119 | prom=3.306 | freq_rms=0.0589 | consensus_gap=0.1425
+  family 18.300 Hz | score=0.573 | best_bond=8 | corr=0.858 | slope=1.041 | prom=2.364 | freq_rms=0.2022 | consensus_gap=0.2002
+
+CDX_10IC | y | n_regions=17 | n_bonds=9
+  family 2.300 Hz | score=1.467 | best_bond=3 | corr=0.988 | slope=1.045 | prom=9.341 | freq_rms=0.0204 | consensus_gap=0.0551
+  family 12.600 Hz | score=1.304 | best_bond=5 | corr=0.977 | slope=1.002 | prom=6.429 | freq_rms=0.0571 | consensus_gap=0.0534
+  family 4.000 Hz | score=1.294 | best_bond=2 | corr=0.995 | slope=1.019 | prom=11.805 | freq_rms=0.0765 | consensus_gap=0.0953
+  family 11.300 Hz | score=1.187 | best_bond=6 | corr=0.957 | slope=1.068 | prom=5.614 | freq_rms=0.0758 | consensus_gap=0.0813
+  family 13.700 Hz | score=1.178 | best_bond=3 | corr=0.935 | slope=1.033 | prom=5.704 | freq_rms=0.0505 | consensus_gap=0.0938
+  family 6.700 Hz | score=0.782 | best_bond=4 | corr=0.740 | slope=0.925 | prom=9.426 | freq_rms=0.0629 | consensus_gap=0.1526
+
+CDX_10IC | a | n_regions=13 | n_bonds=9
+  family 5.600 Hz | score=1.623 | best_bond=6 | corr=0.994 | slope=1.000 | prom=12.793 | freq_rms=0.0235 | consensus_gap=0.0080
+  family 4.000 Hz | score=1.521 | best_bond=4 | corr=0.999 | slope=1.061 | prom=11.295 | freq_rms=0.0220 | consensus_gap=0.0390
+  family 2.300 Hz | score=1.425 | best_bond=2 | corr=0.990 | slope=1.059 | prom=11.341 | freq_rms=0.0210 | consensus_gap=0.0871
+  family 12.600 Hz | score=1.278 | best_bond=3 | corr=0.963 | slope=1.019 | prom=5.514 | freq_rms=0.0350 | consensus_gap=0.0989
+  family 13.700 Hz | score=1.104 | best_bond=6 | corr=0.956 | slope=0.986 | prom=4.284 | freq_rms=0.0439 | consensus_gap=0.1228
+  family 6.600 Hz | score=1.075 | best_bond=6 | corr=0.845 | slope=1.032 | prom=8.975 | freq_rms=0.0586 | consensus_gap=0.1331
+  family 11.300 Hz | score=1.010 | best_bond=8 | corr=0.958 | slope=1.177 | prom=3.314 | freq_rms=0.0430 | consensus_gap=0.1153
+  family 8.900 Hz | score=0.927 | best_bond=5 | corr=0.956 | slope=1.084 | prom=2.681 | freq_rms=0.1049 | consensus_gap=0.1387
+
+reference neighborhoods:
+near 3.35 Hz
+  IMG_0681_rot270 | x | target=3.300 | score=1.802 | best_bond=0 | corr=0.995 | slope=1.020 | meanR2=0.54918 | freq_rms=0.0177 | prom=17.058
+  IMG_0681_rot270 | y | target=3.300 | score=1.651 | best_bond=1 | corr=0.991 | slope=1.020 | meanR2=0.01936 | freq_rms=0.0303 | prom=21.627
+  IMG_0680_rot270 | x | target=3.300 | score=1.615 | best_bond=2 | corr=0.978 | slope=1.015 | meanR2=0.47426 | freq_rms=0.1257 | prom=15.973
+  IMG_0681_rot270 | a | target=3.300 | score=1.434 | best_bond=1 | corr=0.920 | slope=1.227 | meanR2=0.07686 | freq_rms=0.0373 | prom=22.993
+  IMG_0680_rot270 | y | target=3.300 | score=1.397 | best_bond=2 | corr=0.869 | slope=1.077 | meanR2=0.24062 | freq_rms=0.0346 | prom=45.952
+  CDX_10IC | x | target=3.300 | score=1.279 | best_bond=3 | corr=0.973 | slope=1.102 | meanR2=0.34628 | freq_rms=0.0941 | prom=4.904
+  CDX_10IC | y | target=3.300 | score=1.251 | best_bond=4 | corr=0.926 | slope=1.049 | meanR2=0.05228 | freq_rms=0.0563 | prom=12.271
+  CDX_10IC | a | target=3.300 | score=1.147 | best_bond=5 | corr=0.891 | slope=1.026 | meanR2=0.12576 | freq_rms=0.1132 | prom=8.255
+  IMG_0680_rot270 | a | target=3.300 | score=0.680 | best_bond=1 | corr=0.805 | slope=1.535 | meanR2=0.32663 | freq_rms=0.1862 | prom=9.387
+
+near 6.35 Hz
+  IMG_0680_rot270 | x | target=6.300 | score=1.570 | best_bond=0 | corr=0.993 | slope=0.977 | meanR2=0.02372 | freq_rms=0.0356 | prom=9.665
+  IMG_0681_rot270 | x | target=6.300 | score=1.518 | best_bond=0 | corr=0.981 | slope=1.081 | meanR2=0.00977 | freq_rms=0.0483 | prom=9.746
+  CDX_10IC | x | target=6.300 | score=1.494 | best_bond=1 | corr=0.990 | slope=1.054 | meanR2=0.13617 | freq_rms=0.0825 | prom=10.127
+  IMG_0681_rot270 | y | target=6.300 | score=1.286 | best_bond=1 | corr=0.994 | slope=1.117 | meanR2=0.00017 | freq_rms=0.0843 | prom=8.639
+  IMG_0680_rot270 | y | target=6.300 | score=1.042 | best_bond=1 | corr=0.919 | slope=0.829 | meanR2=0.00011 | freq_rms=0.0853 | prom=6.320
+  IMG_0680_rot270 | a | target=6.300 | score=0.972 | best_bond=0 | corr=0.963 | slope=0.740 | meanR2=0.00328 | freq_rms=0.1083 | prom=4.609
+  CDX_10IC | a | target=6.300 | score=0.914 | best_bond=6 | corr=0.834 | slope=1.069 | meanR2=0.00355 | freq_rms=0.0963 | prom=5.603
+  IMG_0681_rot270 | a | target=6.300 | score=0.747 | best_bond=1 | corr=0.932 | slope=1.536 | meanR2=0.00052 | freq_rms=0.1088 | prom=6.826
+  CDX_10IC | y | target=6.300 | score=0.622 | best_bond=4 | corr=0.697 | slope=0.870 | meanR2=0.00029 | freq_rms=0.1314 | prom=7.352
+
+near 8.96 Hz
+  CDX_10IC | x | target=9.000 | score=1.445 | best_bond=7 | corr=0.997 | slope=0.986 | meanR2=0.01439 | freq_rms=0.0354 | prom=4.588
+  IMG_0681_rot270 | x | target=9.000 | score=1.432 | best_bond=0 | corr=0.942 | slope=1.193 | meanR2=0.03172 | freq_rms=0.0093 | prom=13.397
+  IMG_0681_rot270 | y | target=9.000 | score=1.265 | best_bond=1 | corr=0.864 | slope=0.977 | meanR2=0.00006 | freq_rms=0.0840 | prom=6.402
+  IMG_0680_rot270 | x | target=9.000 | score=1.187 | best_bond=1 | corr=0.999 | slope=1.051 | meanR2=0.00217 | freq_rms=0.1865 | prom=6.052
+  IMG_0681_rot270 | a | target=9.000 | score=1.167 | best_bond=0 | corr=0.887 | slope=1.279 | meanR2=0.00026 | freq_rms=0.0484 | prom=8.822
+  IMG_0680_rot270 | y | target=9.000 | score=1.004 | best_bond=2 | corr=0.931 | slope=0.957 | meanR2=0.00015 | freq_rms=0.1263 | prom=4.051
+  IMG_0680_rot270 | a | target=9.000 | score=0.983 | best_bond=2 | corr=0.981 | slope=1.383 | meanR2=0.00077 | freq_rms=0.0730 | prom=4.104
+  CDX_10IC | a | target=9.000 | score=0.969 | best_bond=5 | corr=0.955 | slope=1.061 | meanR2=0.00047 | freq_rms=0.1040 | prom=2.604
+  CDX_10IC | y | target=9.000 | score=0.862 | best_bond=4 | corr=0.839 | slope=0.968 | meanR2=0.00005 | freq_rms=0.1297 | prom=3.462
+
+near 12.00 Hz
+  IMG_0680_rot270 | y | target=12.000 | score=1.458 | best_bond=1 | corr=0.990 | slope=1.125 | meanR2=0.00061 | freq_rms=0.0439 | prom=11.854
+  CDX_10IC | x | target=12.000 | score=1.255 | best_bond=3 | corr=0.981 | slope=1.158 | meanR2=0.00415 | freq_rms=0.0586 | prom=5.008
+  IMG_0681_rot270 | x | target=12.000 | score=1.158 | best_bond=0 | corr=0.993 | slope=1.082 | meanR2=0.00115 | freq_rms=0.1243 | prom=5.315
+  IMG_0680_rot270 | x | target=12.000 | score=1.075 | best_bond=2 | corr=0.927 | slope=0.947 | meanR2=0.00149 | freq_rms=0.1226 | prom=4.275
+  CDX_10IC | y | target=12.000 | score=1.007 | best_bond=0 | corr=0.814 | slope=0.981 | meanR2=0.00005 | freq_rms=0.0590 | prom=3.518
+  IMG_0681_rot270 | y | target=12.000 | score=0.949 | best_bond=1 | corr=0.872 | slope=0.959 | meanR2=0.00002 | freq_rms=0.1371 | prom=5.641
+  CDX_10IC | a | target=12.000 | score=0.868 | best_bond=6 | corr=0.874 | slope=0.955 | meanR2=0.00012 | freq_rms=0.1177 | prom=3.047
+  IMG_0680_rot270 | a | target=12.000 | score=0.613 | best_bond=1 | corr=0.905 | slope=1.535 | meanR2=0.00020 | freq_rms=0.1011 | prom=3.558
+  IMG_0681_rot270 | a | target=12.000 | score=0.589 | best_bond=1 | corr=0.839 | slope=1.753 | meanR2=0.00011 | freq_rms=0.0345 | prom=6.432
+
+near 16.65 Hz
+  CDX_10IC | x | target=16.600 | score=0.847 | best_bond=6 | corr=0.935 | slope=1.117 | meanR2=0.00065 | freq_rms=0.0593 | prom=3.101
+  IMG_0681_rot270 | y | target=16.600 | score=0.756 | best_bond=1 | corr=0.853 | slope=0.863 | meanR2=0.00001 | freq_rms=0.1505 | prom=2.260
+  IMG_0680_rot270 | y | target=16.600 | score=0.645 | best_bond=2 | corr=0.883 | slope=1.034 | meanR2=0.00001 | freq_rms=0.1820 | prom=2.062
+  CDX_10IC | y | target=16.600 | score=0.488 | best_bond=8 | corr=0.772 | slope=0.914 | meanR2=0.00001 | freq_rms=0.1610 | prom=2.672
+  CDX_10IC | a | target=16.600 | score=0.390 | best_bond=1 | corr=0.745 | slope=0.941 | meanR2=0.00003 | freq_rms=0.1963 | prom=2.124
+  IMG_0681_rot270 | a | target=16.600 | score=0.364 | best_bond=1 | corr=0.510 | slope=0.965 | meanR2=0.00001 | freq_rms=0.1186 | prom=2.118
+  IMG_0680_rot270 | x | target=16.600 | score=0.261 | best_bond=1 | corr=0.815 | slope=0.645 | meanR2=0.00040 | freq_rms=0.1482 | prom=1.882
+  IMG_0681_rot270 | x | target=16.600 | score=0.088 | best_bond=2 | corr=0.515 | slope=0.698 | meanR2=0.00022 | freq_rms=0.1599 | prom=2.185
+  IMG_0680_rot270 | a | target=16.600 | score=-0.122 | best_bond=1 | corr=0.423 | slope=0.695 | meanR2=0.00005 | freq_rms=0.2063 | prom=1.761
+
+near 18.00 Hz
+  IMG_0681_rot270 | y | target=18.000 | score=0.801 | best_bond=1 | corr=0.869 | slope=0.972 | meanR2=0.00001 | freq_rms=0.1582 | prom=1.922
+  IMG_0680_rot270 | x | target=18.000 | score=0.718 | best_bond=2 | corr=0.917 | slope=1.127 | meanR2=0.00033 | freq_rms=0.1820 | prom=1.629
+  IMG_0680_rot270 | y | target=18.000 | score=0.701 | best_bond=2 | corr=0.889 | slope=0.934 | meanR2=0.00001 | freq_rms=0.1859 | prom=2.115
+  IMG_0680_rot270 | a | target=18.000 | score=0.596 | best_bond=2 | corr=0.866 | slope=1.099 | meanR2=0.00016 | freq_rms=0.2239 | prom=2.261
+  CDX_10IC | a | target=18.000 | score=0.587 | best_bond=3 | corr=0.692 | slope=0.815 | meanR2=0.00004 | freq_rms=0.0609 | prom=2.544
+  CDX_10IC | x | target=18.000 | score=0.578 | best_bond=3 | corr=0.851 | slope=1.097 | meanR2=0.00014 | freq_rms=0.1610 | prom=2.201
+  CDX_10IC | y | target=18.000 | score=0.503 | best_bond=8 | corr=0.850 | slope=1.161 | meanR2=0.00000 | freq_rms=0.1720 | prom=2.180
+  IMG_0681_rot270 | a | target=18.000 | score=0.465 | best_bond=1 | corr=0.747 | slope=1.217 | meanR2=0.00001 | freq_rms=0.1375 | prom=2.795
+  IMG_0681_rot270 | x | target=18.000 | score=0.359 | best_bond=1 | corr=0.919 | slope=1.047 | meanR2=0.00002 | freq_rms=0.2341 | prom=2.122
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/family_scan_output/001_score_grid.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/family_scan_output/002_reference_summary.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/family_scan_output/003_best_candidates.png

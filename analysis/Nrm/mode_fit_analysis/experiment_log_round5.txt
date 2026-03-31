@@ -1,0 +1,31 @@
+2026-03-29
+
+Round 5 goal
+- Investigate why the catalog still undersells the 16.6 Hz neighborhood.
+- Test two specific hypotheses:
+  - child-evidence is being over-penalized even when the proposed parent relation is weak
+  - high-frequency lines need narrower local frequency windows than the low-frequency defaults
+
+Hypothesis A: child-evidence penalty is too blunt
+- The taxonomy pass marks some lines as child-like based on lower-frequency sum or harmonic relations.
+- But those parent relations should only count strongly if the proposed parents themselves look like real recurrent modes.
+- Example:
+  - `16.601 Hz` is penalized via `1.902 + 14.701`
+  - neither proposed parent is strongly established by the catalog evidence
+- So the child penalty should be weighted by parent support, not applied at full strength automatically.
+
+Hypothesis B: high-frequency lines want narrower fit windows
+- Spot checks showed:
+  - `12.016 Hz` improves when the half-width is tightened from `0.35` to about `0.15-0.25`
+  - `16.601 Hz` improves noticeably in several views at `0.15-0.20`
+  - `18.361 Hz` also improves at narrow widths, but not always in the same way
+- So the right next test is a focused high-frequency sweep over:
+  - `12.016`
+  - `16.601`
+  - `18.361`
+  with adaptive or explicitly swept half-widths.
+
+Planned work
+- Build a refined catalog score that discounts child evidence when the proposed parents are not themselves well supported.
+- Build a dedicated high-frequency width-sweep script and compare `12.0`, `16.6`, and `18.36` directly across selected views.
+

@@ -1,0 +1,21 @@
+idea:
+This pass ranks only the listed 10-20 Hz peaks using adaptive windows and no child penalty, to reduce low-frequency bias in the main catalog.
+
+ranking:
+11.333 Hz | score=3.886 | best=1.357 @ IMG_0681_rot270:x | n_good=8 | n_solid=8 | hw=0.25
+12.016 Hz | score=3.144 | best=1.423 @ IMG_0680_rot270:y | n_good=5 | n_solid=7 | hw=0.20
+13.746 Hz | score=3.125 | best=1.215 @ CDX_10IC:a | n_good=6 | n_solid=6 | hw=0.20
+12.537 Hz | score=3.118 | best=1.365 @ CDX_10IC:y | n_good=5 | n_solid=7 | hw=0.20
+18.361 Hz | score=2.143 | best=1.026 @ IMG_0681_rot270:y | n_good=3 | n_solid=5 | hw=0.15
+13.257 Hz | score=2.104 | best=1.019 @ IMG_0680_rot270:x | n_good=3 | n_solid=5 | hw=0.20
+14.248 Hz | score=2.065 | best=1.127 @ IMG_0681_rot270:y | n_good=3 | n_solid=4 | hw=0.20
+14.701 Hz | score=1.927 | best=1.019 @ IMG_0681_rot270:y | n_good=2 | n_solid=5 | hw=0.20
+16.601 Hz | score=1.679 | best=1.003 @ IMG_0680_rot270:y | n_good=2 | n_solid=3 | hw=0.15
+15.823 Hz | score=1.674 | best=1.004 @ IMG_0680_rot270:y | n_good=2 | n_solid=3 | hw=0.15
+13.108 Hz | score=1.668 | best=0.957 @ IMG_0681_rot270:y | n_good=2 | n_solid=3 | hw=0.20
+16.025 Hz | score=1.416 | best=0.962 @ IMG_0680_rot270:y | n_good=1 | n_solid=3 | hw=0.15
+12.934 Hz | score=1.162 | best=0.955 @ IMG_0681_rot270:y | n_good=1 | n_solid=1 | hw=0.20
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/high_frequency_catalog_output/high_frequency_catalog.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/high_frequency_catalog_output/001_ranking.png

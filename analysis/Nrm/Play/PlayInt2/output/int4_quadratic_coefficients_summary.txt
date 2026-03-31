@@ -1,0 +1,15 @@
+Localized quadratic coefficient estimates
+
+Interpretation:
+  alpha is the least-squares complex coefficient in X3 ~= alpha * X1 * X2 over the best localized window.
+  |alpha| depends on the current FFT normalization and channel scaling, so compare it relatively within this pipeline.
+  |beta| = |alpha| * rms(X1X2) / rms(X3) is a dimensionless relative-strength measure.
+
+8.965 + 9.419 -> 18.354: b2=0.853, phase_lock=0.331, |alpha|=3.400e-01, phase(alpha)=2.823 rad, |beta|=0.924, window=350.0-450.0s
+2 * 0.417 -> 0.857: b2=0.832, phase_lock=0.905, |alpha|=3.850e-02, phase(alpha)=2.752 rad, |beta|=0.912, window=75.0-175.0s
+0.417 + 16.626 -> 17.014: b2=0.832, phase_lock=0.288, |alpha|=8.814e-02, phase(alpha)=0.463 rad, |beta|=0.912, window=75.0-175.0s
+0.417 + 8.965 -> 9.419: b2=0.681, phase_lock=0.651, |alpha|=6.091e-02, phase(alpha)=-0.257 rad, |beta|=0.825, window=100.0-200.0s
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt2/output/int4_quadratic_coefficients.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt2/output/int4_quadratic_coefficients.csv

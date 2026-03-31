@@ -1,0 +1,26 @@
+idea:
+Higher-frequency lines may need narrower local windows than the broad defaults used for the low-frequency scan. This study sweeps half-width for 12.0, 16.6, and 18.36 across selected views.
+
+IMG_0681_rot270 | x
+  12.016 Hz | best_hw=0.25 | score=1.316 | corr=0.995 | slope=1.148 | freq_rms=0.0400 | prom=5.088
+  16.601 Hz | best_hw=0.15 | score=0.407 | corr=0.464 | slope=0.876 | freq_rms=0.0746 | prom=1.731
+  18.361 Hz | best_hw=0.15 | score=0.943 | corr=0.884 | slope=1.069 | freq_rms=0.0646 | prom=1.830
+
+IMG_0681_rot270 | y
+  12.016 Hz | best_hw=0.20 | score=1.110 | corr=0.820 | slope=0.960 | freq_rms=0.0286 | prom=3.996
+  16.601 Hz | best_hw=0.35 | score=0.784 | corr=0.851 | slope=0.851 | freq_rms=0.1328 | prom=2.301
+  18.361 Hz | best_hw=0.15 | score=1.026 | corr=0.907 | slope=0.939 | freq_rms=0.0847 | prom=2.044
+
+IMG_0680_rot270 | y
+  12.016 Hz | best_hw=0.35 | score=1.487 | corr=0.983 | slope=0.993 | freq_rms=0.0648 | prom=6.180
+  16.601 Hz | best_hw=0.15 | score=1.003 | corr=0.892 | slope=0.980 | freq_rms=0.0900 | prom=1.855
+  18.361 Hz | best_hw=0.15 | score=0.981 | corr=0.877 | slope=0.979 | freq_rms=0.0970 | prom=2.003
+
+CDX_10IC | x
+  12.016 Hz | best_hw=0.20 | score=1.262 | corr=0.918 | slope=1.073 | freq_rms=0.0309 | prom=3.066
+  16.601 Hz | best_hw=0.15 | score=0.991 | corr=0.940 | slope=1.070 | freq_rms=0.0597 | prom=1.931
+  18.361 Hz | best_hw=0.15 | score=0.905 | corr=0.827 | slope=0.981 | freq_rms=0.0903 | prom=2.045
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/high_frequency_output/001_score_vs_width.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/high_frequency_output/002_best_widths.png

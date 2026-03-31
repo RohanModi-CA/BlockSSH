@@ -1,0 +1,41 @@
+PlayInt3 residual subtraction prototype
+
+Workflow:
+  1. detect strongest peaks on transfer-flattened spectrum
+  2. generate sum/2x child candidates from top parents
+  3. validate candidates with localized bicoherence + surrogate null
+  4. fit complex alpha in the best window
+  5. subtract modeled child contribution only in active windows
+
+top_parent_count = 10
+candidate_count = 45
+accepted_count = 6
+
+Top candidates:
+  0.417 sum 3.970 -> 4.373 | b2=0.673 | p=0.122 | beta=0.820 | score=0.195
+  1.479 2x 1.479 -> 2.966 | b2=0.581 | p=0.268 | beta=0.762 | score=0.180
+  0.417 2x 0.417 -> 0.857 | b2=0.832 | p=0.024 | beta=0.912 | score=0.177
+  0.417 sum 8.965 -> 9.419 | b2=0.681 | p=0.049 | beta=0.825 | score=0.167
+  0.417 sum 6.423 -> 6.870 | b2=0.912 | p=0.024 | beta=0.955 | score=0.159
+  0.417 sum 6.270 -> 6.746 | b2=0.918 | p=0.049 | beta=0.958 | score=0.154
+  3.970 sum 1.479 -> 5.427 | b2=0.553 | p=0.390 | beta=0.744 | score=0.127
+  0.417 sum 6.343 -> 6.746 | b2=0.754 | p=0.073 | beta=0.868 | score=0.123
+  3.970 2x 3.970 -> 7.947 | b2=0.795 | p=0.024 | beta=0.892 | score=0.118
+  3.354 sum 6.343 -> 9.727 | b2=0.688 | p=0.195 | beta=0.829 | score=0.089
+  8.965 sum 3.970 -> 12.927 | b2=0.578 | p=0.317 | beta=0.760 | score=0.088
+  3.354 sum 8.965 -> 12.253 | b2=0.701 | p=0.146 | beta=0.837 | score=0.087
+
+Accepted subtractions:
+  step 1: 0.417 sum 3.970 -> 4.373 | b2=0.673 | p=0.122 | beta=0.820 | window=400.0-500.0s | target drop=-4.71 dB | peak drop=0.00 dB
+  step 2: 0.417 2x 0.417 -> 0.857 | b2=0.832 | p=0.024 | beta=0.912 | window=75.0-175.0s | target drop=-6.27 dB | peak drop=0.00 dB
+  step 3: 0.417 sum 8.965 -> 9.419 | b2=0.681 | p=0.049 | beta=0.825 | window=100.0-200.0s | target drop=-3.59 dB | peak drop=0.00 dB
+  step 4: 0.417 sum 6.423 -> 6.870 | b2=0.912 | p=0.024 | beta=0.955 | window=150.0-250.0s | target drop=-8.74 dB | peak drop=0.00 dB
+  step 5: 0.417 sum 6.270 -> 6.746 | b2=0.918 | p=0.049 | beta=0.958 | window=200.0-300.0s | target drop=-7.78 dB | peak drop=0.00 dB
+  step 6: 3.970 2x 3.970 -> 7.947 | b2=0.795 | p=0.024 | beta=0.892 | window=150.0-250.0s | target drop=-6.96 dB | peak drop=0.00 dB
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt3/output/int1_candidates_and_steps.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt3/output/int1_local_child_zooms.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt3/output/int1_global_change.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt3/output/int1_candidates.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt3/output/int1_accepted.csv

@@ -1,0 +1,20 @@
+2026-03-29
+
+Round 9 goal
+- Build a two-axis frontier for the listed 10-20 Hz peaks.
+
+Axes
+- x-axis:
+  - high-frequency mode-likeness from the adaptive-window catalog
+- y-axis:
+  - parent-specificity from the refined catalog
+  - this is the weighted child penalty, not raw child evidence
+
+Why this matters
+- A peak can be mode-like and still be a follower.
+- A peak can also be weakly explained by some lower-frequency arithmetic without that explanation being convincing.
+- The right picture is therefore:
+  - strong mode-likeness + low parent-specificity = more fundamental-like
+  - strong mode-likeness + high parent-specificity = more follower-like
+  - low mode-likeness = ambiguous or weak, regardless of parent score
+

@@ -1,0 +1,87 @@
+2026-03-29
+
+Round 4 goal
+- Move from spot checks to a catalog-level table over the hand-picked 0681 peak list.
+- Evaluate every listed peak with the same bond-agnostic mode-likeness machinery.
+- Combine two evidence channels:
+  - mode-like recurrence across views
+  - child-like evidence from the first-pass taxonomy
+
+Why this round matters
+- The free scans are useful, but they still require reading score curves by eye.
+- The curated peak list is the right place to start building a machine-readable ranking of:
+  - peaks that look consistently mode-like
+  - peaks that are strong only in one view
+  - peaks that already have a plausible lower-frequency explanation
+
+Planned outputs
+- A catalog CSV with one row per listed peak.
+- For each peak:
+  - best-scoring view
+  - top-view and median-view mode score
+  - recurrence counts across datasets/components
+  - whether the peak sits inside a detected family in each view
+  - child-evidence from the taxonomy pass
+  - a combined “fundamental-likeness” score
+- Diagnostic plots for:
+  - ranking peaks by combined evidence
+  - child evidence vs recurrence
+  - known reference neighborhoods
+
+Update after running the catalog pass
+- Added `run_peak_catalog_evidence.py`.
+- This script ingests the hand-picked peak list from `0681ROT270X.csv` and scores each listed peak using:
+  - the bond-agnostic family scan across nine views
+  - recurrence across views
+  - first-pass child evidence from the peak taxonomy pass
+- Important correction:
+  - the CSV actually contains 54 entries, not 52
+  - the first catalog version mistakenly let sub-2 Hz peaks inherit the same nearest low-frequency scan point
+  - that has been corrected by marking peaks outside the scan range as out of scope for the mode-scan evidence
+
+Current catalog-level findings
+- The catalog is still heuristic, but it already reproduces several of the expected reference behaviors:
+  - `3.329 Hz`:
+    - combined score about `3.97`
+    - best view `IMG_0681_rot270:x`
+    - `n_strong_views = 5`
+    - taxonomy tag `unexplained-or-parent-like`
+  - `6.369 Hz`:
+    - combined score about `3.95`
+    - best view `IMG_0680_rot270:x`
+    - `n_strong_views = 5`
+  - `8.950 Hz`:
+    - combined score about `4.06`
+    - best view `CDX_10IC:x`
+    - `n_strong_views = 4`
+  - `12.016 Hz`:
+    - combined score about `3.12`
+    - best view `IMG_0680_rot270:y`
+    - `n_strong_views = 4`
+    - taxonomy tag `unexplained-or-parent-like`
+- These four all recur as mode-like across multiple views.
+
+- `16.601 Hz` and `18.361 Hz` remain much less conclusive in the catalog table:
+  - `16.601 Hz`:
+    - combined score about `0.87`
+    - best view `CDX_10IC:x`
+    - `n_strong_views = 0`
+    - taxonomy marks it as child-like via `1.902 + 14.701`
+  - `18.361 Hz`:
+    - combined score about `1.03`
+    - best view `IMG_0680_rot270:y`
+    - `n_strong_views = 0`
+    - taxonomy marks it as child-like via `7.082 + 11.333`
+- So the catalog pass still does not elevate `16.6` the way it elevates `3.3`, `6.37`, `8.95`, or `12.0`.
+
+What this means
+- The bond-agnostic family scan helped the `16.6` neighborhood, but the full catalog table says it is still not as broadly recurrent or as cleanly unexplained as the strongest fundamentals.
+- That does not prove it is not fundamental. It does mean the current evidence stack is still missing something for that line.
+- Likely missing pieces:
+  - allowing family-centered evaluation instead of only exact listed-peak evaluation
+  - using a narrower local window around high-frequency candidates
+  - allowing observable-specific evidence instead of demanding broad recurrence too strongly
+
+Practical improvement
+- Added caching support to the catalog script so future heuristic changes can reuse the expensive per-view scan results.
+

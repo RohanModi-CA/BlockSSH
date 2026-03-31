@@ -1,0 +1,26 @@
+Midband child-frequency scans
+Datasets: 0681 bond0 and 0680 bond1
+
+4.766 + 7.956 -> f3
+  0681 best: f3=12.600, excess=0.19686
+  0680 best: f3=12.800, excess=0.34790
+  marked 12.537: 0681 excess=0.08164, 0680 excess=0.09642
+  marked 12.607: 0681 excess=0.19686, 0680 excess=0.32769
+  marked 12.700: 0681 excess=0.18926, 0680 excess=0.28901
+
+4.359 + 8.557 -> f3
+  0681 best: f3=13.250, excess=-0.01780
+  0680 best: f3=13.100, excess=0.27426
+  marked 12.934: 0681 excess=-0.07639, 0680 excess=0.17635
+  marked 13.049: 0681 excess=-0.05854, 0680 excess=0.17884
+  marked 13.108: 0681 excess=-0.07940, 0680 excess=0.27426
+
+4.359 + 8.950 -> f3
+  0681 best: f3=13.500, excess=0.00301
+  0680 best: f3=13.500, excess=0.24640
+  marked 13.049: 0681 excess=0.00155, 0680 excess=0.14781
+  marked 13.108: 0681 excess=-0.01987, 0680 excess=-0.18744
+  marked 13.257: 0681 excess=-0.08467, 0680 excess=-0.14047
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/midband_scan_output/001_midband_child_scans.png

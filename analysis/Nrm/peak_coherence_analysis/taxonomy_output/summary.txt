@@ -1,0 +1,59 @@
+peak_csv: /home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/configs/peaks/0681ROT270X.csv
+dataset: IMG_0681_rot270
+bond_index: 0
+n_peaks: 54
+n_pair_candidates_evaluated: 364
+n_harmonic_candidates_evaluated: 71
+
+top child-like peaks:
+0.414 Hz | child_evidence=nan | best_relation= | outgoing_count=4 | tag=unexplained-or-parent-like
+0.505 Hz | child_evidence=nan | best_relation= | outgoing_count=5 | tag=unexplained-or-parent-like
+0.610 Hz | child_evidence=nan | best_relation= | outgoing_count=5 | tag=unexplained-or-parent-like
+16.025 Hz | child_evidence=0.18770 | best_relation=7.956 + 8.106 | outgoing_count=2 | tag=child-like
+16.601 Hz | child_evidence=0.17925 | best_relation=1.902 + 14.701 | outgoing_count=1 | tag=child-like
+13.257 Hz | child_evidence=0.16423 | best_relation=4.766 + 8.557 | outgoing_count=3 | tag=child-like
+7.956 Hz | child_evidence=0.15744 | best_relation=3.776 + 4.185 | outgoing_count=5 | tag=child-like
+18.361 Hz | child_evidence=0.13990 | best_relation=7.082 + 11.333 | outgoing_count=3 | tag=child-like
+12.537 Hz | child_evidence=0.13634 | best_relation=3.639 + 8.950 | outgoing_count=2 | tag=child-like
+13.108 Hz | child_evidence=0.13308 | best_relation=4.185 + 8.950 | outgoing_count=3 | tag=child-like
+21.960 Hz | child_evidence=0.11622 | best_relation=0.505 + 21.399 | outgoing_count=1 | tag=child-like
+23.159 Hz | child_evidence=0.10804 | best_relation=8.950 + 14.248 | outgoing_count=0 | tag=child-like
+4.766 Hz | child_evidence=0.10670 | best_relation=0.858 + 3.974 | outgoing_count=4 | tag=child-like
+4.944 Hz | child_evidence=0.10487 | best_relation=0.961 + 3.974 | outgoing_count=4 | tag=child-like
+8.106 Hz | child_evidence=0.09971 | best_relation=3.974 + 4.185 | outgoing_count=4 | tag=child-like
+8.950 Hz | child_evidence=0.09589 | best_relation=0.414 + 8.557 | outgoing_count=9 | tag=child-like
+13.746 Hz | child_evidence=0.09400 | best_relation=1.245 + 12.537 | outgoing_count=0 | tag=child-like
+12.934 Hz | child_evidence=0.08947 | best_relation=4.185 + 8.742 | outgoing_count=3 | tag=child-like
+4.185 Hz | child_evidence=0.08792 | best_relation=0.414 + 3.776 | outgoing_count=11 | tag=child-like
+2.944 Hz | child_evidence=0.08442 | best_relation=1.483 + 1.483 | outgoing_count=3 | tag=child-like
+
+lowest child-evidence peaks:
+3.974 Hz | child_evidence=-0.05491 | best_relation=1.902 + 2.095 | outgoing_count=7 | tag=unexplained-or-parent-like
+1.054 Hz | child_evidence=-0.03853 | best_relation=0.414 + 0.610 | outgoing_count=4 | tag=unexplained-or-parent-like
+0.961 Hz | child_evidence=-0.03774 | best_relation=0.414 + 0.610 | outgoing_count=5 | tag=unexplained-or-parent-like
+0.858 Hz | child_evidence=-0.03767 | best_relation=0.414 + 0.414 | outgoing_count=3 | tag=unexplained-or-parent-like
+1.483 Hz | child_evidence=-0.02480 | best_relation=3 x 0.505 | outgoing_count=5 | tag=unexplained-or-parent-like
+8.742 Hz | child_evidence=-0.01333 | best_relation=1.902 + 6.897 | outgoing_count=3 | tag=unexplained-or-parent-like
+2.505 Hz | child_evidence=-0.01238 | best_relation=0.610 + 1.902 | outgoing_count=3 | tag=unexplained-or-parent-like
+28.864 Hz | child_evidence=-0.01232 | best_relation=6.897 + 21.960 | outgoing_count=0 | tag=unexplained-or-parent-like
+3.639 Hz | child_evidence=-0.01156 | best_relation=1.679 + 1.902 | outgoing_count=5 | tag=unexplained-or-parent-like
+1.679 Hz | child_evidence=-0.01149 | best_relation=0.858 + 0.858 | outgoing_count=6 | tag=unexplained-or-parent-like
+14.701 Hz | child_evidence=-0.00870 | best_relation=6.369 + 8.332 | outgoing_count=3 | tag=unexplained-or-parent-like
+3.329 Hz | child_evidence=-0.00078 | best_relation=4 x 0.858 | outgoing_count=5 | tag=unexplained-or-parent-like
+7.082 Hz | child_evidence=0.00270 | best_relation=1.902 + 5.190 | outgoing_count=6 | tag=unexplained-or-parent-like
+8.332 Hz | child_evidence=0.00473 | best_relation=1.245 + 7.082 | outgoing_count=6 | tag=unexplained-or-parent-like
+3.776 Hz | child_evidence=0.00774 | best_relation=2 x 1.902 | outgoing_count=6 | tag=unexplained-or-parent-like
+6.897 Hz | child_evidence=0.00783 | best_relation=1.679 + 5.190 | outgoing_count=4 | tag=unexplained-or-parent-like
+1.245 Hz | child_evidence=0.00991 | best_relation=3 x 0.414 | outgoing_count=12 | tag=unexplained-or-parent-like
+22.563 Hz | child_evidence=0.01078 | best_relation=4.185 + 18.361 | outgoing_count=1 | tag=unexplained-or-parent-like
+1.902 Hz | child_evidence=0.01163 | best_relation=3 x 0.610 | outgoing_count=3 | tag=unexplained-or-parent-like
+2.095 Hz | child_evidence=0.02048 | best_relation=5 x 0.414 | outgoing_count=2 | tag=unexplained-or-parent-like
+
+notes:
+This is only a first-pass taxonomy. Low child evidence does not yet prove fundamentality; it only means the peak resisted the tested sum-rule and low-order harmonic explanations.
+High child evidence means the peak already has at least one lower-frequency explanation that survives the current null tests.
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/taxonomy_output/peak_taxonomy.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/taxonomy_output/001_taxonomy_scatter.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/taxonomy_output/002_top_child_like_peaks.png

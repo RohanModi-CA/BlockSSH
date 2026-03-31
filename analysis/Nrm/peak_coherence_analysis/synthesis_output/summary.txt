@@ -1,0 +1,48 @@
+Family synthesis report
+Classes combine cross-dataset incoming/outgoing edges with local spectral prominence.
+
+fundamental-leaning:
+  F01 | 3.372 Hz | amp=1.7955 | in=nan | out=0.05827 | prom0681=21.58 dB | prom0680=24.40 dB | in_repro=0 | out_repro=0
+  F02 | 3.965 Hz | amp=0.6021 | in=nan | out=0.08127 | prom0681=16.78 dB | prom0680=7.69 dB | in_repro=0 | out_repro=1
+  F15 | 8.962 Hz | amp=0.3269 | in=0.02484 | out=0.32353 | prom0681=20.65 dB | prom0680=14.01 dB | in_repro=0 | out_repro=3
+  F07 | 6.356 Hz | amp=0.2261 | in=nan | out=0.04928 | prom0681=18.79 dB | prom0680=19.34 dB | in_repro=0 | out_repro=1
+  F14 | 8.820 Hz | amp=0.1543 | in=0.08127 | out=0.32400 | prom0681=20.34 dB | prom0680=13.23 dB | in_repro=0 | out_repro=3
+  F06 | 5.416 Hz | amp=0.1201 | in=nan | out=0.20011 | prom0681=10.83 dB | prom0680=9.67 dB | in_repro=0 | out_repro=0
+  F17 | 11.311 Hz | amp=0.0633 | in=0.04082 | out=0.15732 | prom0681=14.99 dB | prom0680=2.78 dB | in_repro=0 | out_repro=2
+  F18 | 12.053 Hz | amp=0.0580 | in=0.04182 | out=0.12991 | prom0681=13.67 dB | prom0680=14.07 dB | in_repro=1 | out_repro=1
+
+mixed-coupled:
+  F22 | 13.652 Hz | amp=0.0169 | in=0.08456 | out=0.03782 | prom0681=-0.97 dB | prom0680=-0.33 dB | in_repro=0 | out_repro=0
+  F27 | 16.598 Hz | amp=0.0123 | in=0.20089 | out=0.02832 | prom0681=6.66 dB | prom0680=1.39 dB | in_repro=2 | out_repro=0
+  F28 | 18.364 Hz | amp=0.0110 | in=0.14225 | out=0.07967 | prom0681=4.77 dB | prom0680=7.24 dB | in_repro=1 | out_repro=2
+  F23 | 14.243 Hz | amp=0.0091 | in=0.08347 | out=0.12313 | prom0681=1.09 dB | prom0680=1.49 dB | in_repro=3 | out_repro=3
+
+nonfundamental-leaning:
+  F20 | 13.049 Hz | amp=0.0492 | in=0.32400 | out=0.03271 | prom0681=6.43 dB | prom0680=2.61 dB | in_repro=3 | out_repro=0
+  F21 | 13.209 Hz | amp=0.0458 | in=0.20011 | out=0.03542 | prom0681=5.47 dB | prom0680=3.84 dB | in_repro=0 | out_repro=0
+  F19 | 12.607 Hz | amp=0.0368 | in=0.36920 | out=0.02379 | prom0681=-3.21 dB | prom0680=1.67 dB | in_repro=1 | out_repro=0
+  F25 | 15.940 Hz | amp=0.0121 | in=0.36858 | out=-0.02977 | prom0681=6.27 dB | prom0680=2.92 dB | in_repro=2 | out_repro=0
+  F26 | 16.050 Hz | amp=0.0120 | in=0.30890 | out=-0.02730 | prom0681=6.59 dB | prom0680=3.66 dB | in_repro=3 | out_repro=0
+
+unclear:
+  F03 | 4.191 Hz | amp=0.2072 | in=nan | out=0.32400 | prom0681=8.28 dB | prom0680=1.74 dB | in_repro=0 | out_repro=2
+  F04 | 4.792 Hz | amp=0.0797 | in=nan | out=0.36920 | prom0681=1.55 dB | prom0680=-1.87 dB | in_repro=0 | out_repro=4
+  F16 | 9.407 Hz | amp=0.0788 | in=-0.06455 | out=0.12991 | prom0681=2.10 dB | prom0680=-2.40 dB | in_repro=0 | out_repro=3
+  F05 | 4.903 Hz | amp=0.0782 | in=nan | out=0.26551 | prom0681=3.41 dB | prom0680=-1.19 dB | in_repro=0 | out_repro=3
+  F08 | 6.889 Hz | amp=0.0466 | in=nan | out=0.00132 | prom0681=3.56 dB | prom0680=0.74 dB | in_repro=0 | out_repro=0
+  F10 | 7.712 Hz | amp=0.0429 | in=nan | out=0.20089 | prom0681=5.84 dB | prom0680=1.43 dB | in_repro=0 | out_repro=3
+  F11 | 7.891 Hz | amp=0.0416 | in=-0.05507 | out=0.36920 | prom0681=4.84 dB | prom0680=3.31 dB | in_repro=0 | out_repro=3
+  F09 | 6.994 Hz | amp=0.0400 | in=nan | out=0.14225 | prom0681=5.05 dB | prom0680=1.65 dB | in_repro=0 | out_repro=1
+  F12 | 8.027 Hz | amp=0.0396 | in=-0.04116 | out=0.36858 | prom0681=3.37 dB | prom0680=3.25 dB | in_repro=0 | out_repro=7
+  F13 | 8.402 Hz | amp=0.0297 | in=-0.04834 | out=0.22256 | prom0681=-1.89 dB | prom0680=-0.46 dB | in_repro=0 | out_repro=2
+  F30 | 21.402 Hz | amp=0.0205 | in=0.12991 | out=nan | prom0681=11.47 dB | prom0680=9.37 dB | in_repro=1 | out_repro=0
+  F33 | 23.158 Hz | amp=0.0136 | in=0.12313 | out=nan | prom0681=10.20 dB | prom0680=6.97 dB | in_repro=4 | out_repro=0
+  F29 | 20.757 Hz | amp=0.0106 | in=0.02832 | out=-0.08568 | prom0681=3.96 dB | prom0680=0.02 dB | in_repro=0 | out_repro=0
+  F24 | 14.707 Hz | amp=0.0082 | in=0.00132 | out=-0.01150 | prom0681=1.76 dB | prom0680=2.09 dB | in_repro=0 | out_repro=0
+  F31 | 21.896 Hz | amp=0.0062 | in=0.01685 | out=-0.06291 | prom0681=1.10 dB | prom0680=1.46 dB | in_repro=0 | out_repro=0
+  F32 | 22.598 Hz | amp=0.0061 | in=0.10013 | out=-0.01923 | prom0681=1.33 dB | prom0680=1.86 dB | in_repro=1 | out_repro=0
+  F34 | 28.854 Hz | amp=0.0039 | in=-0.01923 | out=nan | prom0681=2.38 dB | prom0680=2.47 dB | in_repro=0 | out_repro=0
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/synthesis_output/family_synthesis.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/synthesis_output/001_family_synthesis.png

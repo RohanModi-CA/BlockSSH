@@ -1,0 +1,25 @@
+2026-03-29
+
+Round 2 goal
+- Push past the current low-frequency bias and test whether the analysis can also recognize higher-frequency fundamentals such as ~12 Hz and ~16.65 Hz.
+- Avoid relying only on raw time-domain fit R^2, since weak but real lines can have tiny R^2.
+- Start moving from single-frequency checks toward family-level evidence.
+
+Known concerns entering this round
+- The current score is strong on 3.35 Hz and does separate 18 Hz, but it favors strong low-frequency families.
+- Higher-frequency fundamentals may be unfairly penalized because:
+  - absolute time-domain amplitudes are smaller
+  - local fits explain less total variance
+  - broad score windows around strong low-frequency modes can dominate scans
+- Cross-bond amplitude coherence and frequency stability may be more informative than absolute fit strength for weak fundamentals.
+
+Planned tests
+- Compare 3.35, 6.35, 8.96, 12.0, 16.65, and 18.0 under the same calibrated settings.
+- Add metrics that do not lean too hard on raw R^2:
+  - local frequency stability across regions
+  - cross-bond frequency agreement within each region
+  - cross-bond amplitude coherence
+  - bond-shape stability across regions
+  - local spectral prominence / contrast in the FFT near the target band
+- Check whether 12 and 16.65 inherit a coherent “mode family” signature even if they remain weak in absolute R^2.
+- Keep tracking results across other datasets to see whether these diagnostics generalize.

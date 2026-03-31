@@ -1,0 +1,30 @@
+repo_root: /home/gram/Documents/FileFolder/Projects/BlocksSSH
+dataset: IMG_0681_rot270
+bond_spacing_mode: default
+component: x
+begin_trim_s: 8.0
+end_trim_s: 10.0
+
+interpretive rule:
+A fundamental should look more like 3.35 Hz: stable best-fit frequency, strong bond-to-bond coherence, and near-linear scaling against the leave-one-out modal proxy.
+A non-fundamental can still be visible in a log FFT, but it should look less stable and less clean under this calibrated time-domain test.
+
+results:
+3.35 Hz (fundamental): corr=0.995, slope=1.021, meanR2=0.55035, freq-range=[3.3050, 3.3650] Hz
+  [(3, 1.877, 2.073, 0.5133, 3.3275), (5, 1.254, 1.377, 0.509, 3.3225), (6, 0.539, 0.584, 0.0736, 3.34), (7, 1.735, 1.708, 0.4726, 3.3125), (9, 5.363, 5.385, 0.7938, 3.305), (10, 2.941, 3.232, 0.5221, 3.3325), (11, 4.244, 4.224, 0.593, 3.3625), (18, 4.275, 4.757, 0.5439, 3.3375), (19, 6.619, 6.468, 0.7882, 3.34), (22, 5.604, 6.063, 0.694, 3.365)]
+6.35 Hz (fundamental): corr=0.982, slope=1.082, meanR2=0.00986, freq-range=[6.2750, 6.4310] Hz
+  [(3, 0.101, 0.396, 0.0015, 6.314), (5, 0.049, 0.165, 0.0008, 6.386), (6, 0.336, 1.244, 0.0285, 6.386), (7, 0.358, 1.123, 0.0202, 6.377), (9, 0.602, 1.665, 0.01, 6.275), (10, 0.403, 1.322, 0.0098, 6.431), (11, 0.485, 1.362, 0.0078, 6.338), (18, 0.564, 1.8, 0.0095, 6.332), (19, 0.432, 1.34, 0.0033, 6.281), (22, 0.571, 1.662, 0.0072, 6.32)]
+8.96 Hz (fundamental): corr=0.943, slope=1.211, meanR2=0.03182, freq-range=[8.9390, 8.9775] Hz
+  [(3, 0.098, 0.086, 0.0014, 8.9495), (5, 0.043, 0.057, 0.0006, 8.96), (6, 0.539, 0.425, 0.0735, 8.9565), (7, 0.781, 0.488, 0.0961, 8.96), (9, 1.267, 0.717, 0.0443, 8.9565), (10, 1.002, 0.759, 0.0608, 8.9565), (11, 0.625, 0.326, 0.0129, 8.96), (18, 0.738, 0.612, 0.0162, 8.939), (19, 0.683, 0.388, 0.0084, 8.9775), (22, 0.425, 0.349, 0.004, 8.946)]
+18.0 Hz (non-fundamental): corr=0.495, slope=0.525, meanR2=0.00005, freq-range=[17.0450, 18.7550] Hz
+  [(3, 0.018, 0.046, 0.0, 17.17), (5, 0.017, 0.046, 0.0001, 17.14), (6, 0.01, 0.045, 0.0, 18.75), (7, 0.023, 0.038, 0.0001, 18.385), (9, 0.046, 0.056, 0.0001, 17.045), (10, 0.039, 0.07, 0.0001, 18.39), (11, 0.02, 0.023, 0.0, 18.365), (18, 0.023, 0.04, 0.0, 18.31), (19, 0.036, 0.038, 0.0, 18.74), (22, 0.027, 0.057, 0.0, 18.755)]
+
+reading this table:
+3.35 Hz is the reference case and should look best.
+6.35 Hz and 8.96 Hz can still qualify as fundamental here if they inherit the same scaling pattern and frequency stability, even if their absolute R^2 is smaller because the lines are weaker.
+18 Hz should fail at least one of these tests more obviously.
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/known_mode_output/001_scaling_panel.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/known_mode_output/002_frequency_panel.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/known_mode_output/003_quality_panel.png

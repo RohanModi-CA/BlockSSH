@@ -1,0 +1,23 @@
+repo_root: /home/gram/Documents/FileFolder/Projects/BlocksSSH
+dataset: IMG_0681_rot270
+bond_spacing_mode: comoving
+bond_index: 0
+peak_finder_mode: all
+peak_of_interest_hz: 3.35
+integration_window_hz: 0.05
+detected_peak_times_s: [ 43.998 141.998 175.998 233.998 261.998 289.998 347.998 357.998 371.998
+ 400.    413.998 447.998 479.998 494.    507.998 535.998]
+usable_segment_flags: [0 1 1 1 1 1 1 0 0 1 0 1 1 0 0 1 0]
+enabled_region_bounds: [(43.99833333329332, 137.9983333332042), (141.9983333332042, 171.99833333317326), (175.99833333317326, 229.9983333331205), (233.9983333331205, 257.99833333309505), (261.99833333309505, 285.9983333330696), (289.9983333330696, 343.99833333301683), (371.998333332995, 396.0), (413.9983333329568, 443.9983333329259), (447.9983333329259, 475.9983333328968), (507.9983333328713, 531.9983333328458)]
+peak_amplitudes: [0.221245, 0.171119, 0.266792, 1.50321, 0.991099, 0.983988, 0.460767, 1.48921, 2.07942, 1.59445]
+region_mean_abs: [1.44075, 1.159, 1.50833, 3.87322, 2.35525, 3.6207, 3.4324, 3.26776, 4.72983, 4.06979]
+used_bin_counts: [9, 3, 5, 3, 3, 5, 3, 3, 3, 3]
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_scaling_analysis/output/001_timeseries.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_scaling_analysis/output/002_peak_detection.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_scaling_analysis/output/003_enabled_regions.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_scaling_analysis/output/004_region_ffts.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_scaling_analysis/output/005_region_fft_peak_bands.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_scaling_analysis/output/006_peak_vs_region_amplitude.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_scaling_analysis/output/007_region_timeseries_and_fft.png

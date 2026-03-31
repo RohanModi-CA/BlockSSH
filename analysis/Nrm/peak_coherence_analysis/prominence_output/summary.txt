@@ -1,0 +1,41 @@
+Family local spectral prominence
+Higher dB means the line stands out more strongly above its nearby frequency neighborhood.
+
+F01 | 3.372 Hz | amp=1.7955 | 0681=21.58 dB | 0680=24.40 dB
+F15 | 8.962 Hz | amp=0.3269 | 0681=20.65 dB | 0680=14.01 dB
+F14 | 8.820 Hz | amp=0.1543 | 0681=20.34 dB | 0680=13.23 dB
+F07 | 6.356 Hz | amp=0.2261 | 0681=18.79 dB | 0680=19.34 dB
+F02 | 3.965 Hz | amp=0.6021 | 0681=16.78 dB | 0680=7.69 dB
+F17 | 11.311 Hz | amp=0.0633 | 0681=14.99 dB | 0680=2.78 dB
+F18 | 12.053 Hz | amp=0.0580 | 0681=13.67 dB | 0680=14.07 dB
+F30 | 21.402 Hz | amp=0.0205 | 0681=11.47 dB | 0680=9.37 dB
+F06 | 5.416 Hz | amp=0.1201 | 0681=10.83 dB | 0680=9.67 dB
+F33 | 23.158 Hz | amp=0.0136 | 0681=10.20 dB | 0680=6.97 dB
+F03 | 4.191 Hz | amp=0.2072 | 0681=8.28 dB | 0680=1.74 dB
+F27 | 16.598 Hz | amp=0.0123 | 0681=6.66 dB | 0680=1.39 dB
+F26 | 16.050 Hz | amp=0.0120 | 0681=6.59 dB | 0680=3.66 dB
+F20 | 13.049 Hz | amp=0.0492 | 0681=6.43 dB | 0680=2.61 dB
+F25 | 15.940 Hz | amp=0.0121 | 0681=6.27 dB | 0680=2.92 dB
+F10 | 7.712 Hz | amp=0.0429 | 0681=5.84 dB | 0680=1.43 dB
+F21 | 13.209 Hz | amp=0.0458 | 0681=5.47 dB | 0680=3.84 dB
+F09 | 6.994 Hz | amp=0.0400 | 0681=5.05 dB | 0680=1.65 dB
+F11 | 7.891 Hz | amp=0.0416 | 0681=4.84 dB | 0680=3.31 dB
+F28 | 18.364 Hz | amp=0.0110 | 0681=4.77 dB | 0680=7.24 dB
+F29 | 20.757 Hz | amp=0.0106 | 0681=3.96 dB | 0680=0.02 dB
+F08 | 6.889 Hz | amp=0.0466 | 0681=3.56 dB | 0680=0.74 dB
+F05 | 4.903 Hz | amp=0.0782 | 0681=3.41 dB | 0680=-1.19 dB
+F12 | 8.027 Hz | amp=0.0396 | 0681=3.37 dB | 0680=3.25 dB
+F34 | 28.854 Hz | amp=0.0039 | 0681=2.38 dB | 0680=2.47 dB
+F16 | 9.407 Hz | amp=0.0788 | 0681=2.10 dB | 0680=-2.40 dB
+F24 | 14.707 Hz | amp=0.0082 | 0681=1.76 dB | 0680=2.09 dB
+F04 | 4.792 Hz | amp=0.0797 | 0681=1.55 dB | 0680=-1.87 dB
+F32 | 22.598 Hz | amp=0.0061 | 0681=1.33 dB | 0680=1.86 dB
+F31 | 21.896 Hz | amp=0.0062 | 0681=1.10 dB | 0680=1.46 dB
+F23 | 14.243 Hz | amp=0.0091 | 0681=1.09 dB | 0680=1.49 dB
+F22 | 13.652 Hz | amp=0.0169 | 0681=-0.97 dB | 0680=-0.33 dB
+F13 | 8.402 Hz | amp=0.0297 | 0681=-1.89 dB | 0680=-0.46 dB
+F19 | 12.607 Hz | amp=0.0368 | 0681=-3.21 dB | 0680=1.67 dB
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/prominence_output/family_prominence.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/peak_coherence_analysis/prominence_output/001_family_prominence.png

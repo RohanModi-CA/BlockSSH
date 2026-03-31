@@ -1,0 +1,121 @@
+2026-03-29
+
+Goal
+- Build evidence for which peaks are fundamental without assuming the answer in advance.
+
+What has been tried so far
+- Ported the notebook workflow to standalone scripts.
+- Replaced FFT-bin averaging with local sinusoid fits in frequency neighborhoods.
+- Compared `default` vs `comoving` bond-spacing modes.
+- Calibrated the method on 3.35 Hz.
+- Tested the calibrated method on 6.35, 8.96, and 18.0 Hz.
+
+Main lessons so far
+- `comoving` is not helping the scaling test. `default` is slightly better for the main 3.35 Hz mode.
+- Exact fixed-frequency fitting can badly underestimate a real line when the local best frequency drifts by a few hundredths of a hertz.
+- The biggest hidden error was the amplitude proxy: single-bond `mean|x|` is broadband and mixes modes.
+- A leave-one-out modal proxy built from the other x bonds works much better for 3.35 Hz.
+- With `default` mode, local frequency fitting, and stronger region trimming, 3.35 Hz becomes close to ideal:
+  - single-bond broadband proxy: corr about 0.991, slope about 1.36
+  - leave-one-out modal proxy: corr about 0.995, slope about 1.02
+- There is still one weak/contaminated region that remains an outlier, but it looks like a bad segment rather than a failure of the 3.35 Hz method.
+
+Known-mode test under calibrated settings
+- 3.35 Hz: looks strongly fundamental-like.
+- 6.35 Hz: inherits similar scaling/stability pattern, weaker absolute time-domain strength.
+- 8.96 Hz: also inherits similar pattern, weaker/noisier than 3.35 Hz.
+- 18.0 Hz: looks much less stable and much less linear under the same test.
+
+Current limitation
+- The current evidence still depends on checking chosen target frequencies.
+- We need a more label-free diagnostic that scans many candidate frequencies and asks which ones behave like coherent modes.
+
+Next experiments to run
+- Dense frequency scan with a “mode-likeness” score based on:
+  - frequency stability across regions
+  - cross-bond coherence
+  - leave-one-out scaling linearity
+  - fit quality
+- Check whether known fundamentals emerge from this scan without being preselected.
+- See whether weak but real lines are better separated by cross-bond coherence than by raw fit R^2 alone.
+
+Update after running more tests
+- Built a dedicated 3.35 Hz calibration script.
+- Best calibration settings found so far:
+  - mode: `default`
+  - component: `x`
+  - region trims: begin about 8 s, end about 10 s
+- Under those settings:
+  - 3.35 Hz bond-0 amplitude vs broadband `mean|x|`: corr about 0.991, slope about 1.36
+  - 3.35 Hz bond-0 amplitude vs leave-one-out modal proxy `sqrt(A1^2 + A2^2)`: corr about 0.995, slope about 1.02
+- That is the clearest evidence yet that the previous analysis failure came mostly from the x-axis proxy, not from the 3.35 Hz mode itself.
+
+Known-mode comparison under calibrated settings
+- 6.35 Hz:
+  - corr about 0.982
+  - slope about 1.08
+  - mean time-domain fit R^2 is tiny, but frequency is reasonably stable
+- 8.96 Hz:
+  - corr about 0.943
+  - slope about 1.21
+  - also weak in raw time-domain R^2, but frequency is very stable
+- 18.0 Hz:
+  - corr about 0.50
+  - slope about 0.52
+  - very poor fit quality and much larger frequency wandering
+- This is consistent with 6.35 and 8.96 behaving more like fundamentals than 18.0 under the calibrated method.
+
+Label-free scan result
+- Ran a dense frequency scan from 2 to 20 Hz with a score based on:
+  - leave-one-out scaling correlation
+  - closeness of slope to 1
+  - cross-bond coherence
+  - fit quality
+  - frequency stability
+- The scan naturally elevates the 3.35 family, the 6.35 family, and the 8.96 family much higher than 18 Hz.
+- Caveat:
+  - the dominant 3.35 mode creates a broad high-scoring plateau across neighboring target frequencies, so scan outputs should be peak-picked or clustered rather than interpreted frequency-by-frequency.
+
+Current best understanding
+- The strongest hidden error was using a broadband amplitude proxy instead of a mode-aligned proxy.
+- The second important issue was using `comoving`, which is not helping this problem.
+- A third issue is that weak but real lines can have tiny time-domain R^2 while still being genuinely fundamental, so fit R^2 alone is not a good classifier.
+- The most promising evidence stack so far is:
+  - default mode
+  - local frequency fitting
+  - stronger trimming away from impacts
+  - leave-one-out modal proxy
+  - cross-bond coherence
+  - frequency stability across regions
+
+Additional tests after that
+- Built a label-free scan over 2 to 20 Hz using a “mode-likeness” score combining:
+  - scaling correlation against the leave-one-out proxy
+  - closeness of scaling slope to 1
+  - cross-bond coherence
+  - fit quality
+  - frequency stability
+- Result:
+  - the 3.35 family comes out at the top
+  - the 6.35 family and 8.96 family come out much stronger than 18 Hz
+  - 18 Hz scores very poorly because its fitted frequency wanders a lot and its scaling is weak
+- Caveat:
+  - because the 3.35 family is strong, neighboring target frequencies around it form a broad plateau in score
+  - this means the next version should cluster or peak-pick the scan output, not interpret every grid point independently
+
+Tests that were less useful
+- Cross-bond amplitude shape is fairly stable even for some weak/non-fundamental lines, so shape alone is not enough.
+- Relative phase between bonds is not stable enough under the current fitting procedure to be a strong discriminator.
+- So far, frequency stability plus leave-one-out scaling plus cross-bond amplitude coherence look more informative than phase.
+
+Cross-dataset check
+- Tried the same coarse mode-likeness scan on other datasets:
+  - `IMG_0680_rot270`
+  - `CDX_10IC`
+- Result:
+  - the scan does not collapse when moving away from `IMG_0681_rot270`
+  - it still tends to promote a few stable low-frequency families rather than just whatever is largest in raw amplitude
+  - the promoted families are dataset-dependent, which is what we would expect physically
+- This is useful because it suggests the score is not only memorizing the 0681 structure.
+- Caveat:
+  - the broad-plateau issue remains, so clustering candidate families is still the next needed improvement.

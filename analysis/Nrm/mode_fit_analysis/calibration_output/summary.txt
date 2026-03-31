@@ -1,0 +1,42 @@
+repo_root: /home/gram/Documents/FileFolder/Projects/BlocksSSH
+dataset: IMG_0681_rot270
+bond_spacing_mode: default
+component: x
+target_hz: 3.35
+best_begin_trim_s: 8
+best_end_trim_s: 10
+
+what was wrong before:
+The old x-axis, mean|x| on a single bond, is broadband. It mixes the 3.35 Hz mode with everything else in the quiet region.
+That makes a genuinely clean fundamental look worse than it is, because low-amplitude regions can still have non-3.35 motion that inflates mean|x|.
+The 3.35 Hz amplitudes across the three x bonds are actually extremely coherent; the mode is fine, the proxy was not.
+
+calibration result:
+Using bond 0 mean|x| as the proxy: corr=0.991, slope=1.363
+Using leave-one-out modal proxy sqrt(A1^2 + A2^2): corr=0.995, slope=1.021
+Mean bond 0 fit R^2 at best trim: 0.550
+Regions kept: [3, 5, 6, 7, 9, 10, 11, 18, 19, 22]
+Problem regions: [6]
+
+per-region values:
+region 3: amp0=1.8770, amp1=1.6362, amp2=1.2733, proxy12=2.0732, freq0=3.3275, r20=0.5133
+region 5: amp0=1.2536, amp1=1.0822, amp2=0.8517, proxy12=1.3772, freq0=3.3225, r20=0.5090
+region 6: amp0=0.5393, amp1=0.4701, amp2=0.3469, proxy12=0.5842, freq0=3.3400, r20=0.0736
+region 7: amp0=1.7347, amp1=1.4213, amp2=0.9474, proxy12=1.7082, freq0=3.3125, r20=0.4726
+region 9: amp0=5.3626, amp1=4.5555, amp2=2.8709, proxy12=5.3846, freq0=3.3050, r20=0.7938
+region 10: amp0=2.9414, amp1=2.5839, amp2=1.9421, proxy12=3.2324, freq0=3.3325, r20=0.5221
+region 11: amp0=4.2437, amp1=3.7107, amp2=2.0188, proxy12=4.2243, freq0=3.3625, r20=0.5930
+region 18: amp0=4.2749, amp1=3.8894, amp2=2.7389, proxy12=4.7570, freq0=3.3375, r20=0.5439
+region 19: amp0=6.6189, amp1=5.8277, amp2=2.8049, proxy12=6.4675, freq0=3.3400, r20=0.7882
+region 22: amp0=5.6044, amp1=5.0189, amp2=3.4020, proxy12=6.0632, freq0=3.3650, r20=0.6940
+
+interpretation:
+3.35 Hz does behave almost perfectly once the analysis is mode-aligned.
+The remaining ugly point is a real weak/contaminated segment, not a general failure of the 3.35 Hz scaling.
+For the weaker peaks, the lesson is clear: do not compare them to broadband mean|x|. Compare them against a mode-aware amplitude proxy instead.
+
+saved_plots:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/calibration_output/001_trim_grid.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/calibration_output/002_proxy_comparison.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/calibration_output/003_region_diagnostics.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/mode_fit_analysis/calibration_output/004_bond_scaling.png

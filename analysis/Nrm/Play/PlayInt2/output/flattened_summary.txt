@@ -1,0 +1,59 @@
+dataset: IMG_0681_rot270
+component: x
+bond_spacing_mode: comoving
+spectrum_label: flattened
+welch_len_s: 100.0
+welch_overlap: 0.5
+peak_prominence: 0.05
+merge_hz: 0.12
+match_tol_hz: 0.12
+
+top generators:
+  G1: 3.354 Hz | amplitude=2.4420 | prominence=2.3898
+  G2: 0.417 Hz | amplitude=1.2036 | prominence=1.1371
+  G3: 8.965 Hz | amplitude=1.1753 | prominence=1.1273
+
+generator ladder:
+  K=1: explained_peaks=4/63 (0.063) | explained_amplitude_fraction=0.145
+  K=2: explained_peaks=11/63 (0.175) | explained_amplitude_fraction=0.275
+  K=3: explained_peaks=15/63 (0.238) | explained_amplitude_fraction=0.360
+  K=4: explained_peaks=26/63 (0.413) | explained_amplitude_fraction=0.524
+  K=5: explained_peaks=31/63 (0.492) | explained_amplitude_fraction=0.594
+  K=6: explained_peaks=33/63 (0.524) | explained_amplitude_fraction=0.638
+  K=7: explained_peaks=38/63 (0.603) | explained_amplitude_fraction=0.685
+  K=8: explained_peaks=45/63 (0.714) | explained_amplitude_fraction=0.801
+
+top-3 explanation assignments:
+  1.238 Hz <- 3x(0.417) => 1.252 Hz | err=0.015
+  1.677 Hz <- 4x(0.417) => 1.670 Hz | err=0.007
+  2.168 Hz <- 5x(0.417) => 2.087 Hz | err=0.081
+  2.534 Hz <- 6x(0.417) => 2.505 Hz | err=0.029
+  3.054 Hz <- diff(3.354,0.417) => 2.937 Hz | err=0.117
+  3.772 Hz <- sum(3.354,0.417) => 3.772 Hz | err=0.000
+  6.746 Hz <- 2x(3.354) => 6.709 Hz | err=0.037
+  8.547 Hz <- diff(0.417,8.965) => 8.547 Hz | err=0.000
+  9.419 Hz <- sum(0.417,8.965) => 9.382 Hz | err=0.037
+  10.027 Hz <- 3x(3.354) => 10.063 Hz | err=0.037
+  12.253 Hz <- sum(3.354,8.965) => 12.319 Hz | err=0.066
+  13.433 Hz <- 4x(3.354) => 13.418 Hz | err=0.015
+
+top-3 unresolved peaks:
+  0.608 Hz | amplitude=0.2608
+  0.959 Hz | amplitude=0.4798
+  1.479 Hz | amplitude=0.6381
+  1.904 Hz | amplitude=0.2761
+  3.508 Hz | amplitude=0.2066
+  3.640 Hz | amplitude=0.2536
+  3.970 Hz | amplitude=0.7867
+  4.373 Hz | amplitude=0.3302
+  4.512 Hz | amplitude=0.2136
+  4.753 Hz | amplitude=0.2076
+  4.929 Hz | amplitude=0.1296
+  5.200 Hz | amplitude=0.1108
+
+saved_files:
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt2/output/flattened_spectrum_ladder.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt2/output/flattened_topk_explanations.png
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt2/output/flattened_observed_peaks.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt2/output/flattened_explanations.csv
+/home/gram/Documents/FileFolder/Projects/BlocksSSH/analysis/Nrm/Play/PlayInt2/output/flattened_generator_ladder.csv
