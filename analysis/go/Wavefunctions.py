@@ -115,6 +115,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Force projected bond phases to be purely real by snapping to 0 or pi.",
     )
     parser.add_argument(
+        "--posphase",
+        action="store_true",
+        help="Align each peak independently to be as real and positive as possible.",
+    )
+    parser.add_argument(
         "--flip",
         action="append",
         default=[],
@@ -297,6 +302,7 @@ def main() -> int:
             phase_table,
             flip_bond_ids=flip_bond_ids,
             forcereal=args.forcereal,
+            posphase=args.posphase,
         )
         projection_factors_by_peak = build_bond_projection_factors(
             phase_table,
