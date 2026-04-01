@@ -202,10 +202,8 @@ _blocksssh_complete_by_script() {
             fi
             ;;
         analysis/go/SpectrasaveView.py)
-            if [[ "$positional_index" -eq 0 ]]; then
-                _blocksssh_reply_from_catalog "$cur" spectrasaves
-                return 0
-            fi
+            _blocksssh_reply_from_catalog "$cur" spectrasaves
+            return 0
             ;;
         analysis/go/MakeGroup.py)
             _blocksssh_reply_from_catalog "$cur" datasets

@@ -13,6 +13,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.ndimage import gaussian_filter1d
+from scipy.signal import savgol_filter
 
 from plotting.common import apply_major_tick_spacing, render_figure, resolve_clipped_window
 from plotting.frequency import _link_fft_frequency_to_image_frequency, _plot_frequency_image, _plot_fft_curve_panel
@@ -76,6 +78,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Disable automatic preloading of a corresponding peaks CSV.",
     )
     parser.set_defaults(preload_csv=True)
+    parser.add_argument(
+        "--no-peaks",
+        dest="show_peaks",
+        action="store_false",
+        help="Disable drawing peak markers entirely.",
+    )
+    parser.set_defaults(show_peaks=True)
     parser.add_argument(
         "--no-lines",
         dest="show_lines",
@@ -158,6 +167,40 @@ def build_parser() -> argparse.ArgumentParser:
         metavar=("K", "S"),
         help="Multiply the Y-axis amplitude of the K-th spectrum by S (1-indexed). Only affects that single spectrum.",
     )
+    parser.add_argument(
+        "--savitzky",
+        action="store_true",
+        help="Apply Savitzky-Golay smoothing to all spectra.",
+    )
+    parser.add_argument(
+        "--gaussianblur",
+        action="store_true",
+        help="Apply Gaussian smoothing to all spectra. Stackable with --savitzky.",
+    )
+    parser.add_argument(
+        "--gaussian-sigma-bins",
+        type=float,
+        default=1.5,
+        help="Gaussian sigma in frequency bins for --gaussianblur. Default: 1.5",
+    )
+    parser.add_argument(
+        "--gaussian-truncate",
+        type=float,
+        default=4.0,
+        help="Gaussian kernel truncate radius in sigmas for --gaussianblur. Default: 4.0",
+    )
+    parser.add_argument(
+        "--savitzky-window-bins",
+        type=int,
+        default=11,
+        help="Savitzky-Golay window length in bins. Must be odd. Default: 11",
+    )
+    parser.add_argument(
+        "--savitzky-polyorder",
+        type=int,
+        default=2,
+        help="Savitzky-Golay polynomial order. Default: 2",
+    )
     return parser
 
 
@@ -173,6 +216,38 @@ def _compute_freq_bounds(freq: np.ndarray, requested_min: float | None, requeste
         requested_min,
         requested_max,
     )
+
+
+def _maybe_smooth(amp: np.ndarray, args) -> np.ndarray:
+    arr = np.asarray(amp, dtype=float)
+    if args.gaussianblur:
+        sigma = float(args.gaussian_sigma_bins)
+        truncate = float(args.gaussian_truncate)
+        if sigma <= 0:
+            raise ValueError("--gaussian-sigma-bins must be > 0")
+        if truncate <= 0:
+            raise ValueError("--gaussian-truncate must be > 0")
+        arr = np.asarray(
+            gaussian_filter1d(arr, sigma=sigma, mode="nearest", truncate=truncate),
+            dtype=float,
+        )
+    if args.savitzky:
+        window = int(args.savitzky_window_bins)
+        polyorder = int(args.savitzky_polyorder)
+        if window < 3:
+            raise ValueError("--savitzky-window-bins must be at least 3")
+        if window % 2 == 0:
+            raise ValueError("--savitzky-window-bins must be odd")
+        if polyorder < 0:
+            raise ValueError("--savitzky-polyorder must be >= 0")
+        if polyorder >= window:
+            raise ValueError("--savitzky-polyorder must be smaller than --savitzky-window-bins")
+        if arr.size < window:
+            raise ValueError(
+                f"--savitzky-window-bins ({window}) exceeds the spectrum length ({arr.size})"
+            )
+        arr = np.asarray(savgol_filter(arr, window_length=window, polyorder=polyorder, mode="interp"), dtype=float)
+    return arr
 
 
 def _print_metadata(path: Path, spectrum: dict) -> None:
@@ -395,7 +470,7 @@ def main() -> int:
             filenames.append(path.name)
             
             peaks_hz: list[float] = []
-            if args.preload_csv:
+            if args.preload_csv and args.show_peaks:
                 # If a single --peaks-csv was given, it might not make sense for multiple files
                 # but we'll try to resolve it per-file if not explicitly given.
                 p_csv = Path(args.peaks_csv) if args.peaks_csv is not None else _default_peaks_csv_path(path)
@@ -407,10 +482,16 @@ def main() -> int:
                 if peaks_hz:
                     print(f"  Preloaded peaks: {len(peaks_hz)}")
 
+        if not args.show_peaks:
+            all_peaks_hz = [[] for _ in all_peaks_hz]
+
         offset_k = int(args.offset[0]) if args.offset else None
         offset_o = float(args.offset[1]) if args.offset else None
         scale_k = int(args.scale[0]) if args.scale else None
         scale_s = float(args.scale[1]) if args.scale else None
+
+        for spectrum in spectra:
+            spectrum["amplitude"] = _maybe_smooth(np.asarray(spectrum["amplitude"], dtype=float), args).tolist()
 
         if len(spectra) == 1:
             fig = plot_spectrasave_dual_panel(
