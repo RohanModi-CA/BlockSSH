@@ -1,0 +1,22 @@
+{
+  "dataset": "11RohanSpamTap",
+  "tracking_mode": "bottom_black",
+  "version": 1,
+  "source_video": "Videos/11RohanSpamTap.MOV",
+  "params_file": "params_bottom.json",
+  "track1_file": "track1.msgpack",
+  "labels_file": "labels.json",
+  "components": {
+    "x": "components/x/track2_permanence.msgpack",
+    "y": "components/y/track2_permanence.msgpack",
+    "a": "components/a/track2_permanence.msgpack"
+  },
+  "rotation_deg": 0,
+  "crop_rect": {
+    "x0": 0,
+    "x1": 3840,
+    "y0": 0,
+    "y1": 2160
+  },
+  "notes": ""
+}
