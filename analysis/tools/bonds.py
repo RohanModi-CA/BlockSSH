@@ -140,56 +140,51 @@ def _derive_purecomoving_signal_matrices(
     n_frames, n_blocks = x_pos.shape
     n_pairs = max(0, n_blocks - 1)
 
+    if n_pairs == 0:
+        return np.full((n_frames, 0), np.nan), np.full((n_frames, 0), np.nan)
+
+    # 1. Bond vectors at each frame
+    bx = x_pos[:, 1:] - x_pos[:, :-1]
+    by = y_pos[:, 1:] - y_pos[:, :-1]
+    bn = np.hypot(bx, by)
+
+    # 2. Unit vectors xhat (longitudinal) and yhat (transverse)
+    # xhat = (bx/bn, by/bn), orientation xhat.x >= 0
+    with np.errstate(divide="ignore", invalid="ignore"):
+        xhx = bx / bn
+        xhy = by / bn
+
+    flip = xhx < 0
+    xhx[flip] *= -1
+    xhy[flip] *= -1
+
+    # yhat is (-xhy, xhx)
+    yhx = -xhy
+    yhy = xhx
+
+    # 3. Displacements between frames
+    dx = np.diff(x_pos, axis=0)
+    dy = np.diff(y_pos, axis=0)
+
+    # 4. Sum displacements of adjacent blocks for each pair
+    total_dx = dx[:, :-1] + dx[:, 1:]
+    total_dy = dy[:, :-1] + dy[:, 1:]
+
+    # 5. Project displacement sums onto xhat and yhat of CURRENT frame
+    # (n_frames-1, n_pairs)
+    l_vals = total_dx * xhx[1:] + total_dy * xhy[1:]
+    t_vals = total_dx * yhx[1:] + total_dy * yhy[1:]
+
+    # 6. Build valid mask: both blocks must be finite in current and previous frame, and bond length > 0
+    finite_pos = np.isfinite(x_pos) & np.isfinite(y_pos)
+    finite_pair = finite_pos[:, :-1] & finite_pos[:, 1:]
+    valid_mask = finite_pair[1:] & finite_pair[:-1] & (bn[1:] > 0)
+
     longitudinal = np.full((n_frames, n_pairs), np.nan, dtype=float)
     transverse = np.full((n_frames, n_pairs), np.nan, dtype=float)
 
-    for pair_idx in range(n_pairs):
-        left_block = pair_idx
-        right_block = pair_idx + 1
-
-        for frame_idx in range(1, n_frames):
-            x_left = x_pos[frame_idx, left_block]
-            y_left = y_pos[frame_idx, left_block]
-            x_right = x_pos[frame_idx, right_block]
-            y_right = y_pos[frame_idx, right_block]
-
-            x_left_prev = x_pos[frame_idx - 1, left_block]
-            y_left_prev = y_pos[frame_idx - 1, left_block]
-            x_right_prev = x_pos[frame_idx - 1, right_block]
-            y_right_prev = y_pos[frame_idx - 1, right_block]
-
-            if not (np.isfinite(x_left) and np.isfinite(y_left) and
-                    np.isfinite(x_right) and np.isfinite(y_right) and
-                    np.isfinite(x_left_prev) and np.isfinite(y_left_prev) and
-                    np.isfinite(x_right_prev) and np.isfinite(y_right_prev)):
-                continue
-
-            bond_x = x_right - x_left
-            bond_y = y_right - y_left
-            bond_norm = np.hypot(bond_x, bond_y)
-            if not (np.isfinite(bond_norm) and bond_norm > 0):
-                continue
-
-            xhat_x = bond_x / bond_norm
-            xhat_y = bond_y / bond_norm
-
-            if xhat_x < 0:
-                xhat_x = -xhat_x
-                xhat_y = -xhat_y
-
-            yhat_x = -xhat_y
-            yhat_y = xhat_x
-
-            dx_left = x_left - x_left_prev
-            dy_left = y_left - y_left_prev
-            dx_right = x_right - x_right_prev
-            dy_right = y_right - y_right_prev
-
-            dl = dx_left * xhat_x + dy_left * xhat_y + dx_right * xhat_x + dy_right * xhat_y
-            dt = dx_left * yhat_x + dy_left * yhat_y + dx_right * yhat_x + dy_right * yhat_y
-
-            longitudinal[frame_idx, pair_idx] = dl
-            transverse[frame_idx, pair_idx] = dt
+    longitudinal[1:][valid_mask] = l_vals[valid_mask]
+    transverse[1:][valid_mask] = t_vals[valid_mask]
 
     return longitudinal, transverse
 
@@ -263,9 +258,21 @@ def load_bond_signal_dataset(
 
     if mode == "comoving":
         longitudinal, transverse = _derive_comoving_signal_matrices(track2_x, track2_y)
+        signal_matrix = longitudinal if requested_component == "x" else transverse
     else:
-        longitudinal, transverse = _derive_purecomoving_signal_matrices(track2_x, track2_y)
-    signal_matrix = longitudinal if requested_component == "x" else transverse
+        # Check if we have cached purecomoving signal in the respective component file
+        target_track2 = track2_x if requested_component == "x" else track2_y
+        n_frames, n_blocks = track2_x.x_positions.shape
+        expected_pairs = max(0, n_blocks - 1)
+
+        if (
+            target_track2.purecomoving_signal is not None
+            and target_track2.purecomoving_signal.shape == (n_frames, expected_pairs)
+        ):
+            signal_matrix = target_track2.purecomoving_signal
+        else:
+            longitudinal, transverse = _derive_purecomoving_signal_matrices(track2_x, track2_y)
+            signal_matrix = longitudinal if requested_component == "x" else transverse
 
     return BondSignalDataset(
         dataset_name=resolved_dataset_name,

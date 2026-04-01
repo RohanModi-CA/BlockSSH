@@ -16,6 +16,7 @@ class Track2Dataset:
     x_positions: np.ndarray
     frame_times_s: np.ndarray
     frame_numbers: np.ndarray
+    purecomoving_signal: np.ndarray | None = None
 
 
 @dataclass(frozen=True)

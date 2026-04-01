@@ -741,6 +741,12 @@ def main() -> int:
         print(flatten_error, file=sys.stderr)
         return 1
 
+    if args.average:
+        if args.only == "fft":
+            args.full_image = False
+        elif args.only == "sliding":
+            args.full_image = True
+
     try:
         component_results, component_track2 = _load_component_results(args)
         if args.only_pairs is not None:
@@ -867,12 +873,7 @@ def main() -> int:
                 component_results = _maybe_apply_flattening_to_component_results(args, component_results)
                 if args.spectrasave is not None:
                     _export_selected_spectrum(args, component_results, component_track2)
-                plot_fn = (
-                    plot_component_pair_frequency_grid_single_row_groups
-                    if args.only == "sliding"
-                    else plot_component_pair_frequency_grid
-                )
-                fig = plot_fn(
+                fig = plot_component_pair_frequency_grid(
                     component_results,
                     fft_log=args.fft_log,
                     welch_log=args.welch_log,

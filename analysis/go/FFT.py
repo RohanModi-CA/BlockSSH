@@ -30,6 +30,7 @@ def _build_wrapper_parser() -> argparse.ArgumentParser:
     parser.add_argument("--groups-dir", default=None)
     parser.add_argument("--track-data-root", default=None)
     parser.add_argument("--average", action="store_true")
+    parser.add_argument("--only", choices=["fft", "sliding"], default=None)
     return parser
 
 
@@ -63,6 +64,8 @@ def main() -> int:
     )
     module = _load_module("avg_fft.py", "analysis_go_avg_fft_impl")
     delegated_argv = [sys.argv[0], temp_config.name] + passthrough
+    if args.only is not None:
+        delegated_argv.extend(["--only", args.only])
     with _temporary_argv(delegated_argv):
         return int(module.main())
 

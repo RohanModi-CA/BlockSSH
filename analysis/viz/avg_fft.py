@@ -112,6 +112,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Render the averaged spectrum as a 2D frequency image instead of a 1D curve.",
     )
+    parser.add_argument("--only", choices=["fft", "sliding"], default=None)
     add_flattening_args(parser)
     add_spectrasave_arg(parser)
     return parser
@@ -295,6 +296,11 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
     args.normalize = resolve_normalization_mode(args)
+
+    if args.only == "fft":
+        args.full_image = False
+    elif args.only == "sliding":
+        args.full_image = True
 
     freq_window_error = validate_frequency_window_args(args)
     if freq_window_error is not None:

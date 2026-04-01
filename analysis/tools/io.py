@@ -161,6 +161,9 @@ def load_track2_dataset(
             f"frame number vector length ({frame_numbers.shape[0]}) does not match xPositions rows ({n_frames})"
         )
 
+    purecomoving_raw = data.get("purecomovingSignal", None)
+    purecomoving_signal = np.asarray(purecomoving_raw, dtype=float) if purecomoving_raw is not None else None
+
     return Track2Dataset(
         dataset_name=dataset,
         track2_path=str(resolved),
@@ -170,4 +173,5 @@ def load_track2_dataset(
         x_positions=x_positions,
         frame_times_s=frame_times_s,
         frame_numbers=frame_numbers,
+        purecomoving_signal=purecomoving_signal,
     )
