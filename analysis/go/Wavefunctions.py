@@ -151,6 +151,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.05,
         help="Minimum retained reference amplitude fraction for gauge windows. Default: 0.05",
     )
+    parser.add_argument(
+        "--absvalues",
+        "--absvalue",
+        action="store_true",
+        dest="absvalues",
+        help="Use absolute values for wavefunctions instead of projecting phases.",
+    )
     return parser
 
 
@@ -274,41 +281,46 @@ def main() -> int:
         if len(records) == 0:
             raise ValueError(f"No bond records were produced for dataset '{args.dataset}'")
 
-        reference_bond_zero = (
-            int(args.reference_bond) - 1 if args.reference_bond is not None else _default_reference_bond(records)
-        )
         bond_ids_zero = sorted({int(record.entity_id) for record in records})
-        if reference_bond_zero not in bond_ids_zero:
-            raise ValueError(
-                f"Reference bond {reference_bond_zero + 1} is not in the enabled bonds: "
-                f"{[bond_id + 1 for bond_id in bond_ids_zero]}"
-            )
+        projection_factors_by_peak = None
+        flip_bond_ids = []
+        reference_bond_zero = None
 
-        bond_phase_result = estimate_bond_peak_phases(
-            records,
-            peaks,
-            reference_bond_id=reference_bond_zero,
-            reference_peak_index=args.reference_peak_index,
-            welch_len_s=args.welch_len_s,
-            welch_overlap_fraction=args.welch_overlap,
-            search_width_hz=args.integration_window,
-            min_reference_fraction=args.min_reference_fraction,
-            longest=args.longest,
-            handlenan=args.handlenan,
-        )
-        phase_table = bond_phase_table_from_result(bond_phase_result)
-        flip_bond_ids = _parse_flip_args([*args.flip, *args.flipmode], bond_ids_zero)
-        phase_table = transform_bond_phase_table(
-            phase_table,
-            flip_bond_ids=flip_bond_ids,
-            forcereal=args.forcereal,
-            posphase=args.posphase,
-        )
-        projection_factors_by_peak = build_bond_projection_factors(
-            phase_table,
-            peaks,
-            [int(record.entity_id) for record in records],
-        )
+        if not args.absvalues:
+            reference_bond_zero = (
+                int(args.reference_bond) - 1 if args.reference_bond is not None else _default_reference_bond(records)
+            )
+            if reference_bond_zero not in bond_ids_zero:
+                raise ValueError(
+                    f"Reference bond {reference_bond_zero + 1} is not in the enabled bonds: "
+                    f"{[bond_id + 1 for bond_id in bond_ids_zero]}"
+                )
+
+            bond_phase_result = estimate_bond_peak_phases(
+                records,
+                peaks,
+                reference_bond_id=reference_bond_zero,
+                reference_peak_index=args.reference_peak_index,
+                welch_len_s=args.welch_len_s,
+                welch_overlap_fraction=args.welch_overlap,
+                search_width_hz=args.integration_window,
+                min_reference_fraction=args.min_reference_fraction,
+                longest=args.longest,
+                handlenan=args.handlenan,
+            )
+            phase_table = bond_phase_table_from_result(bond_phase_result)
+            flip_bond_ids = _parse_flip_args([*args.flip, *args.flipmode], bond_ids_zero)
+            phase_table = transform_bond_phase_table(
+                phase_table,
+                flip_bond_ids=flip_bond_ids,
+                forcereal=args.forcereal,
+                posphase=args.posphase,
+            )
+            projection_factors_by_peak = build_bond_projection_factors(
+                phase_table,
+                peaks,
+                [int(record.entity_id) for record in records],
+            )
 
         peak_targets = [(idx, peaks[idx]) for idx in range(len(peaks))]
         profiles = compute_localization_profiles(
@@ -363,7 +375,10 @@ def main() -> int:
             title = args.title
         else:
             mode_desc = "highest bin" if args.highest_bin else "sqrt(integrated power)"
-            phase_desc = "real-projected" if args.forcereal else "phase-projected"
+            if args.absvalues:
+                phase_desc = "absolute values"
+            else:
+                phase_desc = "real-projected" if args.forcereal else "phase-projected"
             title = (
                 f"Bond Wavefunctions | {args.dataset} | "
                 f"{'Welch' if args.welch else 'FFT'} | {mode_desc} | {phase_desc}"
@@ -375,14 +390,18 @@ def main() -> int:
         print(f"Peaks file: {peaks_path}")
         print(f"Peaks (Hz): {peaks}")
         print(f"Bonds: {[bond_id + 1 for bond_id in bond_ids_zero]}")
-        print(f"Reference bond: {reference_bond_zero + 1}")
-        print(f"Reference peak index: {args.reference_peak_index}")
+        if not args.absvalues and reference_bond_zero is not None:
+            print(f"Reference bond: {reference_bond_zero + 1}")
+            print(f"Reference peak index: {args.reference_peak_index}")
         print(f"Integration window half-width (Hz): {args.integration_window}")
         print(f"Amplitude mode: {'highest bin' if args.highest_bin else 'sqrt(integrated power)'}")
-        if flip_bond_ids:
-            print(f"Flipped bonds: {[bond_id + 1 for bond_id in flip_bond_ids]}")
-        if args.forcereal:
-            print("Phase snap: forced to {0, pi}")
+        if not args.absvalues:
+            if flip_bond_ids:
+                print(f"Flipped bonds: {[bond_id + 1 for bond_id in flip_bond_ids]}")
+            if args.forcereal:
+                print("Phase snap: forced to {0, pi}")
+        else:
+            print("Phase mode: absolute values")
 
         fig = localize_module.plot_localization_profiles(
             profiles,
