@@ -31,7 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("peaks")
     parser.add_argument("--component", default="x", choices=["x", "y", "a"])
     parser.add_argument("--track-data-root", default=None)
-    parser.add_argument("--bond-spacing-mode", default="default", choices=["default", "comoving"])
+    parser.add_argument("--bond-spacing-mode", default="purecomoving", choices=["default", "purecomoving"])
     parser.add_argument("--window-s", type=float, default=30.0)
     parser.add_argument("--window-offset-s", type=float, default=3.0)
     parser.add_argument("--baseline-before-s", type=float, default=2.0)

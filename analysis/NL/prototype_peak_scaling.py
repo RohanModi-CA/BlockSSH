@@ -56,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("peaks", help="Peaks name or CSV path")
     parser.add_argument("--component", default="x", choices=["x", "y", "a"])
     parser.add_argument("--track-data-root", default=None)
-    parser.add_argument("--bond-spacing-mode", default="default", choices=["default", "comoving"])
+    parser.add_argument("--bond-spacing-mode", default="purecomoving", choices=["default", "purecomoving"])
     parser.add_argument("--window-s", type=float, default=4.0, help="Post-hit FFT window length in seconds.")
     parser.add_argument("--window-offset-s", type=float, default=3.0, help="Delay after hit before FFT window starts. Default: 3")
     parser.add_argument("--isolation-window-s", type=float, default=20.0, help="Reject hits with a neighbor closer than this. Default: 20")

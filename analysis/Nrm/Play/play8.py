@@ -125,7 +125,7 @@ def derive_increment_comoving(dx: np.ndarray, dy: np.ndarray) -> tuple[np.ndarra
 
 def collect_signal_sets() -> list[SignalSet]:
     default_ds = load_bond_signal_dataset(dataset=f"{CONFIG.dataset}_{CONFIG.component}", bond_spacing_mode="default", component=CONFIG.component)
-    comoving_ds = load_bond_signal_dataset(dataset=f"{CONFIG.dataset}_{CONFIG.component}", bond_spacing_mode="comoving", component=CONFIG.component)
+    purecomoving_ds = load_bond_signal_dataset(dataset=f"{CONFIG.dataset}_{CONFIG.component}", bond_spacing_mode="purecomoving", component=CONFIG.component)
 
     frame_times_s, dx, dy = load_raw_bond_vectors(CONFIG.dataset)
     current_long, current_trans = _derive_comoving_signal_matrices(
@@ -137,11 +137,11 @@ def collect_signal_sets() -> list[SignalSet]:
 
     return [
         SignalSet("default_x_spacing", np.asarray(default_ds.frame_times_s, dtype=float), np.asarray(default_ds.signal_matrix, dtype=float)),
-        SignalSet("current_comoving_long", np.asarray(comoving_ds.frame_times_s, dtype=float), np.asarray(current_long, dtype=float)),
+        SignalSet("current_purecomoving_long", np.asarray(purecomoving_ds.frame_times_s, dtype=float), np.asarray(current_long, dtype=float)),
         SignalSet("stable_length", frame_times_s, np.asarray(norm, dtype=float)),
         SignalSet("increment_long", frame_times_s, np.asarray(long_inc, dtype=float)),
         SignalSet("increment_trans", frame_times_s, np.asarray(trans_inc, dtype=float)),
-        SignalSet("current_comoving_trans", np.asarray(comoving_ds.frame_times_s, dtype=float), np.asarray(current_trans, dtype=float)),
+        SignalSet("current_purecomoving_trans", np.asarray(purecomoving_ds.frame_times_s, dtype=float), np.asarray(current_trans, dtype=float)),
     ]
 
 

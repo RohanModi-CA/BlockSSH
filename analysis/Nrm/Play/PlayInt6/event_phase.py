@@ -115,7 +115,7 @@ def load_hits(csv_path: str) -> list[float]:
 
 def main():
     print("Loading CDX_10IC dataset and prototype hits...")
-    bond_dataset = load_bond_signal_dataset(dataset='CDX_10IC_x', bond_spacing_mode='comoving', component='x')
+    bond_dataset = load_bond_signal_dataset(dataset='CDX_10IC_x', bond_spacing_mode='purecomoving', component='x')
     track2 = load_track2_dataset(dataset='CDX_10IC_x')
     t = track2.frame_times_s
     

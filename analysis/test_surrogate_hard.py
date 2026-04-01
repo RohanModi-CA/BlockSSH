@@ -9,7 +9,7 @@ from Nrm.Play.play7 import build_windows, score_windows, score_windows_surrogate
 
 def test_surrogate(f1, f2, f3):
     bond_ids = list(range(9))
-    freqs_seg, records, mean_amplitude = collect_segments("CDX_10IC", "x", bond_ids, 100.0, 0.5, bond_spacing_mode="comoving")
+    freqs_seg, records, mean_amplitude = collect_segments("CDX_10IC", "x", bond_ids, 100.0, 0.5, bond_spacing_mode="purecomoving")
     X = np.vstack([record.spectrum for record in records])
     
     i1 = np.argmin(np.abs(freqs_seg - f1))

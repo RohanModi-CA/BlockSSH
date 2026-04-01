@@ -85,7 +85,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--analysis-start-s", type=float, default=15.0, help="Discard earlier simulation time before Welch.")
     parser.add_argument("--peak-prominence", type=float, default=0.02)
     parser.add_argument("--merge-hz", type=float, default=0.06)
-    parser.add_argument("--bond-spacing-mode", choices=("default", "comoving"), default="comoving")
+    parser.add_argument("--bond-spacing-mode", choices=("default", "purecomoving"), default="purecomoving")
     return parser
 
 
@@ -279,7 +279,7 @@ def plot_results(rows: list[SimulationResult], data_targets: DataTargets) -> Pat
 
     results = compute_flattened_component_spectra(
         dataset="IMG_0681_rot270",
-        bond_spacing_mode="comoving",
+        bond_spacing_mode="purecomoving",
         components=("x",),
         use_welch=True,
     )

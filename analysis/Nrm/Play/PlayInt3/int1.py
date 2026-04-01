@@ -112,7 +112,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--analysis-window-s", type=float, default=100.0)
     parser.add_argument("--analysis-step-s", type=float, default=25.0)
     parser.add_argument("--min-window-segments", type=int, default=6)
-    parser.add_argument("--bond-spacing-mode", choices=("default", "comoving"), default="comoving")
+    parser.add_argument("--bond-spacing-mode", choices=("default", "purecomoving"), default="purecomoving")
     parser.add_argument("--peak-prominence", type=float, default=0.03)
     parser.add_argument("--merge-hz", type=float, default=0.08)
     parser.add_argument("--peak-match-tol-hz", type=float, default=0.12)

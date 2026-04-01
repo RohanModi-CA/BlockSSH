@@ -24,7 +24,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", default="CDX_10IC", nargs='?')
     parser.add_argument("--component", default="x")
-    parser.add_argument("--bond-spacing-mode", default="comoving")
+    parser.add_argument("--bond-spacing-mode", default="purecomoving")
     args = parser.parse_args()
 
     json_path = SCRIPT_DIR / f"{args.dataset}_taxonomy.json"

@@ -28,7 +28,7 @@ class Config:
     primary_bond_index: int = 0
 
     segmentation_mode: str = "default"
-    comparison_modes: tuple[str, ...] = ("default", "comoving")
+    comparison_modes: tuple[str, ...] = ("default", "purecomoving")
     broadband_sliding_len_s: float = 20.0
     local_track_sliding_len_s: float = 10.0
     manual_peak_times_s: tuple[float, ...] = (400.0, 494.0)

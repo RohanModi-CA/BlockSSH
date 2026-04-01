@@ -135,7 +135,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", default="CDX_10IC", nargs='?')
     parser.add_argument("--component", default="x")
-    parser.add_argument("--bond-spacing-mode", default="comoving")
+    parser.add_argument("--bond-spacing-mode", default="purecomoving")
     parser.add_argument("--json", required=True, help="Path to taxonomy JSON file")
     parser.add_argument("--p-thresh", type=float, default=0.005)
     parser.add_argument("--tol-bins", type=float, default=3.0)

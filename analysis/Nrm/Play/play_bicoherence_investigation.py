@@ -54,7 +54,7 @@ def collect_welch_segments(cfg: Config) -> tuple[np.ndarray, np.ndarray, float]:
     # We will use the processed signal for each bond, then segment it
     for bond_id in cfg.bond_ids:
         # extract_post_hit_regions is used here to get the full processed signal for the bond
-        region_config = EnabledRegionConfig(bond_spacing_mode="default") # Using default spacing mode
+        region_config = EnabledRegionConfig(bond_spacing_mode="purecomoving")
         result = extract_post_hit_regions(
             dataset=cfg.dataset,
             component=cfg.component,

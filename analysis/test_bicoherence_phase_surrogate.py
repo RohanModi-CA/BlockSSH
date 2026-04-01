@@ -17,7 +17,7 @@ def bicoherence_for_bins(X, i1, i2, i3):
 
 def test_phase_surrogate(f1, f2, f3):
     bond_ids = list(range(9))
-    freqs_seg, records, mean_amplitude = collect_segments("CDX_10IC", "x", bond_ids, 100.0, 0.5, bond_spacing_mode="comoving")
+    freqs_seg, records, mean_amplitude = collect_segments("CDX_10IC", "x", bond_ids, 100.0, 0.5, bond_spacing_mode="purecomoving")
     X = np.vstack([record.spectrum for record in records])
     
     i1 = np.argmin(np.abs(freqs_seg - f1))

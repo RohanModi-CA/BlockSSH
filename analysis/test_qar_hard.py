@@ -10,7 +10,7 @@ from analysis.tools.io import load_track2_dataset
 from analysis.Nrm.Play.PlayInt5AR.int1_qar import extract_analytic_envelope, fit_qar
 
 def test_triad(f1, f2, f3):
-    bond_dataset = load_bond_signal_dataset(dataset='CDX_10IC_x', bond_spacing_mode='comoving', component='x')
+    bond_dataset = load_bond_signal_dataset(dataset='CDX_10IC_x', bond_spacing_mode='purecomoving', component='x')
     track2 = load_track2_dataset(dataset='CDX_10IC_x')
     t = track2.frame_times_s
     

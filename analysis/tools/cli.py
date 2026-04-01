@@ -48,8 +48,8 @@ def add_bond_spacing_mode_arg(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--bond-spacing-mode",
         choices=BOND_SPACING_MODES,
-        default="default",
-        help="Bond signal derivation mode. Default: default",
+        default="purecomoving",
+        help="Bond signal derivation mode. Default: purecomoving",
     )
 
 

@@ -15,8 +15,8 @@ from .io import (
 )
 from .models import Track2Dataset
 
-BOND_SPACING_MODES = ("default", "comoving", "purecomoving")
-BondSpacingMode = Literal["default", "comoving", "purecomoving"]
+BOND_SPACING_MODES = ("default", "purecomoving")
+BondSpacingMode = Literal["default", "purecomoving"]
 
 
 @dataclass(frozen=True)
@@ -194,7 +194,7 @@ def load_bond_signal_dataset(
     dataset: str | None = None,
     track2_path: str | Path | None = None,
     track_data_root: str | Path | None = None,
-    bond_spacing_mode: str = "default",
+    bond_spacing_mode: str = "purecomoving",
     component: str | None = None,
 ) -> BondSignalDataset:
     mode = _normalize_bond_spacing_mode(bond_spacing_mode)

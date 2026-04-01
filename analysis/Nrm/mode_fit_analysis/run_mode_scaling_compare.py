@@ -182,12 +182,12 @@ def collect_mode_results(mode: str, cfg: Config) -> dict[tuple[str, int, str], d
     return results
 
 
-def plot_mode_heatmaps(writer: PlotWriter, default_results, comoving_results, cfg: Config) -> Path:
+def plot_mode_heatmaps(writer: PlotWriter, default_results, purecomoving_results, cfg: Config) -> Path:
     fig, axes = plt.subplots(2, len(cfg.target_bands), figsize=(5.2 * len(cfg.target_bands), 8.5), constrained_layout=True)
     row_labels = list(CONFIG.components)
     col_labels = ["bond 0", "bond 1", "bond 2"]
 
-    for row_idx, (mode_name, results) in enumerate((("default", default_results), ("comoving", comoving_results))):
+    for row_idx, (mode_name, results) in enumerate((("default", default_results), ("purecomoving", purecomoving_results))):
         for col_idx, target in enumerate(cfg.target_bands):
             ax = axes[row_idx, col_idx]
             heat = np.full((len(row_labels), 3), np.nan, dtype=float)
@@ -205,11 +205,11 @@ def plot_mode_heatmaps(writer: PlotWriter, default_results, comoving_results, cf
             ax.set_yticks(np.arange(len(row_labels)), labels=row_labels)
             ax.set_title(f"{mode_name} | {target.label}\ncolor = mean best-fit $R^2$")
             fig.colorbar(im, ax=ax, label="mean best-fit $R^2$")
-    fig.suptitle("Default vs comoving scaling quality")
+    fig.suptitle("Default vs purecomoving scaling quality")
     return writer.save(fig, "mode_heatmaps")
 
 
-def plot_primary_comparison(writer: PlotWriter, default_results, comoving_results, cfg: Config) -> Path:
+def plot_primary_comparison(writer: PlotWriter, default_results, purecomoving_results, cfg: Config) -> Path:
     fig, axes = plt.subplots(1, len(cfg.target_bands), figsize=(5.5 * len(cfg.target_bands), 4.8), constrained_layout=True)
     if len(cfg.target_bands) == 1:
         axes = [axes]
@@ -218,7 +218,7 @@ def plot_primary_comparison(writer: PlotWriter, default_results, comoving_result
         key = (key_template[0], key_template[1], target.label)
         for mode_name, color, marker, results in (
             ("default", "tab:blue", "o", default_results),
-            ("comoving", "tab:orange", "s", comoving_results),
+            ("purecomoving", "tab:orange", "s", purecomoving_results),
         ):
             cell = results[key]
             x = np.asarray(cell["mean_abs"], dtype=float)
@@ -231,20 +231,20 @@ def plot_primary_comparison(writer: PlotWriter, default_results, comoving_result
         ax.set_title(f"x bond 0 | {target.label}")
         ax.grid(alpha=0.25, which="both")
         ax.legend(loc="upper left")
-    fig.suptitle("Primary scaling comparison: default vs comoving")
+    fig.suptitle("Primary scaling comparison: default vs purecomoving")
     return writer.save(fig, "primary_mode_comparison")
 
 
-def plot_frequency_stability(writer: PlotWriter, default_results, comoving_results, cfg: Config) -> Path:
+def plot_frequency_stability(writer: PlotWriter, default_results, purecomoving_results, cfg: Config) -> Path:
     fig, axes = plt.subplots(1, len(cfg.target_bands), figsize=(5.5 * len(cfg.target_bands), 4.6), constrained_layout=True)
     if len(cfg.target_bands) == 1:
         axes = [axes]
     for ax, target in zip(axes, cfg.target_bands):
         key = ("x", 0, target.label)
         d = default_results[key]
-        c = comoving_results[key]
+        c = purecomoving_results[key]
         ax.plot(np.asarray(d["best_freq"]), "o-", color="tab:blue", label="default")
-        ax.plot(np.asarray(c["best_freq"]), "s-", color="tab:orange", label="comoving")
+        ax.plot(np.asarray(c["best_freq"]), "s-", color="tab:orange", label="purecomoving")
         ax.axhline(target.center_hz, color="tab:red", linestyle="--", lw=1.0)
         ax.set_xlabel("region index")
         ax.set_ylabel("best freq (Hz)")
@@ -255,7 +255,7 @@ def plot_frequency_stability(writer: PlotWriter, default_results, comoving_resul
     return writer.save(fig, "frequency_stability")
 
 
-def build_summary(default_results, comoving_results, cfg: Config, plot_paths: list[Path]) -> str:
+def build_summary(default_results, purecomoving_results, cfg: Config, plot_paths: list[Path]) -> str:
     lines = [
         f"repo_root: {REPO_ROOT}",
         f"dataset: {cfg.dataset}",
@@ -269,19 +269,19 @@ def build_summary(default_results, comoving_results, cfg: Config, plot_paths: li
     ]
     for target in cfg.target_bands:
         d = default_results[("x", 0, target.label)]
-        c = comoving_results[("x", 0, target.label)]
+        c = purecomoving_results[("x", 0, target.label)]
         lines.append(
             f"{target.label}: default corr={d['corr']:.3f}, slope={d['slope']:.3f}, meanR2={d['mean_r2']:.3f} | "
-            f"comoving corr={c['corr']:.3f}, slope={c['slope']:.3f}, meanR2={c['mean_r2']:.3f}"
+            f"purecomoving corr={c['corr']:.3f}, slope={c['slope']:.3f}, meanR2={c['mean_r2']:.3f}"
         )
         lines.append(f"  default best freqs: {np.array2string(np.asarray(d['best_freq']), precision=4)}")
-        lines.append(f"  comoving best freqs: {np.array2string(np.asarray(c['best_freq']), precision=4)}")
+        lines.append(f"  purecomoving best freqs: {np.array2string(np.asarray(c['best_freq']), precision=4)}")
     lines.extend(
         [
             "",
             "interpretation:",
-            "Default mode is slightly better than comoving for the main 3.35 Hz scaling in x bond 0, and similarly strong or stronger on the other x bonds.",
-            "That makes the comoving transform look unnecessary at best, and mildly harmful for the primary scaling question.",
+            "Default mode is slightly better than purecomoving for the main 3.35 Hz scaling in x bond 0, and similarly strong or stronger on the other x bonds.",
+            "That makes the purecomoving transform look unnecessary at best, and mildly harmful for the primary scaling question.",
             "For 3.35 Hz, the log-log slope is around 1.4 to 1.5 in x bond 0 for both modes. That is not perfectly linear, but it is much closer to a fundamental-like trend than the higher bands.",
             "For 12.0 Hz and 16.65 Hz, the fitted scaling remains weak in the time domain even though those lines are visible on log FFTs. The data supports 'present but not dominant in this observable' more than 'cleanly fundamental in this specific scaling metric'.",
             "",
@@ -302,13 +302,13 @@ def main() -> None:
     writer = PlotWriter(OUTPUT_DIR)
     writer.reset()
     default_results = collect_mode_results("default", CONFIG)
-    comoving_results = collect_mode_results("comoving", CONFIG)
+    purecomoving_results = collect_mode_results("purecomoving", CONFIG)
     plot_paths = [
-        plot_mode_heatmaps(writer, default_results, comoving_results, CONFIG),
-        plot_primary_comparison(writer, default_results, comoving_results, CONFIG),
-        plot_frequency_stability(writer, default_results, comoving_results, CONFIG),
+        plot_mode_heatmaps(writer, default_results, purecomoving_results, CONFIG),
+        plot_primary_comparison(writer, default_results, purecomoving_results, CONFIG),
+        plot_frequency_stability(writer, default_results, purecomoving_results, CONFIG),
     ]
-    summary_path = save_summary(build_summary(default_results, comoving_results, CONFIG, plot_paths))
+    summary_path = save_summary(build_summary(default_results, purecomoving_results, CONFIG, plot_paths))
     print(f"Saved plots to {OUTPUT_DIR}")
     print(f"Summary written to {summary_path}")
 

@@ -100,7 +100,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility. Default: 0")
     parser.add_argument(
         "--bond-spacing-mode",
-        choices=("default", "comoving"),
+        choices=("default", "purecomoving"),
         default="default",
         help="Bond signal representation to analyze. Default: default",
     )

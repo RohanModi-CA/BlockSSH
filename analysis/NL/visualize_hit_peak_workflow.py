@@ -53,7 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("peaks")
     parser.add_argument("--component", default="x", choices=["x", "y", "a"])
     parser.add_argument("--track-data-root", default=None)
-    parser.add_argument("--bond-spacing-mode", default="default", choices=["default", "comoving"])
+    parser.add_argument("--bond-spacing-mode", default="purecomoving", choices=["default", "purecomoving"])
     parser.add_argument("--sliding-len-s", type=float, default=1.5)
     parser.add_argument("--broadband-min-hz", type=float, default=3.0)
     parser.add_argument("--broadband-max-hz", type=float, default=25.0)
