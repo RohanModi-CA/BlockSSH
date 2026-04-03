@@ -15,7 +15,7 @@ from tools.bond_phase import (
     load_bond_peak_phase_csv,
     transform_bond_phase_table,
 )
-from plotting.common import render_figure
+from plotting.common import ensure_parent_dir, render_figure
 from plotting.indexed import plot_localization_profiles
 from tools.cli import (
     add_bond_spacing_mode_arg,
@@ -126,6 +126,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Hide the dotted grey zero reference line.",
     )
     parser.set_defaults(show_zero=True)
+    parser.add_argument(
+        "--max-panels",
+        type=int,
+        default=6,
+        help="Maximum number of peak panels subplots per figure window. Excess panels spawn additional windows. Default: 6",
+    )
     return parser
 
 
@@ -255,16 +261,56 @@ def main() -> int:
             if args.forcereal:
                 print("Phase snap: forced to {0, pi}")
 
-        fig = plot_localization_profiles(
-            profiles,
-            xlabel="Bond Index",
-            title=title,
-            line_color="black",
-            diagnostics_by_entity=diagnostics_by_entity,
-            one_fig=args.one_fig,
-            show_zero=args.show_zero,
-        )
-        render_figure(fig, save=args.save)
+        max_panels = int(args.max_panels)
+        if max_panels < 1:
+            print("Error: --max-panels must be >= 1", file=sys.stderr)
+            return 1
+
+        n_profiles = len(profiles)
+        n_figs = 1 if args.one_fig else max(1, (n_profiles + max_panels - 1) // max_panels)
+
+        figs = []
+        for fig_idx in range(n_figs):
+            if n_figs == 1:
+                chunk_profiles = profiles
+                chunk_diagnostics = diagnostics_by_entity
+                fig_title = title
+            else:
+                start = fig_idx * max_panels
+                end = min(start + max_panels, n_profiles)
+                chunk_profiles = profiles[start:end]
+                if diagnostics_by_entity is not None:
+                    chunk_diagnostics = {
+                        label: diags[start:end] for label, diags in diagnostics_by_entity.items()
+                    }
+                else:
+                    chunk_diagnostics = None
+                fig_title = f"{title} ({fig_idx + 1}/{n_figs})"
+
+            fig = plot_localization_profiles(
+                chunk_profiles,
+                xlabel="Bond Index",
+                title=fig_title,
+                line_color="black",
+                diagnostics_by_entity=chunk_diagnostics,
+                one_fig=args.one_fig,
+                show_zero=args.show_zero,
+            )
+            if args.save is not None:
+                save_path = args.save if n_figs == 1 else f"{args.save}_{fig_idx + 1}"
+                save_path = ensure_parent_dir(save_path)
+                fig.savefig(save_path, dpi=300)
+                print(f"Plot saved to: {save_path}")
+            figs.append(fig)
+
+        import matplotlib.pyplot as _plt
+        if len(figs) > 1:
+            for fig in figs:
+                _plt.figure(fig.number)
+            _plt.show(block=False)
+            _plt.show()
+        else:
+            render_figure(figs[0], save=None)
         return 0
 
     except Exception as exc:
