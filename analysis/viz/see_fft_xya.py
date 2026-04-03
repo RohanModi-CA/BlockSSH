@@ -670,19 +670,20 @@ def _maybe_apply_flattening(
     args,
     results_by_component: dict[str, AverageSpectrumResult],
 ) -> tuple[dict[str, AverageSpectrumResult], dict[str, FlatteningResult]]:
-    if not args.flatten:
+    from tools.flattening import apply_global_baseline_processing_to_results
+    import collections
+
+    if not args.flatten and getattr(args, "baseline_match", None) is None:
         return dict(results_by_component), {}
 
-    flattened_results: dict[str, AverageSpectrumResult] = {}
-    flattening_by_component: dict[str, FlatteningResult] = {}
-    for component, result in results_by_component.items():
-        flattened, flattening = apply_flattening_to_average_result(
-            result,
-            reference_band=tuple(float(value) for value in args.flatten_reference_band),
-        )
-        flattened_results[component] = flattened
-        flattening_by_component[component] = flattening
-    return flattened_results, flattening_by_component
+    ordered_results = collections.OrderedDict(results_by_component)
+    processed_results, flattening_by_component = apply_global_baseline_processing_to_results(
+        ordered_results,
+        flatten=args.flatten,
+        baseline_match=getattr(args, "baseline_match", None),
+        reference_band=tuple(float(value) for value in args.flatten_reference_band),
+    )
+    return dict(processed_results), flattening_by_component
 
 
 def _maybe_emit_flatten_plot(
@@ -740,6 +741,16 @@ def main() -> int:
     if flatten_error is not None:
         print(flatten_error, file=sys.stderr)
         return 1
+
+    if not args.flatten and getattr(args, "baseline_match", None) is not None:
+        import warnings
+        warnings.warn(
+            f"--baseline-match={args.baseline_match} is active without --flatten; "
+            "warping component baselines multiplicatively to match component "
+            f"{args.baseline_match}'s curved response envelope. "
+            "Pass --flatten to also flatten to a horizontal reference line.",
+            UserWarning,
+        )
 
     if args.average:
         if args.only == "fft":

@@ -687,19 +687,17 @@ def _maybe_apply_flattening_to_results(
     args,
     results_by_key: OrderedDict[str, AverageSpectrumResult],
 ) -> tuple[OrderedDict[str, AverageSpectrumResult], dict[str, FlatteningResult]]:
-    if not args.flatten:
+    from tools.flattening import apply_global_baseline_processing_to_results
+
+    if not args.flatten and getattr(args, "baseline_match", None) is None:
         return OrderedDict(results_by_key), {}
 
-    flattened_results: OrderedDict[str, AverageSpectrumResult] = OrderedDict()
-    flattening_by_key: dict[str, FlatteningResult] = {}
-    for key, result in results_by_key.items():
-        flattened, flattening = apply_flattening_to_average_result(
-            result,
-            reference_band=tuple(float(value) for value in args.flatten_reference_band),
-        )
-        flattened_results[key] = flattened
-        flattening_by_key[key] = flattening
-    return flattened_results, flattening_by_key
+    return apply_global_baseline_processing_to_results(
+        results_by_key,
+        flatten=args.flatten,
+        baseline_match=getattr(args, "baseline_match", None),
+        reference_band=tuple(float(value) for value in args.flatten_reference_band),
+    )
 
 
 def _build_common_frequency_grid_from_results(results: list[AverageSpectrumResult]) -> np.ndarray:
@@ -1186,6 +1184,16 @@ def main() -> int:
     if flatten_error is not None:
         print(flatten_error, file=sys.stderr)
         return 1
+
+    if not args.flatten and getattr(args, "baseline_match", None) is not None:
+        import warnings
+        warnings.warn(
+            f"--baseline-match={args.baseline_match} is active without --flatten; "
+            "warping component baselines multiplicatively to match component "
+            f"{args.baseline_match}'s curved response envelope. "
+            "Pass --flatten to also flatten to a horizontal reference line.",
+            UserWarning,
+        )
 
     rel_low, rel_high = map(float, args.relative_range)
     if rel_high <= rel_low:

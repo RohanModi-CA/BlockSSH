@@ -227,12 +227,20 @@ def _validate_flatten_args(args) -> str | None:
 
 
 def _maybe_apply_flattening(result, args) -> tuple[object, FlatteningResult | None]:
-    if not args.flatten:
+    from tools.flattening import apply_global_baseline_processing_to_results
+    import collections
+
+    if not args.flatten and getattr(args, "baseline_match", None) is None:
         return result, None
-    return apply_flattening_to_average_result(
-        result,
+
+    ordered: collections.OrderedDict[str, object] = collections.OrderedDict(result=result)
+    processed, flattening_by_key = apply_global_baseline_processing_to_results(
+        ordered,  # type: ignore[arg-type]
+        flatten=args.flatten,
+        baseline_match=getattr(args, "baseline_match", None),
         reference_band=tuple(float(value) for value in args.flatten_reference_band),
     )
+    return processed["result"], flattening_by_key.get("result")
 
 
 def _maybe_emit_flatten_plot(
@@ -314,6 +322,16 @@ def main() -> int:
     if flatten_error is not None:
         print(flatten_error, file=sys.stderr)
         return 1
+
+    if not args.flatten and getattr(args, "baseline_match", None) is not None:
+        import warnings
+        warnings.warn(
+            f"--baseline-match={args.baseline_match} is active without --flatten; "
+            "warping component baselines multiplicatively to match component "
+            f"{args.baseline_match}'s curved response envelope. "
+            "Pass --flatten to also flatten to a horizontal reference line.",
+            UserWarning,
+        )
 
     rel_low, rel_high = map(float, args.relative_range)
     if rel_high <= rel_low:

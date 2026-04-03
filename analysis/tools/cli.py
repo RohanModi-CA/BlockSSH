@@ -218,6 +218,12 @@ def add_flattening_args(parser: argparse.ArgumentParser) -> None:
         help="Flatten the averaged spectrum by dividing out a smoothed baseline-response envelope.",
     )
     parser.add_argument(
+        "--baseline-match",
+        metavar="COMPONENT",
+        default="x",
+        help="Target component (e.g., 'x') whose baseline envelope or flat reference level will be imposed on all components multiplicatively. Default: x",
+    )
+    parser.add_argument(
         "--flatten-reference-band",
         nargs=2,
         type=float,
