@@ -120,7 +120,7 @@ def add_frequency_window_args(parser: argparse.ArgumentParser, *, help_scope: st
 
 def add_tickspace_arg(parser: argparse.ArgumentParser, *, help_scope: str = "frequency axis") -> None:
     parser.add_argument(
-        "--tickspace",
+        "--tickspace-hz",
         type=float,
         default=None,
         help=f"Major tick spacing in Hz for the {help_scope}.",
