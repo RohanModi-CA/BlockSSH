@@ -131,6 +131,31 @@ def synthesize(
     # long_sig = longitudinal (x), trans_sig = transverse (y)
     frame_times = t2x.frame_times_s.copy()
 
+    # Clean frame_times: remove duplicates and ensure monotonicity for np.interp
+    # Some datasets (e.g. 10MassNew) have duplicate timestamps and wraparound jumps.
+    keep = np.zeros(len(frame_times), dtype=bool)
+    keep[0] = True
+    last_t = frame_times[0]
+    for i in range(1, len(frame_times)):
+        if frame_times[i] > last_t:
+            keep[i] = True
+            last_t = frame_times[i]
+    n_dropped = int(np.sum(~keep))
+    if n_dropped:
+        print(f"Dropped {n_dropped} duplicate/non-monotonic frames from time vector")
+    frame_times = frame_times[keep]
+    long_sig = long_sig[keep]
+    trans_sig = trans_sig[keep]
+    # Also clean xPositions for all components
+    t2x_xpos = t2x.x_positions[keep]
+    t2y_xpos = t2y.x_positions[keep]
+    t2a_xpos = t2a.x_positions[keep]
+    t2x_ftimes = t2x.frame_times_s[keep]
+    t2y_ftimes = t2y.frame_times_s[keep]
+    t2a_ftimes = t2a.frame_times_s[keep]
+    n_frames = len(frame_times)
+    print(f"Clean frames: {n_frames}")
+
     # 3. Load hits
     repo_root = Path(__file__).resolve().parents[2]
     hits_csv = repo_root / "analysis" / "NL" / "out" / f"{dataset}_comparison_purecomoving" / f"{dataset}__x__prototype_hits.csv"
@@ -304,9 +329,9 @@ def synthesize(
         ypos_seg = np.zeros((n_out, n_blocks), dtype=float)
         apos_seg = np.zeros((n_out, n_blocks), dtype=float)
         for b in range(n_blocks):
-            xpos_seg[:, b] = np.interp(target_t, t2x.frame_times_s, t2x.x_positions[:, b])
-            ypos_seg[:, b] = np.interp(target_t, t2y.frame_times_s, t2y.x_positions[:, b])
-            apos_seg[:, b] = np.interp(target_t, t2a.frame_times_s, t2a.x_positions[:, b])
+            xpos_seg[:, b] = np.interp(target_t, t2x_ftimes, t2x_xpos[:, b])
+            ypos_seg[:, b] = np.interp(target_t, t2y_ftimes, t2y_xpos[:, b])
+            apos_seg[:, b] = np.interp(target_t, t2a_ftimes, t2a_xpos[:, b])
 
         synth_xpos_parts.append(xpos_seg)
         synth_ypos_parts.append(ypos_seg)

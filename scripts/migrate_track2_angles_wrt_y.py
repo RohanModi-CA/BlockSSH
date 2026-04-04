@@ -101,7 +101,11 @@ def migrate_dataset(path: Path):
     print(f"  -> Migrated {path.name}")
 
 if __name__ == "__main__":
-    data_dir = Path("track/data")
-    for d in data_dir.iterdir():
-        if d.is_dir() and (d / "components" / "a").exists():
-            migrate_dataset(d)
+    import sys
+    if len(sys.argv) > 1:
+        migrate_dataset(Path(sys.argv[1]))
+    else:
+        data_dir = Path("track/data")
+        for d in data_dir.iterdir():
+            if d.is_dir() and (d / "components" / "a").exists():
+                migrate_dataset(d)

@@ -29,7 +29,11 @@ def unwrap_dataset(path: Path):
             f.write(msgpack.packb(t2a, use_bin_type=True))
 
 if __name__ == "__main__":
-    data_dir = Path("track/data")
-    for d in data_dir.iterdir():
-        if d.is_dir() and (d / "components" / "a").exists():
-            unwrap_dataset(d)
+    import sys
+    if len(sys.argv) > 1:
+        unwrap_dataset(Path(sys.argv[1]))
+    else:
+        data_dir = Path("track/data")
+        for d in data_dir.iterdir():
+            if d.is_dir() and (d / "components" / "a").exists():
+                unwrap_dataset(d)
