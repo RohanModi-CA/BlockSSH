@@ -1357,11 +1357,9 @@ def _logsubtract_main(args, rel_low, rel_high) -> int:
     if smoothing_steps:
         print(f"Display smoothing pipeline: {' -> '.join(smoothing_steps)}")
 
-    norm_desc = args.normalize
-    if args.normalize == "relative":
-        norm_desc = f"relative [{args.relative_range[0]}, {args.relative_range[1]}] Hz"
+    config_stem = Path(args.config_json).stem
     title = args.title or (
-        f"Log-subtract | target={target_component} | mode={mode} | "
+        f"Log-subtract: {config_stem} | target={target_component} | mode={mode} | "
         f"sub={','.join(subtract_components)} | norm={norm_desc}"
     )
 
