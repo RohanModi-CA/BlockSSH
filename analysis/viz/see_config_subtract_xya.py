@@ -1375,8 +1375,8 @@ def _logsubtract_main(args, rel_low, rel_high) -> int:
     if args.plot_scale == "logx":
         ax.set_xscale("log")
 
-    apply_major_tick_spacing(ax, axis="x", spacing=float(args.tickspace_hz) if args.tickspace_hz else None)
-    apply_major_tick_spacing(ax, axis="y", spacing=None)
+    apply_major_tick_spacing(ax, args.tickspace_hz, axis="x")
+    apply_major_tick_spacing(ax, None, axis="y")
 
     if args.no_show:
         _render_figure(fig, save=args.save, show=False)
