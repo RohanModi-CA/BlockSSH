@@ -1430,16 +1430,15 @@ def main() -> int:
         print(flatten_error, file=sys.stderr)
         return 1
 
-    if not args.flatten and args.logsubtract is None:
-        if getattr(args, "baseline_match", None) is not None:
-            import warnings
-            warnings.warn(
-                f"--baseline-match={args.baseline_match} is active without --flatten; "
-                "warping component baselines multiplicatively to match component "
-                f"{args.baseline_match}'s curved response envelope. "
-                "Pass --flatten to also flatten to a horizontal reference line.",
-                UserWarning,
-            )
+    if not args.flatten and args.baseline_match is not None and args.baseline_match != "none":
+        import warnings
+        warnings.warn(
+            f"--baseline-match={args.baseline_match} is active without --flatten; "
+            "warping component baselines multiplicatively to match component "
+            f"'{args.baseline_match}'s curved response envelope. "
+            "Pass --flatten to also flatten to a horizontal reference line.",
+            UserWarning,
+        )
     
     if args.logsubtract is not None:
         args.flatten = True

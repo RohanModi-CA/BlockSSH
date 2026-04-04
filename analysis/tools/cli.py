@@ -220,8 +220,8 @@ def add_flattening_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--baseline-match",
         metavar="COMPONENT",
-        default="x",
-        help="Target component (e.g., 'x') whose baseline envelope or flat reference level will be imposed on all components multiplicatively. Default: x",
+        default=None,
+        help="Target component (e.g., 'x') whose baseline envelope or flat reference level will be imposed on all other components multiplicatively. Disabled by default.",
     )
     parser.add_argument(
         "--flatten-reference-band",

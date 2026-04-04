@@ -112,7 +112,7 @@ def apply_global_baseline_processing_to_results(
     results_by_key: OrderedDict[str, AverageSpectrumResult],
     *,
     flatten: bool,
-    baseline_match: str | None = "x",
+    baseline_match: str | None,
     reference_band: tuple[float, float] = (20.0, 30.0),
     baseline_quantile: float = 0.15,
     baseline_envelope_hz: float = 1.5,
@@ -144,12 +144,12 @@ def apply_global_baseline_processing_to_results(
         )
 
     target_flattening = None
-    if baseline_match is not None and baseline_match in raw_flattenings:
-        target_flattening = raw_flattenings[baseline_match]
-    
-    import warnings
-    if baseline_match is not None and target_flattening is None:
-        warnings.warn(f"baseline-match target '{baseline_match}' not found in results; processing components independently")
+    if baseline_match is not None and baseline_match != "none":
+        if baseline_match in raw_flattenings:
+            target_flattening = raw_flattenings[baseline_match]
+        else:
+            import warnings
+            warnings.warn(f"baseline-match target '{baseline_match}' not found in results; processing components independently")
 
     processed_results: OrderedDict[str, AverageSpectrumResult] = OrderedDict()
     final_flattenings: dict[str, FlatteningResult] = {}
