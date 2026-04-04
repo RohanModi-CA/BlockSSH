@@ -382,11 +382,15 @@ def plot_spectrasave_dual_panel(
     tickspace_hz: float | None,
     offset_k: int | None = None,
     offset_o: float | None = None,
+    scale_k: int | None = None,
+    scale_s: float | None = None,
 ):
     freq = np.asarray(spectrum["freq"], dtype=float)
     amp = np.asarray(spectrum["amplitude"], dtype=float)
     if offset_k is not None and offset_o is not None and offset_k == 1:
         amp = amp + offset_o
+    if scale_k is not None and scale_s is not None and scale_k == 1:
+        amp = amp * scale_s
 
     finite_freq = freq[np.isfinite(freq)]
     if finite_freq.size == 0:
