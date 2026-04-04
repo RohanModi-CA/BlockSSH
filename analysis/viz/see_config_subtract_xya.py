@@ -1022,7 +1022,7 @@ def _plot_groups(
                 title=f"Panel {idx}: {expr_label}",
                 linear_color_label="Normalized Amplitude",
                 log_color_label="Amplitude (dB)",
-                y_tickspace_hz=args.tickspace,
+                y_tickspace_hz=args.tickspace_hz,
             )
         elif plot_scale == "log":
             if not args.showonlyresult:
@@ -1065,7 +1065,7 @@ def _plot_groups(
     if not full_image:
         axes[-1].set_xlabel("Frequency (Hz)")
         axes[-1].set_xlim(float(common_freq[0]), float(common_freq[-1]))
-        apply_major_tick_spacing(axes[-1], args.tickspace, axis="x")
+        apply_major_tick_spacing(axes[-1], args.tickspace_hz, axis="x")
     fig.suptitle(title)
     return fig
 

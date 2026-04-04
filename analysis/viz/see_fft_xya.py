@@ -799,7 +799,7 @@ def main() -> int:
                     plot_scale=args.sliding_plot_scale if args.full_image else ("log" if args.welch and args.welch_log else "log" if args.fft_log else "linear"),
                     cmap_index=args.cm,
                     title=args.title or f"{dataset_name} average bonds",
-                    tickspace_hz=args.tickspace,
+                    tickspace_hz=args.tickspace_hz,
                 )
             else:
                 results = _maybe_apply_flattening_to_results(args, results)
@@ -821,7 +821,7 @@ def main() -> int:
                         time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                         cmap_index=args.cm,
                         title=args.title,
-                        tickspace_hz=args.tickspace,
+                        tickspace_hz=args.tickspace_hz,
                     )
                 else:
                     fig = plot_pair_frequency_grid(
@@ -838,7 +838,7 @@ def main() -> int:
                         time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                         cmap_index=args.cm,
                         title=args.title,
-                        tickspace_hz=args.tickspace,
+                        tickspace_hz=args.tickspace_hz,
                     )
         else:
             if args.average:
@@ -878,7 +878,7 @@ def main() -> int:
                     plot_scale=args.sliding_plot_scale if args.full_image else ("log" if args.welch and args.welch_log else "log" if args.fft_log else "linear"),
                     cmap_index=args.cm,
                     title=args.title or f"{dataset_name} average bonds",
-                    tickspace_hz=args.tickspace,
+                    tickspace_hz=args.tickspace_hz,
                 )
             else:
                 component_results = _maybe_apply_flattening_to_component_results(args, component_results)
@@ -902,7 +902,7 @@ def main() -> int:
                     time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                     cmap_index=args.cm,
                     title=args.title,
-                    tickspace_hz=args.tickspace,
+                    tickspace_hz=args.tickspace_hz,
                 )
         render_figure(fig, save=args.save)
         return 0

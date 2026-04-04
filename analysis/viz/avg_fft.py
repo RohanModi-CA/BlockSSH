@@ -487,7 +487,7 @@ def main() -> int:
                 cmap_index=args.cm,
                 title=title,
                 reference_amp_for_norm_by_component=reference_amp_by_component or None,
-                tickspace_hz=args.tickspace,
+                tickspace_hz=args.tickspace_hz,
             )
             if args.spectrasave is not None:
                 for logical_component, result in results_by_component.items():
@@ -607,7 +607,7 @@ def main() -> int:
                 cmap_index=args.cm,
                 title=title,
                 reference_amp_for_norm=reference_amp,
-                tickspace_hz=args.tickspace,
+                tickspace_hz=args.tickspace_hz,
             )
             if args.spectrasave is not None:
                 _save_average_result(
