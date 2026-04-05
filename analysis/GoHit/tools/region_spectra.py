@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+import scipy.interpolate as _interp
 
 from analysis.GoHit.tools.hits import HitRegion
 from analysis.tools.models import FFTResult, ProcessedSignal
@@ -15,11 +16,25 @@ class RegionAveragedFFT:
     n_regions_used: int
 
 
+def _interp_spectrum(freq_src, amp_src, freq_dst, kind):
+    if kind == "linear":
+        return np.interp(freq_dst, freq_src, amp_src)
+    if kind in ("quadratic", "cubic"):
+        min_pts = 3 if kind == "quadratic" else 4
+        if freq_src.size < min_pts:
+            return np.interp(freq_dst, freq_src, amp_src)
+        fn = _interp.interp1d(freq_src, amp_src, kind=kind, bounds_error=False, fill_value="extrapolate")
+        return np.asarray(fn(freq_dst), dtype=float)
+    return np.interp(freq_dst, freq_src, amp_src)
+
+
 def compute_region_averaged_fft(
     processed: ProcessedSignal,
     regions: list[HitRegion],
     *,
     min_samples: int = 16,
+    grid_mode: str = "finest",
+    interp_kind: str = "cubic",
 ) -> RegionAveragedFFT:
     region_ffts: list[FFTResult] = []
     for region in regions:
@@ -52,12 +67,12 @@ def compute_region_averaged_fft(
     if not dfs:
         return RegionAveragedFFT(fft_result=None, n_regions_used=0)
 
-    df_target = max(dfs)
+    df_target = max(dfs) if grid_mode == "coarsest" else min(dfs)
     freq_grid = np.arange(freq_low, freq_high + 0.5 * df_target, df_target, dtype=float)
     if freq_grid.size < 2:
         return RegionAveragedFFT(fft_result=None, n_regions_used=0)
 
-    stack = np.vstack([np.interp(freq_grid, fft.freq, fft.amplitude) for fft in region_ffts])
+    stack = np.vstack([_interp_spectrum(fft.freq, fft.amplitude, freq_grid, interp_kind) for fft in region_ffts])
     return RegionAveragedFFT(
         fft_result=FFTResult(freq=freq_grid, amplitude=np.mean(stack, axis=0)),
         n_regions_used=len(region_ffts),

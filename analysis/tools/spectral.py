@@ -3,6 +3,7 @@ from __future__ import annotations
 import warnings
 
 import numpy as np
+import scipy.interpolate as _interp
 import scipy.signal as sp_signal
 
 from .models import (
@@ -333,7 +334,13 @@ def median_positive_step(x: np.ndarray) -> float | None:
     return float(np.median(dx))
 
 
-def build_common_grid(contributions: list[SpectrumContribution], freq_low: float, freq_high: float) -> np.ndarray:
+def build_common_grid(
+    contributions: list[SpectrumContribution],
+    freq_low: float,
+    freq_high: float,
+    *,
+    grid_mode: str = "finest",
+) -> np.ndarray:
     dfs: list[float] = []
     for contrib in contributions:
         mask = (contrib.fft_result.freq >= freq_low) & (contrib.fft_result.freq <= freq_high)
@@ -345,7 +352,7 @@ def build_common_grid(contributions: list[SpectrumContribution], freq_low: float
     if not dfs:
         raise ValueError("Could not determine a common positive FFT spacing in the overlap window")
 
-    df_target = max(dfs)
+    df_target = max(dfs) if grid_mode == "coarsest" else min(dfs)
     grid = np.arange(freq_low, freq_high + 0.5 * df_target, df_target, dtype=float)
     grid = grid[(grid >= freq_low - 1e-12) & (grid <= freq_high + 1e-12)]
 
@@ -358,8 +365,21 @@ def build_common_grid(contributions: list[SpectrumContribution], freq_low: float
     return grid
 
 
-def interp_amplitude(freq_src: np.ndarray, amp_src: np.ndarray, freq_dst: np.ndarray) -> np.ndarray:
-    return np.interp(freq_dst, freq_src, amp_src)
+def interp_amplitude(
+    freq_src: np.ndarray,
+    amp_src: np.ndarray,
+    freq_dst: np.ndarray,
+    *,
+    kind: str = "linear",
+) -> np.ndarray:
+    if kind == "linear":
+        return np.interp(freq_dst, freq_src, amp_src)
+    if kind in ("quadratic", "cubic"):
+        if freq_src.size < (3 if kind == "quadratic" else 4):
+            return np.interp(freq_dst, freq_src, amp_src)
+        fn = _interp.interp1d(freq_src, amp_src, kind=kind, bounds_error=False, fill_value="extrapolate")
+        return np.asarray(fn(freq_dst), dtype=float)
+    raise ValueError(f"Unsupported interpolation kind: {kind}")
 
 
 def slice_spectrum_window(freq: np.ndarray, amp: np.ndarray, low: float, high: float) -> tuple[np.ndarray, np.ndarray]:
@@ -499,6 +519,8 @@ def compute_mean_amplitude_spectrum(
     *,
     lowest_freq: float | None = None,
     highest_freq: float | None = None,
+    grid_mode: str = "finest",
+    interp_kind: str = "linear",
 ) -> AveragedAmplitudeSpectrum:
     if len(contributions) == 0:
         raise ValueError("No FFT contributions were available")
@@ -508,8 +530,8 @@ def compute_mean_amplitude_spectrum(
         lowest_freq=lowest_freq,
         highest_freq=highest_freq,
     )
-    freq_grid = build_common_grid(contributions, freq_low, freq_high)
-    interpolated = [interp_amplitude(c.fft_result.freq, c.fft_result.amplitude, freq_grid) for c in contributions]
+    freq_grid = build_common_grid(contributions, freq_low, freq_high, grid_mode=grid_mode)
+    interpolated = [interp_amplitude(c.fft_result.freq, c.fft_result.amplitude, freq_grid, kind=interp_kind) for c in contributions]
     stack = np.vstack(interpolated)
     mean_amplitude = np.mean(stack, axis=0)
 
@@ -530,6 +552,8 @@ def compute_average_spectrum(
     average_domain: str,
     lowest_freq: float | None = None,
     highest_freq: float | None = None,
+    grid_mode: str = "finest",
+    interp_kind: str = "linear",
 ) -> AverageSpectrumResult:
     if len(contributions) == 0:
         raise ValueError("No FFT contributions were available")
@@ -538,6 +562,8 @@ def compute_average_spectrum(
         contributions,
         lowest_freq=lowest_freq,
         highest_freq=highest_freq,
+        grid_mode=grid_mode,
+        interp_kind=interp_kind,
     )
     freq_grid = averaged.freq_grid
     freq_low = averaged.freq_low
@@ -554,7 +580,7 @@ def compute_average_spectrum(
     accepted_contributors: list[SpectrumContribution] = []
 
     for contrib in contributions:
-        amp_interp = interp_amplitude(contrib.fft_result.freq, contrib.fft_result.amplitude, freq_grid)
+        amp_interp = interp_amplitude(contrib.fft_result.freq, contrib.fft_result.amplitude, freq_grid, kind=interp_kind)
         amp_norm = normalize_spectrum(
             freq_grid,
             amp_interp,

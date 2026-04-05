@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+import scipy.interpolate as _interp
 
 from analysis.GoHit.tools.hits import HitRegion
 from analysis.tools.bond_phase import LoadedBondPhaseTable
@@ -20,13 +21,24 @@ class RegionBondPhaseEstimate:
     reference_peak_hz: float
 
 
-def _interp_complex(freq: np.ndarray, spectrum: np.ndarray, target_hz: float) -> complex:
+def _interp_complex(freq: np.ndarray, spectrum: np.ndarray, target_hz: float, *, kind: str = "linear") -> complex:
     if freq.size == 0:
         return complex(np.nan, np.nan)
     if target_hz < float(freq[0]) or target_hz > float(freq[-1]):
         return complex(np.nan, np.nan)
-    real = np.interp(float(target_hz), freq, np.real(spectrum))
-    imag = np.interp(float(target_hz), freq, np.imag(spectrum))
+    if kind == "linear":
+        real = np.interp(float(target_hz), freq, np.real(spectrum))
+        imag = np.interp(float(target_hz), freq, np.imag(spectrum))
+    else:
+        min_pts = 3 if kind == "quadratic" else 4
+        if freq.size < min_pts:
+            real = np.interp(float(target_hz), freq, np.real(spectrum))
+            imag = np.interp(float(target_hz), freq, np.imag(spectrum))
+        else:
+            fn_real = _interp.interp1d(freq, np.real(spectrum), kind=kind, bounds_error=False, fill_value="extrapolate")
+            fn_imag = _interp.interp1d(freq, np.imag(spectrum), kind=kind, bounds_error=False, fill_value="extrapolate")
+            real = float(fn_real(float(target_hz)))
+            imag = float(fn_imag(float(target_hz)))
     return complex(real, imag)
 
 

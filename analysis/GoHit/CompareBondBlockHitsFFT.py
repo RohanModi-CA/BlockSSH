@@ -9,6 +9,7 @@ from pathlib import Path
 
 import matplotlib
 import numpy as np
+import scipy.interpolate as _interp
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -24,10 +25,25 @@ from analysis.tools.flattening import (
     plot_flattening_diagnostic,
 )
 from analysis.tools.io import load_track2_dataset
-from analysis.tools.models import AverageSpectrumResult
+from analysis.tools.models import AverageSpectrumResult, FFTResult, ProcessedSignal, SignalRecord, SpectrumContribution
 from analysis.tools.signal import compute_one_sided_fft, preprocess_signal
+from analysis.tools.spectral import build_common_grid, interp_amplitude, median_positive_step
 
 
+# Dummy instances for type hints where only parts of objects are used
+dummy_signal_record = SignalRecord(
+    dataset_name="dummy",
+    signal_kind="bond",
+    entity_id=0,
+    t=np.array([0.0, 1.0]),
+    y=np.array([0.0, 0.0])
+)
+dummy_processed_signal = ProcessedSignal(
+    t=np.array([0.0, 1.0]),
+    y=np.array([0.0, 0.0]),
+    Fs=1.0,
+    dt=1.0
+)
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Compare averaged hit-window FFTs for default bond-x spacing versus raw block-x positions.",
@@ -76,6 +92,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Save one flattening diagnostic plot per spectrum when flattening or baseline matching is active.",
     )
     parser.add_argument("--no-show", action="store_true")
+    parser.add_argument("--interp-kind", default="cubic", choices=["linear", "quadratic", "cubic"],
+                       help="Interpolation kind for common frequency grid. Default: cubic")
+    parser.add_argument("--coarsest", action="store_true",
+                       help="Use the coarsest (max df) frequency grid instead of finest (default)")
     return parser
 
 
@@ -96,15 +116,15 @@ def _preprocess_matrix(t: np.ndarray, matrix: np.ndarray) -> tuple[np.ndarray, n
     return processed_t, np.column_stack(processed_cols)
 
 
-def _average_region_spectra(pt: np.ndarray, sig_matrix: np.ndarray, regions) -> tuple[np.ndarray, np.ndarray]:
-    all_region_means: list[np.ndarray] = []
-    common_freq: np.ndarray | None = None
+def _average_region_spectra(pt: np.ndarray, sig_matrix: np.ndarray, regions, *, interp_kind: str = "cubic", coarsest: bool = False) -> tuple[np.ndarray, np.ndarray]:
+    all_region_ffts: list[list[tuple[np.ndarray, np.ndarray]]] = []
+    all_freqs_raw: list[np.ndarray] = []
     dt = float(np.median(np.diff(pt)))
 
     for region in regions:
-        mask = (pt >= float(region.start_s)) & (pt <= float(region.stop_s))
         series: list[tuple[np.ndarray, np.ndarray]] = []
         for col in range(sig_matrix.shape[1]):
+            mask = (pt >= float(region.start_s)) & (pt <= float(region.stop_s))
             seg = np.asarray(sig_matrix[mask, col], dtype=float)
             if seg.size < 16:
                 continue
@@ -113,18 +133,31 @@ def _average_region_spectra(pt: np.ndarray, sig_matrix: np.ndarray, regions) -> 
             amp = np.asarray(fft_res.amplitude, dtype=float)
             if freq.size < 2 or amp.size != freq.size:
                 continue
-            if common_freq is None:
-                common_freq = freq
             series.append((freq, amp))
+            all_freqs_raw.append(freq)
+        if series:
+            all_region_ffts.append(series)
 
-        if not series:
-            continue
-        assert common_freq is not None
-        region_mean = np.mean([np.interp(common_freq, f, a) for f, a in series], axis=0)
+    if not all_region_ffts or not all_freqs_raw:
+        raise ValueError("No usable FFT segments were available for the chosen regions")
+
+    freq_low = max(float(f[0]) for f in all_freqs_raw)
+    freq_high = min(float(f[-1]) for f in all_freqs_raw)
+    if freq_high <= freq_low:
+        raise ValueError("No overlapping frequency window across all regions")
+
+    common_freq = build_common_grid(
+        [SpectrumContribution(fft_result=FFTResult(freq=f, amplitude=np.array([0.0])), record=None, processed=None) for f in all_freqs_raw],
+        freq_low, freq_high, grid_mode="coarsest" if coarsest else "finest")
+    if common_freq is None or common_freq.size < 2:
+        raise ValueError("Failed to build common frequency grid")
+
+    all_region_means: list[np.ndarray] = []
+    for region_ffts_list in all_region_ffts:
+        interp_amps = [interp_amplitude(f, a, common_freq, kind=interp_kind) for f, a in region_ffts_list]
+        region_mean = np.mean(interp_amps, axis=0)
         all_region_means.append(region_mean)
 
-    if common_freq is None or not all_region_means:
-        raise ValueError("No usable FFT segments were available for the chosen regions")
     return common_freq, np.mean(np.vstack(all_region_means), axis=0)
 
 
@@ -155,9 +188,12 @@ def _build_regions(args, *, hit_times_s, t_stop_s: float):
     )
 
 
-def _save_csv(path: Path, *, bond_freq, bond_amp, block_freq, block_amp) -> None:
+def _save_csv(path: Path, *, bond_freq, bond_amp, block_freq, block_amp, interp_kind: str = "cubic") -> None:
     common_freq = np.asarray(bond_freq, dtype=float)
-    block_interp = np.interp(common_freq, block_freq, block_amp)
+    if not np.array_equal(common_freq, np.asarray(block_freq, dtype=float)):
+        block_interp = interp_amplitude(block_freq, block_amp, common_freq, kind=interp_kind)
+    else:
+        block_interp = block_amp
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as fh:
         writer = csv.writer(fh)
@@ -225,8 +261,8 @@ def main() -> int:
         if len(regions) == 0:
             raise ValueError(f"No usable {args.region_mode} regions were available")
 
-        bond_freq, bond_amp_raw = _average_region_spectra(bond_t, bond_matrix, regions)
-        block_freq, block_amp_raw = _average_region_spectra(block_t, block_matrix, regions)
+        bond_freq, bond_amp_raw = _average_region_spectra(bond_t, bond_matrix, regions, interp_kind=args.interp_kind, coarsest=args.coarsest)
+        block_freq, block_amp_raw = _average_region_spectra(block_t, block_matrix, regions, interp_kind=args.interp_kind, coarsest=args.coarsest)
 
         raw_results = OrderedDict(
             bond=_to_average_result(bond_freq, bond_amp_raw),
@@ -289,6 +325,7 @@ def main() -> int:
                 bond_amp=bond_amp,
                 block_freq=block_freq,
                 block_amp=block_amp,
+                interp_kind=args.interp_kind,
             )
 
         if args.save_flatten_diagnostics and flattenings:
@@ -316,6 +353,8 @@ def main() -> int:
         print(f"Usable regions: {len(regions)}")
         print(f"Bonds used: {bond_matrix.shape[1]}")
         print(f"Blocks used: {block_matrix.shape[1]}")
+        print(f"Interp kind: {args.interp_kind}")
+        print(f"Grid mode: {'coarsest' if args.coarsest else 'finest'}")
         print(f"Flatten: {'on' if args.flatten else 'off'}")
         print(f"Baseline match: {args.baseline_match}")
         print(f"Saved plot: {out_path}")

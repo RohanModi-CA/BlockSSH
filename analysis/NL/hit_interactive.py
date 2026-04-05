@@ -23,6 +23,7 @@ from pathlib import Path
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.interpolate as _interp
 from matplotlib.lines import Line2D
 from scipy.signal import find_peaks
 
@@ -80,6 +81,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Skip auto-detection, start with existing CSV or empty")
     p.add_argument("--no-load-hits", action="store_true",
                    help="Don't load existing hits CSV even if present")
+    p.add_argument("--interp-kind", default="cubic", choices=["linear", "quadratic", "cubic"],
+                   help="Interpolation kind for common frequency grid. Default: cubic")
+    p.add_argument("--coarsest", action="store_true",
+                   help="Use the coarsest (max df) frequency grid instead of finest (default)")
 
     p.add_argument("--save", default=None, help="Output plot path for FFT panel")
     p.add_argument("--no-show", action="store_true")
@@ -235,12 +240,45 @@ def _compute_region_spectrum(pt, sig, fs, start, end, mode):
         return fft_res.freq, fft_res.amplitude
 
 
-def _average_spectra(pt, sig_matrix, fs, regions, mode):
+def _interp_spectrum(freq_src, amp_src, freq_dst, kind):
+    if kind == "linear":
+        return np.interp(freq_dst, freq_src, amp_src)
+    if kind in ("quadratic", "cubic"):
+        min_pts = 3 if kind == "quadratic" else 4
+        if freq_src.size < min_pts:
+            return np.interp(freq_dst, freq_src, amp_src)
+        fn = _interp.interp1d(freq_src, amp_src, kind=kind, bounds_error=False, fill_value="extrapolate")
+        return np.asarray(fn(freq_dst), dtype=float)
+    return np.interp(freq_dst, freq_src, amp_src)
+
+
+def _build_common_freq_grid(all_freqs, freq_low, freq_high, *, coarsest):
+    dfs = []
+    for f in all_freqs:
+        mask = (f >= freq_low) & (f <= freq_high)
+        local = f[mask]
+        if local.size < 2:
+            continue
+        dx = np.diff(local)
+        dx = dx[np.isfinite(dx) & (dx > 0)]
+        if dx.size > 0:
+            dfs.append(float(np.median(dx)))
+    if not dfs:
+        return None
+    df_target = max(dfs) if coarsest else min(dfs)
+    grid = np.arange(freq_low, freq_high + 0.5 * df_target, df_target, dtype=float)
+    grid = grid[(grid >= freq_low - 1e-12) & (grid <= freq_high + 1e-12)]
+    if grid.size < 2:
+        return None
+    return grid
+
+
+def _average_spectra(pt, sig_matrix, fs, regions, mode, *, interp_kind="cubic", coarsest=False):
     if not regions:
         return None, None
     n_bonds = sig_matrix.shape[1]
     all_spectra = []
-    common_freq = None
+    all_freqs = []
     for start, end in regions:
         bond_spectra = []
         for b in range(n_bonds):
@@ -253,13 +291,27 @@ def _average_spectra(pt, sig_matrix, fs, regions, mode):
                 bond_spectra.append((freq, amp))
         if not bond_spectra:
             continue
-        if common_freq is None:
-            common_freq = bond_spectra[0][0]
-        avg_bond = np.mean([np.interp(common_freq, f, a) for f, a in bond_spectra], axis=0)
-        all_spectra.append(avg_bond)
-    if not all_spectra:
+        all_freqs.extend([f for f, _ in bond_spectra])
+        all_spectra.append(bond_spectra)
+
+    if not all_spectra or not all_freqs:
         return None, None
-    avg = np.mean(all_spectra, axis=0)
+
+    freq_low = max(float(f[0]) for f in all_freqs)
+    freq_high = min(float(f[-1]) for f in all_freqs)
+    if freq_high <= freq_low:
+        return None, None
+
+    common_freq = _build_common_freq_grid(all_freqs, freq_low, freq_high, coarsest=coarsest)
+    if common_freq is None:
+        return None, None
+
+    region_avgs = []
+    for bond_spectra in all_spectra:
+        interp_amps = [_interp_spectrum(f, a, common_freq, interp_kind) for f, a in bond_spectra]
+        region_avgs.append(np.mean(interp_amps, axis=0))
+
+    avg = np.mean(region_avgs, axis=0)
     return common_freq, avg
 
 
@@ -477,6 +529,8 @@ def run_fft_analysis(pt, sig_matrix, fs, hit_times, delay, exclude_before, hit_w
     print(f"FFT Analysis — {dataset} {component.upper()}")
     print(f"{'='*60}")
     print(f"  Mode: {mode}")
+    print(f"  Interp kind: {args.interp_kind}")
+    print(f"  Grid mode: {'coarsest' if args.coarsest else 'finest'}")
     print(f"  Inter-hit regions: {len(interhit_regions)}")
     for i, (s, e) in enumerate(interhit_regions):
         print(f"    Region {i+1}: {s:.2f}s – {e:.2f}s ({e-s:.1f}s)")
@@ -485,8 +539,10 @@ def run_fft_analysis(pt, sig_matrix, fs, hit_times, delay, exclude_before, hit_w
         print(f"    Hit {i+1}: {s:.2f}s – {e:.2f}s ({e-s:.1f}s)")
     print(f"{'='*60}\n")
 
-    inter_freq, inter_amp = _average_spectra(pt, sig_matrix, fs, interhit_regions, mode)
-    hit_freq, hit_amp = _average_spectra(pt, sig_matrix, fs, hit_regs, mode)
+    inter_freq, inter_amp = _average_spectra(pt, sig_matrix, fs, interhit_regions, mode,
+                                              interp_kind=args.interp_kind, coarsest=args.coarsest)
+    hit_freq, hit_amp = _average_spectra(pt, sig_matrix, fs, hit_regs, mode,
+                                          interp_kind=args.interp_kind, coarsest=args.coarsest)
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), constrained_layout=True)
 
