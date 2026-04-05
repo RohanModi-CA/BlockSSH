@@ -1,17 +1,23 @@
 """
 helper/permanence.py
-Build the Track2 permanence matrix from a verified VideoCentroids object.
+Build stable Track2 permanence matrices from a verified VideoCentroids object.
 
-The permanence matrix assigns each detected block a persistent column index
-that survives blocks entering and exiting the camera frame.
+The front/non-black pipeline tracks full centroids in track1, but legacy step 2
+only exported x positions. This module now builds one stable identity solution
+and exports both x and y permanence matrices, while keeping the legacy
+Track2XPermanence container for downstream compatibility.
 
 Public API
 ----------
 build_permanence(vc, quiet=False) → Track2XPermanence
+build_permanence_xy(vc, quiet=False) → (Track2XPermanence, Track2XPermanence)
 """
 
 import numpy as np
 from tracking_classes import VideoCentroids, Track2XPermanence
+
+
+_Y_WEIGHT = 0.35
 
 
 # ---------------------------------------------------------------------------
@@ -22,11 +28,40 @@ def _opposite(c: str) -> str:
     return 'g' if c == 'r' else 'r'
 
 
+def _alignment_penalty(
+    this_x,
+    this_y,
+    prev_x,
+    prev_y,
+    ref_spacing: float,
+    y_norm: float,
+) -> float:
+    dx = np.mean(np.abs(this_x - prev_x)) / ref_spacing
+    dy = np.mean(np.abs(this_y - prev_y)) / y_norm
+    return float(dx + _Y_WEIGHT * dy)
+
+
+def _estimate_reference_spacing(frames) -> float:
+    pooled = []
+    for f in frames:
+        x = np.array([d.x for d in f.detections], dtype=float)
+        if len(x) < 2 or np.any(~np.isfinite(x)) or np.any(np.diff(x) <= 0):
+            continue
+        pooled.extend(np.diff(x).tolist())
+    if not pooled:
+        return 1.0
+    return max(1.0, float(np.median(np.array(pooled, dtype=float))))
+
+
 def _decide_increase_side(
     this_x,  this_colors,
+    this_y,
     prev_x,  block_colors,
+    prev_y,
     prev_L:  int,
     prev_R:  int,
+    ref_spacing: float,
+    y_norm: float,
 ):
     """
     When count increases by 1, decide whether the new block entered from the LEFT
@@ -34,8 +69,12 @@ def _decide_increase_side(
 
     Returns (choose_left, left_ok, right_ok, pen_left, pen_right).
     """
-    pen_left  = float(np.sum((this_x[1:]  - prev_x) ** 2))
-    pen_right = float(np.sum((this_x[:-1] - prev_x) ** 2))
+    pen_left = _alignment_penalty(
+        this_x[1:], this_y[1:], prev_x, prev_y, ref_spacing, y_norm
+    )
+    pen_right = _alignment_penalty(
+        this_x[:-1], this_y[:-1], prev_x, prev_y, ref_spacing, y_norm
+    )
     n = len(block_colors)
 
     # Expected colour sequences for each entry side
@@ -60,17 +99,25 @@ def _decide_increase_side(
 
 def _decide_decrease_side(
     this_x,  this_colors,
+    this_y,
     prev_x,  block_colors,
+    prev_y,
     prev_L:  int,
     prev_R:  int,
+    ref_spacing: float,
+    y_norm: float,
 ):
     """
     When count decreases by 1, decide whether the block exited from LEFT or RIGHT.
 
     Returns (choose_left_exit, left_ok, right_ok, pen_left, pen_right).
     """
-    pen_left  = float(np.sum((this_x - prev_x[1:])  ** 2))
-    pen_right = float(np.sum((this_x - prev_x[:-1]) ** 2))
+    pen_left = _alignment_penalty(
+        this_x, this_y, prev_x[1:], prev_y[1:], ref_spacing, y_norm
+    )
+    pen_right = _alignment_penalty(
+        this_x, this_y, prev_x[:-1], prev_y[:-1], ref_spacing, y_norm
+    )
 
     exp_left  = block_colors[prev_L + 1 : prev_R + 1]
     exp_right = block_colors[prev_L     : prev_R    ]
@@ -88,16 +135,15 @@ def _decide_decrease_side(
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def build_permanence(
-    vc:    VideoCentroids,
+def build_permanence_xy(
+    vc: VideoCentroids,
     quiet: bool = False,
-) -> Track2XPermanence:
+) -> tuple[Track2XPermanence, Track2XPermanence]:
     """
     Build the permanence matrix from a *verified* VideoCentroids object.
 
-    The permanence matrix is [nFrames × nBlocks].  Each cell holds the x-position
-    of that block in that frame, or NaN if the block was not visible.  The column
-    index of a block is stable across the whole video.
+    The returned pair contains x and y permanence matrices. Each matrix is
+    [nFrames × nBlocks], and each column index is stable across the whole video.
 
     Raises RuntimeError on any tracking inconsistency (count jump > 1,
     colour mismatch, etc.).
@@ -123,11 +169,15 @@ def build_permanence(
     init_frame  = frames[first_nz]
     block_colors = [d.color for d in init_frame.detections]
     prev_x       = np.array([d.x for d in init_frame.detections], dtype=float)
+    prev_y       = np.array([d.y for d in init_frame.detections], dtype=float)
     prev_L       = 0
     prev_R       = len(prev_x) - 1
     prev_num     = len(prev_x)
+    ref_spacing  = max(1.0, float(vc.meanBlockDistance or _estimate_reference_spacing(frames)))
+    y_norm       = max(12.0, 0.35 * ref_spacing)
 
-    matrix: list = [[float(v) for v in prev_x]]
+    matrix_x: list = [[float(v) for v in prev_x]]
+    matrix_y: list = [[float(v) for v in prev_y]]
 
     max_vis        = prev_num
     count_same     = 0
@@ -141,6 +191,7 @@ def build_permanence(
     for k in range(first_nz + 1, n_frames):
         f           = frames[k]
         this_x      = np.array([d.x for d in f.detections], dtype=float)
+        this_y      = np.array([d.y for d in f.detections], dtype=float)
         this_colors = [d.color for d in f.detections]
         this_num    = len(this_x)
 
@@ -164,7 +215,16 @@ def build_permanence(
         elif delta == 1:
             count_plus += 1
             choose_left, left_ok, right_ok, pen_l, pen_r = _decide_increase_side(
-                this_x, this_colors, prev_x, block_colors, prev_L, prev_R
+                this_x,
+                this_colors,
+                this_y,
+                prev_x,
+                block_colors,
+                prev_y,
+                prev_L,
+                prev_R,
+                ref_spacing,
+                y_norm,
             )
             if not left_ok and not right_ok:
                 raise RuntimeError(
@@ -179,7 +239,9 @@ def build_permanence(
                 else:
                     # Extend the matrix leftward
                     block_colors.insert(0, this_colors[0])
-                    for row in matrix:
+                    for row in matrix_x:
+                        row.insert(0, float('nan'))
+                    for row in matrix_y:
                         row.insert(0, float('nan'))
                     prev_L += 1
                     prev_R += 1
@@ -192,7 +254,9 @@ def build_permanence(
                 else:
                     # Extend the matrix rightward
                     block_colors.append(this_colors[-1])
-                    for row in matrix:
+                    for row in matrix_x:
+                        row.append(float('nan'))
+                    for row in matrix_y:
                         row.append(float('nan'))
                     curr_L  = prev_L
                     curr_R  = prev_R + 1
@@ -202,7 +266,16 @@ def build_permanence(
         elif delta == -1:
             count_minus += 1
             choose_left, left_ok, right_ok, pen_l, pen_r = _decide_decrease_side(
-                this_x, this_colors, prev_x, block_colors, prev_L, prev_R
+                this_x,
+                this_colors,
+                this_y,
+                prev_x,
+                block_colors,
+                prev_y,
+                prev_L,
+                prev_R,
+                ref_spacing,
+                y_norm,
             )
             if not left_ok and not right_ok:
                 raise RuntimeError(
@@ -220,21 +293,26 @@ def build_permanence(
                 f"calc={curr_R - curr_L + 1}, actual={this_num}."
             )
 
-        row = [float('nan')] * len(block_colors)
+        row_x = [float('nan')] * len(block_colors)
+        row_y = [float('nan')] * len(block_colors)
         for i, val in enumerate(this_x):
-            row[curr_L + i] = float(val)
-        matrix.append(row)
+            row_x[curr_L + i] = float(val)
+            row_y[curr_L + i] = float(this_y[i])
+        matrix_x.append(row_x)
+        matrix_y.append(row_y)
 
-        prev_x, prev_num, prev_L, prev_R = this_x, this_num, curr_L, curr_R
+        prev_x, prev_y, prev_num, prev_L, prev_R = this_x, this_y, this_num, curr_L, curr_R
 
     # Prepend NaN rows for any leading empty frames
     n_cols = len(block_colors)
     if first_nz > 0:
-        matrix = [[float('nan')] * n_cols for _ in range(first_nz)] + matrix
+        pad_rows = [[float('nan')] * n_cols for _ in range(first_nz)]
+        matrix_x = pad_rows + matrix_x
+        matrix_y = [[float('nan')] * n_cols for _ in range(first_nz)] + matrix_y
 
-    if len(matrix) != n_frames:
+    if len(matrix_x) != n_frames or len(matrix_y) != n_frames:
         raise RuntimeError(
-            f"Row count mismatch: matrix has {len(matrix)} rows, expected {n_frames}."
+            f"Row count mismatch: x={len(matrix_x)}, y={len(matrix_y)}, expected {n_frames}."
         )
 
     log(f"  Total unique blocks: {n_cols}  |  max visible: {max_vis}")
@@ -242,11 +320,28 @@ def build_permanence(
     log(f"  Matrix expansions — left: {expand_left}, right: {expand_right}")
     log(f"  Block sequence: {' '.join(block_colors)}")
 
-    return Track2XPermanence(
+    t2_x = Track2XPermanence(
         originalVideoPath=vc.filepath,
         trackingResultsPath="",           # caller sets this after return
         blockColors=block_colors,
-        xPositions=matrix,
+        xPositions=matrix_x,
         frameTimes_s=[f.frame_time_s  for f in frames],
         frameNumbers=[f.frame_number  for f in frames],
     )
+    t2_y = Track2XPermanence(
+        originalVideoPath=vc.filepath,
+        trackingResultsPath="",
+        blockColors=block_colors,
+        xPositions=matrix_y,
+        frameTimes_s=[f.frame_time_s for f in frames],
+        frameNumbers=[f.frame_number for f in frames],
+    )
+    return t2_x, t2_y
+
+
+def build_permanence(
+    vc: VideoCentroids,
+    quiet: bool = False,
+) -> Track2XPermanence:
+    t2_x, _ = build_permanence_xy(vc, quiet=quiet)
+    return t2_x
