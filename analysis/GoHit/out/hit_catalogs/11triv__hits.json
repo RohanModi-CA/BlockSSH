@@ -1,0 +1,35 @@
+{
+  "dataset": "11triv",
+  "detector": {
+    "baseline_window_s": 18.0,
+    "broadband_max_hz": 25.0,
+    "broadband_min_hz": 3.0,
+    "delay_s": 1.0,
+    "exclude_before_s": 1.0,
+    "hit_window_s": 5.0,
+    "min_hit_separation_s": 6.0,
+    "region_mode": "interhit",
+    "sliding_len_s": 1.5,
+    "smooth_window_s": 0.35,
+    "strength_window_s": 2.5,
+    "threshold_sigma": 3.0
+  },
+  "hit_times_s": [
+    10.06005,
+    52.10205,
+    91.8918,
+    131.5314,
+    171.02085,
+    212.16195,
+    251.9517,
+    290.9907,
+    331.08075,
+    372.52215,
+    410.2098,
+    450.60015,
+    492.04155,
+    532.6081632750337,
+    570.72015
+  ],
+  "source_component": "x"
+}
