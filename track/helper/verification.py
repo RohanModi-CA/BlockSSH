@@ -15,6 +15,7 @@ verify_and_sanitize(vc, ratio_min, ratio_max, repair, quiet)
     Raises RuntimeError if final validation fails.
 """
 
+import math
 import numpy as np
 from typing import List, Tuple
 from tracking_classes import VideoCentroids, DetectionRecord
@@ -33,6 +34,22 @@ def _summarize_bad_runs(bad_indices: np.ndarray) -> List[Tuple[int, int]]:
     starts = np.insert(bad_indices[run_ends + 1], 0, bad_indices[0])
     ends   = np.append(bad_indices[run_ends], bad_indices[-1])
     return list(zip(starts.tolist(), ends.tolist()))
+
+
+def _interp_angle(a_left: float, a_right: float, alpha: float) -> float:
+    left_ok = np.isfinite(a_left)
+    right_ok = np.isfinite(a_right)
+    if left_ok and right_ok:
+        z = (1.0 - alpha) * complex(math.cos(2.0 * a_left), math.sin(2.0 * a_left))
+        z += alpha * complex(math.cos(2.0 * a_right), math.sin(2.0 * a_right))
+        if abs(z) < 1e-12:
+            return float("nan")
+        return 0.5 * math.atan2(z.imag, z.real)
+    if left_ok:
+        return float(a_left)
+    if right_ok:
+        return float(a_right)
+    return float("nan")
 
 
 def _find_reference_spacing(frames, ratio_min, ratio_max) -> Tuple[int, float]:
@@ -201,11 +218,13 @@ def verify_and_sanitize(
             XL = np.array([d.x    for d in DL], dtype=float)
             YL = np.array([d.y    for d in DL], dtype=float)
             AL = np.array([d.area for d in DL], dtype=float)
+            TL = np.array([d.angle for d in DL], dtype=float)
             CL = np.array([d.color for d in DL])
 
             XR = np.array([d.x    for d in DR], dtype=float)
             YR = np.array([d.y    for d in DR], dtype=float)
             AR = np.array([d.area for d in DR], dtype=float)
+            TR = np.array([d.angle for d in DR], dtype=float)
             CR = np.array([d.color for d in DR])
 
             # Find the best colour-consistent alignment offset between L and R
@@ -239,6 +258,7 @@ def verify_and_sanitize(
             U_XL = np.full(N_union, np.nan);  U_XR = np.full(N_union, np.nan)
             U_YL = np.full(N_union, np.nan);  U_YR = np.full(N_union, np.nan)
             U_AL = np.full(N_union, np.nan);  U_AR = np.full(N_union, np.nan)
+            U_TL = np.full(N_union, np.nan);  U_TR = np.full(N_union, np.nan)
             U_C  = ['?'] * N_union
 
             if max_overlap > 0:
@@ -260,16 +280,19 @@ def verify_and_sanitize(
                     U_XL[u], U_XR[u] = XL[iL], XR[iR]
                     U_YL[u], U_YR[u] = YL[iL], YR[iR]
                     U_AL[u], U_AR[u] = AL[iL], AR[iR]
+                    U_TL[u], U_TR[u] = TL[iL], TR[iR]
                     U_C[u]            = CL[iL]
                 elif inL:
                     U_XL[u], U_XR[u] = XL[iL], XL[iL] + dx_avg
                     U_YL[u], U_YR[u] = YL[iL], YL[iL] + dy_avg
                     U_AL[u], U_AR[u] = AL[iL], AL[iL]
+                    U_TL[u], U_TR[u] = TL[iL], TL[iL]
                     U_C[u]            = CL[iL]
                 elif inR:
                     U_XR[u], U_XL[u] = XR[iR], XR[iR] - dx_avg
                     U_YR[u], U_YL[u] = YR[iR], YR[iR] - dy_avg
                     U_AR[u], U_AL[u] = AR[iR], AR[iR]
+                    U_TR[u], U_TL[u] = TR[iR], TR[iR]
                     U_C[u]            = CR[iR]
 
             tL = frames[idxL].frame_time_s
@@ -289,6 +312,7 @@ def verify_and_sanitize(
                         y=float(U_YL[u] + alpha * (U_YR[u] - U_YL[u])),
                         color=U_C[u],
                         area=float(U_AL[u] + alpha * (U_AR[u] - U_AL[u])),
+                        angle=float(_interp_angle(U_TL[u], U_TR[u], alpha)),
                     )
                     for u in range(sk, ek + 1)
                 ]

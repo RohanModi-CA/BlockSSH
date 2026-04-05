@@ -8,6 +8,7 @@ writes:
   - data/{name}/track2_permanence.msgpack            (legacy x output)
   - data/{name}/components/x/track2_permanence.msgpack
   - data/{name}/components/y/track2_permanence.msgpack
+  - data/{name}/components/a/track2_permanence.msgpack
 
 Usage
 -----
@@ -31,7 +32,7 @@ from helper.video_io     import (
     video_name,
 )
 from helper.verification import scan_bad_frames, verify_and_sanitize
-from helper.permanence   import build_permanence_xy
+from helper.permanence   import build_permanence_xya
 from tracking_classes    import VideoCentroids
 
 
@@ -84,6 +85,7 @@ def main() -> None:
     t2_path = track2_output_path(name)
     t2_x_path = component_track2_output_path(name, "x")
     t2_y_path = component_track2_output_path(name, "y")
+    t2_a_path = component_track2_output_path(name, "a")
 
     if not os.path.exists(t1_path):
         print(f"Error: track1 output not found: {t1_path}")
@@ -136,14 +138,16 @@ def main() -> None:
 
     # ---- Build permanence matrix ----
     print("\nBuilding permanence matrices…")
-    t2_x, t2_y = build_permanence_xy(vc, quiet=False)
+    t2_x, t2_y, t2_a = build_permanence_xya(vc, quiet=False)
     t2_x.trackingResultsPath = t1_path
     t2_y.trackingResultsPath = t1_path
+    t2_a.trackingResultsPath = t1_path
 
     # ---- Save ----
     _save_msgpack(t2_path, t2_x)
     _save_msgpack(t2_x_path, t2_x)
     _save_msgpack(t2_y_path, t2_y)
+    _save_msgpack(t2_a_path, t2_a)
 
     print(f"\nDone.")
     print(f"  Blocks   : {len(t2_x.blockColors)}  ({' '.join(t2_x.blockColors)})")
@@ -151,6 +155,7 @@ def main() -> None:
     print(f"  Legacy X : {t2_path}")
     print(f"  X        : {t2_x_path}")
     print(f"  Y        : {t2_y_path}")
+    print(f"  A        : {t2_a_path}")
 
 
 if __name__ == '__main__':

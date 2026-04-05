@@ -4,13 +4,13 @@ Build stable Track2 permanence matrices from a verified VideoCentroids object.
 
 The front/non-black pipeline tracks full centroids in track1, but legacy step 2
 only exported x positions. This module now builds one stable identity solution
-and exports both x and y permanence matrices, while keeping the legacy
+and exports x, y, and angle permanence matrices, while keeping the legacy
 Track2XPermanence container for downstream compatibility.
 
 Public API
 ----------
 build_permanence(vc, quiet=False) → Track2XPermanence
-build_permanence_xy(vc, quiet=False) → (Track2XPermanence, Track2XPermanence)
+build_permanence_xya(vc, quiet=False) → (Track2XPermanence, Track2XPermanence, Track2XPermanence)
 """
 
 import numpy as np
@@ -135,14 +135,14 @@ def _decide_decrease_side(
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def build_permanence_xy(
+def build_permanence_xya(
     vc: VideoCentroids,
     quiet: bool = False,
-) -> tuple[Track2XPermanence, Track2XPermanence]:
+) -> tuple[Track2XPermanence, Track2XPermanence, Track2XPermanence]:
     """
     Build the permanence matrix from a *verified* VideoCentroids object.
 
-    The returned pair contains x and y permanence matrices. Each matrix is
+    The returned triple contains x, y, and angle permanence matrices. Each matrix is
     [nFrames × nBlocks], and each column index is stable across the whole video.
 
     Raises RuntimeError on any tracking inconsistency (count jump > 1,
@@ -170,6 +170,7 @@ def build_permanence_xy(
     block_colors = [d.color for d in init_frame.detections]
     prev_x       = np.array([d.x for d in init_frame.detections], dtype=float)
     prev_y       = np.array([d.y for d in init_frame.detections], dtype=float)
+    prev_a       = np.array([d.angle for d in init_frame.detections], dtype=float)
     prev_L       = 0
     prev_R       = len(prev_x) - 1
     prev_num     = len(prev_x)
@@ -178,6 +179,7 @@ def build_permanence_xy(
 
     matrix_x: list = [[float(v) for v in prev_x]]
     matrix_y: list = [[float(v) for v in prev_y]]
+    matrix_a: list = [[float(v) for v in prev_a]]
 
     max_vis        = prev_num
     count_same     = 0
@@ -192,6 +194,7 @@ def build_permanence_xy(
         f           = frames[k]
         this_x      = np.array([d.x for d in f.detections], dtype=float)
         this_y      = np.array([d.y for d in f.detections], dtype=float)
+        this_a      = np.array([d.angle for d in f.detections], dtype=float)
         this_colors = [d.color for d in f.detections]
         this_num    = len(this_x)
 
@@ -243,6 +246,8 @@ def build_permanence_xy(
                         row.insert(0, float('nan'))
                     for row in matrix_y:
                         row.insert(0, float('nan'))
+                    for row in matrix_a:
+                        row.insert(0, float('nan'))
                     prev_L += 1
                     prev_R += 1
                     curr_L  = prev_L - 1
@@ -257,6 +262,8 @@ def build_permanence_xy(
                     for row in matrix_x:
                         row.append(float('nan'))
                     for row in matrix_y:
+                        row.append(float('nan'))
+                    for row in matrix_a:
                         row.append(float('nan'))
                     curr_L  = prev_L
                     curr_R  = prev_R + 1
@@ -295,13 +302,16 @@ def build_permanence_xy(
 
         row_x = [float('nan')] * len(block_colors)
         row_y = [float('nan')] * len(block_colors)
+        row_a = [float('nan')] * len(block_colors)
         for i, val in enumerate(this_x):
             row_x[curr_L + i] = float(val)
             row_y[curr_L + i] = float(this_y[i])
+            row_a[curr_L + i] = float(this_a[i])
         matrix_x.append(row_x)
         matrix_y.append(row_y)
+        matrix_a.append(row_a)
 
-        prev_x, prev_y, prev_num, prev_L, prev_R = this_x, this_y, this_num, curr_L, curr_R
+        prev_x, prev_y, prev_a, prev_num, prev_L, prev_R = this_x, this_y, this_a, this_num, curr_L, curr_R
 
     # Prepend NaN rows for any leading empty frames
     n_cols = len(block_colors)
@@ -309,10 +319,11 @@ def build_permanence_xy(
         pad_rows = [[float('nan')] * n_cols for _ in range(first_nz)]
         matrix_x = pad_rows + matrix_x
         matrix_y = [[float('nan')] * n_cols for _ in range(first_nz)] + matrix_y
+        matrix_a = [[float('nan')] * n_cols for _ in range(first_nz)] + matrix_a
 
-    if len(matrix_x) != n_frames or len(matrix_y) != n_frames:
+    if len(matrix_x) != n_frames or len(matrix_y) != n_frames or len(matrix_a) != n_frames:
         raise RuntimeError(
-            f"Row count mismatch: x={len(matrix_x)}, y={len(matrix_y)}, expected {n_frames}."
+            f"Row count mismatch: x={len(matrix_x)}, y={len(matrix_y)}, a={len(matrix_a)}, expected {n_frames}."
         )
 
     log(f"  Total unique blocks: {n_cols}  |  max visible: {max_vis}")
@@ -336,12 +347,20 @@ def build_permanence_xy(
         frameTimes_s=[f.frame_time_s for f in frames],
         frameNumbers=[f.frame_number for f in frames],
     )
-    return t2_x, t2_y
+    t2_a = Track2XPermanence(
+        originalVideoPath=vc.filepath,
+        trackingResultsPath="",
+        blockColors=block_colors,
+        xPositions=matrix_a,
+        frameTimes_s=[f.frame_time_s for f in frames],
+        frameNumbers=[f.frame_number for f in frames],
+    )
+    return t2_x, t2_y, t2_a
 
 
 def build_permanence(
     vc: VideoCentroids,
     quiet: bool = False,
 ) -> Track2XPermanence:
-    t2_x, _ = build_permanence_xy(vc, quiet=quiet)
+    t2_x, _, _ = build_permanence_xya(vc, quiet=quiet)
     return t2_x
