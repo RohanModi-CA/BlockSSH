@@ -8,6 +8,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import argparse
+import collections
 import sys
 from pathlib import Path
 
@@ -20,12 +21,15 @@ from plotting.common import apply_major_tick_spacing, render_figure, resolve_cli
 from plotting.frequency import _link_fft_frequency_to_image_frequency, _plot_frequency_image, _plot_fft_curve_panel
 from tools.cli import (
     add_colormap_arg,
+    add_flattening_args,
     add_frequency_window_args,
     add_output_args,
     add_tickspace_arg,
     validate_frequency_window_args,
     validate_tickspace_arg,
 )
+from tools.flattening import FlatteningResult, apply_global_baseline_processing_to_results, plot_flattening_diagnostic
+from tools.models import AverageSpectrumResult
 from tools.peaks import load_peaks_csv
 from tools.spectrasave import load_spectrum_msgpack, resolve_existing_spectrasave_path
 
@@ -50,6 +54,24 @@ def _load_preload_peaks(csv_path: Path, *, require_exists: bool) -> list[float]:
         return []
     peaks = [float(peak) for peak in load_peaks_csv(csv_path) if np.isfinite(peak) and peak > 0]
     return sorted(set(peaks))
+
+
+def _validate_flatten_args(args) -> str | None:
+    flat_low, flat_high = map(float, args.flatten_reference_band)
+    if flat_high <= flat_low:
+        return "Error: --flatten-reference-band STOP_HZ must be greater than START_HZ"
+    return None
+
+
+def _spectrasave_key(path: Path, spectrum: dict) -> str:
+    metadata = spectrum.get("metadata") or {}
+    component = metadata.get("component")
+    if component is not None and str(component).strip():
+        return str(component).strip()
+    label = spectrum.get("label")
+    if label is not None and str(label).strip():
+        return str(label).strip()
+    return path.stem
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -78,6 +100,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Disable automatic preloading of a corresponding peaks CSV.",
     )
     parser.set_defaults(preload_csv=True)
+    add_flattening_args(parser)
     parser.add_argument(
         "--no-peaks",
         dest="show_peaks",
@@ -262,6 +285,106 @@ def _print_metadata(path: Path, spectrum: dict) -> None:
     print("Metadata:")
     for key in sorted(metadata):
         print(f"  {key}: {metadata[key]}")
+
+
+def _build_average_result(freq: np.ndarray, amp: np.ndarray) -> AverageSpectrumResult:
+    freq_arr = np.asarray(freq, dtype=float)
+    amp_arr = np.asarray(amp, dtype=float)
+    finite_freq = freq_arr[np.isfinite(freq_arr)]
+    if finite_freq.size == 0:
+        raise ValueError("Spectrum frequency axis is empty or non-finite")
+    return AverageSpectrumResult(
+        freq_grid=freq_arr,
+        avg_amp=amp_arr,
+        norm_low=float(np.min(finite_freq)),
+        norm_high=float(np.max(finite_freq)),
+        freq_low=float(np.min(finite_freq)),
+        freq_high=float(np.max(finite_freq)),
+        contributors=[],
+    )
+
+
+def _build_spectrum_keys(spectra: list[dict], paths: list[Path]) -> list[str]:
+    ordered: collections.OrderedDict[str, None] = collections.OrderedDict()
+    keys_by_index: list[str] = []
+    for path, spectrum in zip(paths, spectra, strict=True):
+        base_key = _spectrasave_key(path, spectrum)
+        key = base_key
+        suffix = 2
+        while key in ordered:
+            key = f"{base_key}#{suffix}"
+            suffix += 1
+        ordered[key] = None
+        keys_by_index.append(key)
+    return keys_by_index
+
+
+def _maybe_apply_baseline_processing(
+    spectra: list[dict],
+    paths: list[Path],
+    args,
+) -> tuple[list[dict], list[str], dict[str, FlatteningResult]]:
+    if not args.flatten and getattr(args, "baseline_match", None) is None:
+        return spectra, _build_spectrum_keys(spectra, paths), {}
+
+    ordered: collections.OrderedDict[str, AverageSpectrumResult] = collections.OrderedDict()
+    keys_by_index = _build_spectrum_keys(spectra, paths)
+    for key, spectrum in zip(keys_by_index, spectra, strict=True):
+        ordered[key] = _build_average_result(spectrum["freq"], spectrum["amplitude"])
+
+    processed, flattening_by_key = apply_global_baseline_processing_to_results(
+        ordered,
+        flatten=args.flatten,
+        baseline_match=getattr(args, "baseline_match", None),
+        reference_band=tuple(float(value) for value in args.flatten_reference_band),
+    )
+
+    processed_spectra: list[dict] = []
+    for key, spectrum in zip(keys_by_index, spectra, strict=True):
+        updated = dict(spectrum)
+        updated["amplitude"] = np.asarray(processed[key].avg_amp, dtype=float)
+        processed_spectra.append(updated)
+    return processed_spectra, keys_by_index, flattening_by_key
+
+
+def _maybe_emit_flatten_plot(
+    args,
+    *,
+    spectra: list[dict],
+    paths: list[Path],
+    keys_by_index: list[str],
+    flattening_by_key: dict[str, FlatteningResult],
+) -> None:
+    if not flattening_by_key or (args.flatten_plot is None and not args.flatten_show_plot):
+        return
+
+    target_key = None
+    if args.baseline_match is not None and args.baseline_match in flattening_by_key:
+        target_key = args.baseline_match
+    elif len(spectra) == 1:
+        target_key = next(iter(flattening_by_key))
+    elif "x" in flattening_by_key:
+        target_key = "x"
+    else:
+        target_key = next(iter(flattening_by_key))
+
+    index = next((i for i, key in enumerate(keys_by_index) if key == target_key), 0)
+    raw_spectrum = spectra[index]
+    fig = plot_flattening_diagnostic(
+        np.asarray(raw_spectrum["freq"], dtype=float),
+        np.asarray(raw_spectrum["amplitude"], dtype=float),
+        flattening_by_key[target_key],
+        title=f"{paths[index].stem} flattening diagnostic",
+    )
+    if args.flatten_plot is not None:
+        save_path = Path(args.flatten_plot)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(save_path, dpi=300)
+        print(f"Flattening plot saved to: {save_path}")
+    if args.flatten_show_plot:
+        plt.show()
+    else:
+        plt.close(fig)
 
 
 def plot_multi_spectrasave(
@@ -458,19 +581,35 @@ def main() -> int:
     if tickspace_error is not None:
         print(tickspace_error, file=sys.stderr)
         return 1
+    flatten_error = _validate_flatten_args(args)
+    if flatten_error is not None:
+        print(flatten_error, file=sys.stderr)
+        return 1
 
     if args.labels and len(args.labels) != len(args.spectrasave):
         print(f"Error: Number of labels ({len(args.labels)}) must match number of spectrasave files ({len(args.spectrasave)})", file=sys.stderr)
         return 1
 
+    if not args.flatten and args.baseline_match is not None and args.baseline_match != "none":
+        import warnings
+
+        warnings.warn(
+            f"--baseline-match={args.baseline_match} is active without --flatten; "
+            "warping component baselines multiplicatively to match the target spectrum's curved response envelope. "
+            "Pass --flatten to also flatten to a horizontal reference line.",
+            UserWarning,
+        )
+
     try:
         spectra = []
+        spectrasave_paths: list[Path] = []
         all_peaks_hz = []
         filenames = []
         for path_str in args.spectrasave:
             path = resolve_existing_spectrasave_path(path_str)
             spectrum = load_spectrum_msgpack(path)
             spectra.append(spectrum)
+            spectrasave_paths.append(path)
             filenames.append(path.name)
             
             peaks_hz: list[float] = []
@@ -495,7 +634,24 @@ def main() -> int:
         scale_s = float(args.scale[1]) if args.scale else None
 
         for spectrum in spectra:
-            spectrum["amplitude"] = _maybe_smooth(np.asarray(spectrum["amplitude"], dtype=float), args).tolist()
+            spectrum["amplitude"] = _maybe_smooth(np.asarray(spectrum["amplitude"], dtype=float), args)
+
+        raw_spectra = [
+            {
+                **spectrum,
+                "freq": np.asarray(spectrum["freq"], dtype=float).copy(),
+                "amplitude": np.asarray(spectrum["amplitude"], dtype=float).copy(),
+            }
+            for spectrum in spectra
+        ]
+        spectra, spectrum_keys, flattening_by_key = _maybe_apply_baseline_processing(spectra, spectrasave_paths, args)
+        _maybe_emit_flatten_plot(
+            args,
+            spectra=raw_spectra,
+            paths=spectrasave_paths,
+            keys_by_index=spectrum_keys,
+            flattening_by_key=flattening_by_key,
+        )
 
         if len(spectra) == 1:
             fig = plot_spectrasave_dual_panel(
