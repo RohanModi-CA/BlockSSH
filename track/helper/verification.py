@@ -15,6 +15,7 @@ verify_and_sanitize(vc, ratio_min, ratio_max, repair, quiet)
     Raises RuntimeError if final validation fails.
 """
 
+import math
 import numpy as np
 from typing import List, Tuple
 from tracking_classes import VideoCentroids, DetectionRecord
@@ -33,6 +34,22 @@ def _summarize_bad_runs(bad_indices: np.ndarray) -> List[Tuple[int, int]]:
     starts = np.insert(bad_indices[run_ends + 1], 0, bad_indices[0])
     ends   = np.append(bad_indices[run_ends], bad_indices[-1])
     return list(zip(starts.tolist(), ends.tolist()))
+
+
+def _interp_angle(a_left: float, a_right: float, alpha: float) -> float:
+    left_ok = np.isfinite(a_left)
+    right_ok = np.isfinite(a_right)
+    if left_ok and right_ok:
+        z = (1.0 - alpha) * complex(math.cos(2.0 * a_left), math.sin(2.0 * a_left))
+        z += alpha * complex(math.cos(2.0 * a_right), math.sin(2.0 * a_right))
+        if abs(z) < 1e-12:
+            return float("nan")
+        return 0.5 * math.atan2(z.imag, z.real)
+    if left_ok:
+        return float(a_left)
+    if right_ok:
+        return float(a_right)
+    return float("nan")
 
 
 def _find_reference_spacing(frames, ratio_min, ratio_max) -> Tuple[int, float]:
@@ -64,6 +81,7 @@ def _mark_bad_frames(frames, ref_spacing: float, ratio_min: float, ratio_max: fl
     n = len(frames)
     is_bad = np.zeros(n, dtype=bool)
     first_nz = -1
+    prev_count = None
 
     for k, f in enumerate(frames):
         dets = f.detections
@@ -75,17 +93,20 @@ def _mark_bad_frames(frames, ref_spacing: float, ratio_min: float, ratio_max: fl
                 is_bad[k] = True
             continue
 
+        if prev_count is not None and abs(len(dets) - prev_count) > 1:
+            is_bad[k] = True
+
         x = np.array([d.x for d in dets], dtype=float)
         c = np.array([d.color for d in dets])
 
         if np.any(~np.isfinite(x)) or np.any(np.diff(x) < 0) or np.any(~np.isin(c, ['r', 'g'])):
             is_bad[k] = True
-            continue
-
-        if len(dets) >= 2:
+        elif len(dets) >= 2:
             sr = np.diff(x) / ref_spacing
             if np.any(c[:-1] == c[1:]) or np.any((sr < ratio_min) | (sr > ratio_max)):
                 is_bad[k] = True
+
+        prev_count = len(dets)
 
     return is_bad
 
@@ -201,11 +222,13 @@ def verify_and_sanitize(
             XL = np.array([d.x    for d in DL], dtype=float)
             YL = np.array([d.y    for d in DL], dtype=float)
             AL = np.array([d.area for d in DL], dtype=float)
+            TL = np.array([d.angle for d in DL], dtype=float)
             CL = np.array([d.color for d in DL])
 
             XR = np.array([d.x    for d in DR], dtype=float)
             YR = np.array([d.y    for d in DR], dtype=float)
             AR = np.array([d.area for d in DR], dtype=float)
+            TR = np.array([d.angle for d in DR], dtype=float)
             CR = np.array([d.color for d in DR])
 
             # Find the best colour-consistent alignment offset between L and R
@@ -239,6 +262,7 @@ def verify_and_sanitize(
             U_XL = np.full(N_union, np.nan);  U_XR = np.full(N_union, np.nan)
             U_YL = np.full(N_union, np.nan);  U_YR = np.full(N_union, np.nan)
             U_AL = np.full(N_union, np.nan);  U_AR = np.full(N_union, np.nan)
+            U_TL = np.full(N_union, np.nan);  U_TR = np.full(N_union, np.nan)
             U_C  = ['?'] * N_union
 
             if max_overlap > 0:
@@ -260,16 +284,19 @@ def verify_and_sanitize(
                     U_XL[u], U_XR[u] = XL[iL], XR[iR]
                     U_YL[u], U_YR[u] = YL[iL], YR[iR]
                     U_AL[u], U_AR[u] = AL[iL], AR[iR]
+                    U_TL[u], U_TR[u] = TL[iL], TR[iR]
                     U_C[u]            = CL[iL]
                 elif inL:
                     U_XL[u], U_XR[u] = XL[iL], XL[iL] + dx_avg
                     U_YL[u], U_YR[u] = YL[iL], YL[iL] + dy_avg
                     U_AL[u], U_AR[u] = AL[iL], AL[iL]
+                    U_TL[u], U_TR[u] = TL[iL], TL[iL]
                     U_C[u]            = CL[iL]
                 elif inR:
                     U_XR[u], U_XL[u] = XR[iR], XR[iR] - dx_avg
                     U_YR[u], U_YL[u] = YR[iR], YR[iR] - dy_avg
                     U_AR[u], U_AL[u] = AR[iR], AR[iR]
+                    U_TR[u], U_TL[u] = TR[iR], TR[iR]
                     U_C[u]            = CR[iR]
 
             tL = frames[idxL].frame_time_s
@@ -282,13 +309,25 @@ def verify_and_sanitize(
             for k in range(idx_start, idx_end + 1):
                 alpha = (frames[k].frame_time_s - tL) / (tR - tL)
                 sk = int(round(S_shift + alpha * best_offset))
-                ek = int(round(len(DL) + S_shift - 1 + alpha * (len(DR) - len(DL))))
+                len_interp = len(DL) + alpha * (len(DR) - len(DL))
+                if len(DR) > len(DL):
+                    n_vis = int(math.floor(len_interp))
+                elif len(DR) < len(DL):
+                    n_vis = int(math.ceil(len_interp))
+                else:
+                    n_vis = int(round(len_interp))
+
+                n_vis = max(1, min(n_vis, N_union))
+                sk = max(0, min(sk, N_union - 1))
+                ek = min(N_union - 1, sk + n_vis - 1)
+                sk = max(0, ek - n_vis + 1)
                 frames[k].detections = [
                     DetectionRecord(
                         x=float(U_XL[u] + alpha * (U_XR[u] - U_XL[u])),
                         y=float(U_YL[u] + alpha * (U_YR[u] - U_YL[u])),
                         color=U_C[u],
                         area=float(U_AL[u] + alpha * (U_AR[u] - U_AL[u])),
+                        angle=float(_interp_angle(U_TL[u], U_TR[u], alpha)),
                     )
                     for u in range(sk, ek + 1)
                 ]
@@ -312,21 +351,28 @@ def verify_and_sanitize(
             all_diffs.extend(np.diff([d.x for d in f.detections]))
 
     still_bad = []
+    prev_count = None
     for k, f in enumerate(frames):
         dets = f.detections
         if len(dets) == 0:
             if first_nz != -1 and k >= first_nz:
                 still_bad.append(k)
             continue
+        if prev_count is not None and abs(len(dets) - prev_count) > 1:
+            still_bad.append(k)
+            prev_count = len(dets)
+            continue
         x = np.array([d.x for d in dets], dtype=float)
         c = np.array([d.color for d in dets])
         if np.any(~np.isfinite(x)) or np.any(np.diff(x) < 0) or np.any(~np.isin(c, ['r', 'g'])):
             still_bad.append(k)
+            prev_count = len(dets)
             continue
         if len(dets) >= 2:
             sr = np.diff(x) / ref_spacing
             if np.any(c[:-1] == c[1:]) or np.any((sr < ratio_min) | (sr > ratio_max)):
                 still_bad.append(k)
+        prev_count = len(dets)
 
     if still_bad:
         preview = ", ".join(map(str, still_bad[:10])) + ("…" if len(still_bad) > 10 else "")

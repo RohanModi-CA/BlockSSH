@@ -18,7 +18,7 @@ matplotlib.use("Agg")
 @dataclass(frozen=True)
 class Config:
     dataset: str = "IMG_0681_rot270"
-    bond_spacing_mode: str = "comoving"
+    bond_spacing_mode: str = "purecomoving"
     bond_index: int = 0
     sliding_len_s: float = 20.0
     components: tuple[str, ...] = ("x", "y", "a")

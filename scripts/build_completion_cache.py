@@ -32,6 +32,7 @@ COMMAND_SPECS: dict[str, tuple[str, str]] = {
     "analysis/go/FFT.py": ("analysis.viz.see_fft_xya", "build_parser"),
     "analysis/go/Timeseries.py": ("analysis.viz.spacing_timeseries", "build_parser"),
     "analysis/go/Subtract.py": ("analysis.viz.see_config_subtract_xya", "build_parser"),
+    "analysis/go/Logsubtract.py": ("analysis.viz.see_config_subtract_xya", "build_parser"),
     "analysis/go/Wavefunctions.py": ("analysis.go.Wavefunctions", "build_parser"),
     "analysis/go/ClickPeakFind.py": ("analysis.viz.click_peak_find", "build_parser"),
     "analysis/go/SpectrasaveView.py": ("analysis.viz.spectrasave_view", "build_parser"),
@@ -147,7 +148,7 @@ def build_cache_text() -> str:
 
 def main() -> int:
     CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    CACHE_PATH.write_text(build_cache_text(), encoding="utf-8")
+    CACHE_PATH.write_text(build_cache_text(), encoding="utf-8", newline="\n")
     print(CACHE_PATH)
     return 0
 

@@ -106,6 +106,81 @@ def compute_flattening(
     )
 
 
+from collections import OrderedDict
+
+def apply_global_baseline_processing_to_results(
+    results_by_key: OrderedDict[str, AverageSpectrumResult],
+    *,
+    flatten: bool,
+    baseline_match: str | None,
+    reference_band: tuple[float, float] = (20.0, 30.0),
+    baseline_quantile: float = 0.15,
+    baseline_envelope_hz: float = 1.5,
+    baseline_smooth_hz: float = 1.2,
+    response_smooth_hz: float = 4.0,
+    method: str = DEFAULT_FLATTEN_METHOD,
+) -> tuple[OrderedDict[str, AverageSpectrumResult], dict[str, FlatteningResult]]:
+    """
+    Applies baseline processing globally across multiple components.
+    If baseline_match is specified and present in results_by_key, all components
+    will have their baselines warped (multiplicatively) to match the target.
+    If flatten=True, the target baseline is a flat scalar reference level.
+    If flatten=False, the target baseline is the target's curved response envelope.
+    """
+    if not results_by_key:
+        return OrderedDict(), {}
+
+    raw_flattenings: dict[str, FlatteningResult] = {}
+    for key, result in results_by_key.items():
+        raw_flattenings[key] = compute_flattening(
+            result.freq_grid,
+            result.avg_amp,
+            reference_band=reference_band,
+            baseline_quantile=baseline_quantile,
+            baseline_envelope_hz=baseline_envelope_hz,
+            baseline_smooth_hz=baseline_smooth_hz,
+            response_smooth_hz=response_smooth_hz,
+            method=method,
+        )
+
+    target_flattening = None
+    if baseline_match is not None and baseline_match != "none":
+        if baseline_match in raw_flattenings:
+            target_flattening = raw_flattenings[baseline_match]
+        else:
+            import warnings
+            warnings.warn(f"baseline-match target '{baseline_match}' not found in results; processing components independently")
+
+    processed_results: OrderedDict[str, AverageSpectrumResult] = OrderedDict()
+    final_flattenings: dict[str, FlatteningResult] = {}
+
+    for key, result in results_by_key.items():
+        flat_res = raw_flattenings[key]
+        
+        if flatten:
+            if target_flattening is not None:
+                transfer = target_flattening.reference_level / np.maximum(flat_res.baseline_smooth, np.finfo(float).tiny)
+                new_flattened = np.asarray(result.avg_amp, dtype=float) * transfer
+                flat_res = replace(flat_res, transfer=transfer, flattened=new_flattened)
+            processed_results[key] = replace(result, avg_amp=flat_res.flattened)
+            final_flattenings[key] = flat_res
+        else:
+            if target_flattening is not None:
+                assert baseline_match is not None
+                target_base = np.interp(result.freq_grid, results_by_key[baseline_match].freq_grid, target_flattening.baseline_smooth)
+                transfer = target_base / np.maximum(flat_res.baseline_smooth, np.finfo(float).tiny)
+                new_flattened = np.asarray(result.avg_amp, dtype=float) * transfer
+                flat_res = replace(flat_res, transfer=transfer, flattened=new_flattened)
+                processed_results[key] = replace(result, avg_amp=flat_res.flattened)
+                final_flattenings[key] = flat_res
+            else:
+                # No flattening, no baseline matching -> return unchanged
+                processed_results[key] = result
+                # We don't populate final_flattenings because we did nothing
+                
+    return processed_results, final_flattenings
+
+
 def apply_flattening_to_average_result(
     result: AverageSpectrumResult,
     *,
@@ -168,6 +243,7 @@ def apply_flattening_to_pair_result(
         new_spectral = FFTResult(freq=freq, amplitude=flattening.flattened)
         result = replace(result, fft_result=new_spectral)
     else:
+        assert result.welch_result is not None
         new_spectral = replace(
             result.welch_result,
             amplitude=flattening.flattened,

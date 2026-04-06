@@ -73,3 +73,11 @@ def track1_output_path(name: str) -> str:
 
 def track2_output_path(name: str) -> str:
     return os.path.join(dataset_dir(name), "track2_permanence.msgpack")
+
+
+def component_dir(name: str, component: str) -> str:
+    return os.path.join(dataset_dir(name), "components", str(component))
+
+
+def component_track2_output_path(name: str, component: str) -> str:
+    return os.path.join(component_dir(name, component), "track2_permanence.msgpack")

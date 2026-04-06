@@ -214,6 +214,17 @@ def build_parser() -> argparse.ArgumentParser:
     add_frequency_window_args(parser)
     add_tickspace_arg(parser)
     add_flattening_args(parser)
+    parser.add_argument(
+        "--interp-kind",
+        default="cubic",
+        choices=["linear", "quadratic", "cubic"],
+        help="Interpolation kind for common frequency grid. Default: cubic",
+    )
+    parser.add_argument(
+        "--coarsest",
+        action="store_true",
+        help="Use the coarsest (max df) frequency grid instead of finest (default)",
+    )
 
     welch_group = parser.add_mutually_exclusive_group()
     welch_group.add_argument(
@@ -348,6 +359,34 @@ def build_parser() -> argparse.ArgumentParser:
             "--subtract-config CONFIG_JSON [SCALE] [BASELINE_MATCH] [BASELINE_WINDOW_BINS]. "
             "BASELINE_MATCH choices: none, constant-offset (alias: offset), median-offset."
         ),
+    )
+    LOGSUBTRACT_MODES = ("max", "min", "mean", "weighted", "median")
+    parser.add_argument(
+        "--logsubtract",
+        metavar="TARGET",
+        default=None,
+        help="Enable log-subtraction mode. TARGET is the component whose log-ratio will be computed (e.g., 'x'). In each FFT bin, computes log(TARGET) - log(term(components)), where term is determined by --logsubtract-mode. Implies --flatten unless --flatten is explicitly disabled.",
+    )
+    parser.add_argument(
+        "--logsubtract-mode",
+        choices=LOGSUBTRACT_MODES,
+        default="max",
+        help="How to combine subtract components per bin in log-subtraction. Default: max",
+    )
+    parser.add_argument(
+        "--logsubtract-components",
+        nargs="+",
+        metavar="COMPONENT",
+        default=None,
+        help="Components to use as the subtract term (default: all components except TARGET).",
+    )
+    parser.add_argument(
+        "--logsubtract-weights",
+        nargs="+",
+        type=float,
+        metavar="WEIGHT",
+        default=None,
+        help="Weights for weighted-average mode. Must match number of --logsubtract-components.",
     )
     return parser
 
@@ -533,6 +572,8 @@ def _compute_average_result_from_records(args, records: list, *, label: str) -> 
         average_domain=args.average_domain,
         lowest_freq=args.freq_min_hz,
         highest_freq=args.freq_max_hz,
+        grid_mode="coarsest" if args.coarsest else "finest",
+        interp_kind=args.interp_kind,
     )
 
 
@@ -601,6 +642,8 @@ def _compute_component_results(args, groups: list[ShowGroup]):
             average_domain=args.average_domain,
             lowest_freq=args.freq_min_hz,
             highest_freq=args.freq_max_hz,
+            grid_mode="coarsest" if args.coarsest else "finest",
+            interp_kind=args.interp_kind,
         )
         results_by_component[logical_component] = result
 
@@ -687,19 +730,17 @@ def _maybe_apply_flattening_to_results(
     args,
     results_by_key: OrderedDict[str, AverageSpectrumResult],
 ) -> tuple[OrderedDict[str, AverageSpectrumResult], dict[str, FlatteningResult]]:
-    if not args.flatten:
+    from tools.flattening import apply_global_baseline_processing_to_results
+
+    if not args.flatten and getattr(args, "baseline_match", None) is None:
         return OrderedDict(results_by_key), {}
 
-    flattened_results: OrderedDict[str, AverageSpectrumResult] = OrderedDict()
-    flattening_by_key: dict[str, FlatteningResult] = {}
-    for key, result in results_by_key.items():
-        flattened, flattening = apply_flattening_to_average_result(
-            result,
-            reference_band=tuple(float(value) for value in args.flatten_reference_band),
-        )
-        flattened_results[key] = flattened
-        flattening_by_key[key] = flattening
-    return flattened_results, flattening_by_key
+    return apply_global_baseline_processing_to_results(
+        results_by_key,
+        flatten=args.flatten,
+        baseline_match=getattr(args, "baseline_match", None),
+        reference_band=tuple(float(value) for value in args.flatten_reference_band),
+    )
 
 
 def _build_common_frequency_grid_from_results(results: list[AverageSpectrumResult]) -> np.ndarray:
@@ -996,7 +1037,7 @@ def _plot_groups(
                 title=f"Panel {idx}: {expr_label}",
                 linear_color_label="Normalized Amplitude",
                 log_color_label="Amplitude (dB)",
-                y_tickspace_hz=args.tickspace,
+                y_tickspace_hz=args.tickspace_hz,
             )
         elif plot_scale == "log":
             if not args.showonlyresult:
@@ -1039,7 +1080,7 @@ def _plot_groups(
     if not full_image:
         axes[-1].set_xlabel("Frequency (Hz)")
         axes[-1].set_xlim(float(common_freq[0]), float(common_freq[-1]))
-        apply_major_tick_spacing(axes[-1], args.tickspace, axis="x")
+        apply_major_tick_spacing(axes[-1], args.tickspace_hz, axis="x")
     fig.suptitle(title)
     return fig
 
@@ -1169,6 +1210,225 @@ def _save_panel_spectrasaves(
         print(f"Spectrum saved to: {saved}")
 
 
+def _logsubtract_main(args, rel_low, rel_high) -> int:
+    args.flatten = True
+    raw_config = load_dataset_selection_entries(args.config_json)
+    overlap = _validate_compare_xya_inputs(raw_config, track_data_root=args.track_data_root)
+
+    target_component = str(args.logsubtract)
+    if target_component not in overlap:
+        print(
+            f"Error: --logsubtract target '{target_component}' not in available components {overlap}",
+            file=sys.stderr,
+        )
+        return 1
+
+    subtract_components = list(args.logsubtract_components) if args.logsubtract_components else None
+    if subtract_components is None:
+        subtract_components = [c for c in overlap if c != target_component]
+    else:
+        missing = [c for c in subtract_components if c not in overlap]
+        if missing:
+            print(
+                f"Error: --logsubtract-components {missing} not in available components {overlap}",
+                file=sys.stderr,
+            )
+            return 1
+
+    all_components = [target_component] + [c for c in subtract_components if c != target_component]
+
+    if args.logsubtract_mode == "weighted":
+        weights = list(args.logsubtract_weights) if args.logsubtract_weights else None
+        if weights is None:
+            print("Error: --logsubtract-mode weighted requires --logsubtract-weights", file=sys.stderr)
+            return 1
+        if len(weights) != len(subtract_components):
+            print(
+                f"Error: --logsubtract-weights ({len(weights)}) must match --logsubtract-components ({len(subtract_components)})",
+                file=sys.stderr,
+            )
+            return 1
+    else:
+        if args.logsubtract_weights is not None:
+            print("Error: --logsubtract-weights only valid with --logsubtract-mode weighted", file=sys.stderr)
+            return 1
+        weights = None
+
+    results_by_component: OrderedDict[str, AverageSpectrumResult] = OrderedDict()
+    for logical_component in all_components:
+        config = _resolved_component_config(raw_config, logical_component=logical_component)
+        records = build_configured_bond_signals(
+            config,
+            track_data_root=args.track_data_root,
+            allow_duplicate_ids=args.allow_duplicate_bonds,
+            bond_spacing_mode=args.bond_spacing_mode,
+        )
+        records = filter_signal_records_by_display_bonds(
+            records,
+            only_bonds=args.only_bonds,
+            exclude_bonds=args.exclude_bonds,
+            parity=args.bond_parity,
+        )
+        if len(records) == 0:
+            raise ValueError(
+                f"Bond selection removed all configured bond contributors for component '{logical_component}'"
+            )
+        contributions = (
+            compute_welch_contributions(
+                records,
+                welch_len_s=args.welch_len_s,
+                welch_overlap_fraction=args.welch_overlap,
+                longest=args.longest,
+                handlenan=args.handlenan,
+                timeseriesnorm=args.timeseriesnorm,
+            )
+            if args.welch
+            else compute_fft_contributions(
+                records,
+                longest=args.longest,
+                handlenan=args.handlenan,
+                timeseriesnorm=args.timeseriesnorm,
+            )
+        )
+        if len(contributions) == 0:
+            raise ValueError(
+                f"No spectra were accepted from the selected bond contributors for component '{logical_component}'"
+            )
+        result = compute_average_spectrum(
+            contributions,
+            normalize_mode=args.normalize,
+            relative_range=tuple(args.relative_range),
+            average_domain=args.average_domain,
+            lowest_freq=args.freq_min_hz,
+            highest_freq=args.freq_max_hz,
+            grid_mode="coarsest" if args.coarsest else "finest",
+            interp_kind=args.interp_kind,
+        )
+        results_by_component[logical_component] = result
+
+    flattened_results, flattening_by_component = _maybe_apply_flattening_to_results(
+        args,
+        results_by_component,
+    )
+    common_freq = _build_common_frequency_grid_from_results(list(flattened_results.values()))
+    amp_by_component = _interpolate_component_amplitudes(flattened_results, common_freq=common_freq)
+
+    target_amp = np.asarray(amp_by_component[target_component], dtype=float)
+    subtract_amps = [np.asarray(amp_by_component[c], dtype=float) for c in subtract_components]
+
+    mode = str(args.logsubtract_mode)
+    log_ratio = np.empty_like(target_amp)
+    eps = np.finfo(float).eps
+
+    for i in range(target_amp.size):
+        if mode == "max":
+            term = float(np.max([amp[i] for amp in subtract_amps]))
+        elif mode == "min":
+            term = float(np.min([amp[i] for amp in subtract_amps]))
+        elif mode == "mean":
+            term = float(np.mean([amp[i] for amp in subtract_amps]))
+        elif mode == "median":
+            term = float(np.median([amp[i] for amp in subtract_amps]))
+        else:
+            assert weights is not None
+            term = sum(w * amp[i] for w, amp in zip(weights, subtract_amps))
+
+        target_val = max(float(target_amp[i]), eps)
+        term = max(term, eps)
+        log_ratio[i] = np.log(target_val) - np.log(term)
+
+    log_ratio = np.clip(log_ratio, -700, 700)
+    log_ratio = _maybe_smooth(log_ratio, args)
+
+    accepted_display_bonds = sorted({
+        int(contrib.record.entity_id) + 1
+        for result in results_by_component.values()
+        for contrib in result.contributors
+    })
+    total_contributors = sum(len(result.contributors) for result in results_by_component.values())
+    n_datasets = len({
+        contrib.record.dataset_name
+        for result in results_by_component.values()
+        for contrib in result.contributors
+    })
+
+    smoothing_steps: list[str] = []
+    if args.medianblur:
+        smoothing_steps.append(f"median window={args.median_window_bins}")
+    if args.gaussianblur:
+        smoothing_steps.append(f"gaussian sigma={args.gaussian_sigma_bins:.6g} truncate={args.gaussian_truncate:.6g}")
+    if args.savitzky:
+        smoothing_steps.append(f"savgol window={args.savitzky_window_bins} polyorder={args.savitzky_polyorder}")
+
+    print(f"Log-subtract mode: {mode}")
+    print(f"Target component: {target_component}")
+    print(f"Subtract components: {subtract_components}")
+    if weights is not None:
+        print(f"Subtract weights: {weights}")
+    print(f"Available components: {overlap}")
+    print(f"Accepted display bonds: {_format_bond_list(accepted_display_bonds)}")
+    print(f"Total accepted contributors: {total_contributors}")
+    print(f"Unique datasets: {n_datasets}")
+    print(f"Common frequency window: [{common_freq[0]:.6f}, {common_freq[-1]:.6f}] Hz")
+    print(f"Spectrum type: {'Welch' if args.welch else 'FFT'}")
+    if smoothing_steps:
+        print(f"Display smoothing pipeline: {' -> '.join(smoothing_steps)}")
+
+    norm_desc = args.normalize
+    if args.normalize == "relative":
+        norm_desc = f"relative [{args.relative_range[0]}, {args.relative_range[1]}] Hz"
+    config_stem = Path(args.config_json).stem
+    title = args.title or (
+        f"Log-subtract: {config_stem} | target={target_component} | mode={mode} | "
+        f"sub={','.join(subtract_components)} | norm={norm_desc}"
+    )
+
+    fig, ax = plt.subplots(1, 1, figsize=(12, 5), constrained_layout=True)
+    ax.plot(common_freq, log_ratio, linewidth=1.4, color="black")
+    ax.axhline(0.0, color="0.55", linewidth=1.0, alpha=0.9, linestyle=":")
+    ax.set_xlabel("Frequency (Hz)")
+    ax.set_ylabel("log(Target / Subtract)")
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+    if args.plot_scale == "logx":
+        ax.set_xscale("log")
+
+    apply_major_tick_spacing(ax, args.tickspace_hz, axis="x")
+    apply_major_tick_spacing(ax, None, axis="y")
+
+    if args.no_show:
+        _render_figure(fig, save=args.save, show=False)
+    else:
+        render_figure(fig, save=args.save)
+
+    if args.spectrasave is not None:
+        export_path = resolve_spectrasave_path(
+            args.spectrasave,
+            config_json=args.config_json,
+            kind="logsubtract",
+            extra=f"{target_component}_vs_{' '.join(subtract_components)}",
+        )
+        metadata = {
+            "logsubtract_target": target_component,
+            "logsubtract_components": subtract_components,
+            "logsubtract_mode": mode,
+            "logsubtract_weights": weights,
+        }
+        if flattening_by_component:
+            for comp_key, flattening in flattening_by_component.items():
+                metadata[f"flattening_{comp_key}"] = flattening_metadata(flattening)
+        save_spectrum_msgpack(
+            export_path,
+            freq=common_freq,
+            amplitude=log_ratio,
+            label=f"logsubtract {target_component} / {mode}({','.join(subtract_components)})",
+            metadata=metadata,
+        )
+        print(f"Spectrum saved to: {export_path}")
+
+    return 0
+
+
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
@@ -1187,12 +1447,27 @@ def main() -> int:
         print(flatten_error, file=sys.stderr)
         return 1
 
+    if not args.flatten and args.baseline_match is not None and args.baseline_match != "none":
+        import warnings
+        warnings.warn(
+            f"--baseline-match={args.baseline_match} is active without --flatten; "
+            "warping component baselines multiplicatively to match component "
+            f"'{args.baseline_match}'s curved response envelope. "
+            "Pass --flatten to also flatten to a horizontal reference line.",
+            UserWarning,
+        )
+    
+    if args.logsubtract is not None:
+        args.flatten = True
+
     rel_low, rel_high = map(float, args.relative_range)
     if rel_high <= rel_low:
         print("Error: --relative-range STOP_HZ must be greater than START_HZ", file=sys.stderr)
         return 1
 
     try:
+        if args.logsubtract is not None:
+            return _logsubtract_main(args, rel_low, rel_high)
         groups = _resolve_show_groups(list(args.operations or []))
         _, overlap, results_by_component, available_display_bonds, selected_display_bonds = _compute_component_results(
             args,

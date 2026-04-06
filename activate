@@ -16,7 +16,7 @@ export BLOCKSSSH_TRACK_DATA_ROOT="$BLOCKSSSH_ROOT/track/data"
 export BLOCKSSSH_ANALYSIS_CONFIG_ROOT="$BLOCKSSSH_ROOT/analysis/configs"
 
 _blocksssh_venv_activated=""
-for _candidate in "$BLOCKSSSH_ROOT/.venv/bin/activate" "$BLOCKSSSH_ROOT/venv/bin/activate" "$BLOCKSSSH_ROOT/env/bin/activate"; do
+for _candidate in "$BLOCKSSSH_ROOT/.venv/bin/activate" "$BLOCKSSSH_ROOT/venv/bin/activate" "$BLOCKSSSH_ROOT/env/bin/activate" "$BLOCKSSSH_ROOT/.venv/Scripts/activate" "$BLOCKSSSH_ROOT/venv/Scripts/activate" "$BLOCKSSSH_ROOT/env/Scripts/activate"; do
     if [[ -f "$_candidate" ]]; then
         # shellcheck disable=SC1090
         source "$_candidate"
@@ -25,10 +25,18 @@ for _candidate in "$BLOCKSSSH_ROOT/.venv/bin/activate" "$BLOCKSSSH_ROOT/venv/bin
     fi
 done
 
-if [[ -n "${VIRTUAL_ENV:-}" && -x "${VIRTUAL_ENV}/bin/python3" ]]; then
-    export BLOCKSSSH_PYTHON_BIN="${VIRTUAL_ENV}/bin/python3"
+if [[ -n "${VIRTUAL_ENV:-}" ]]; then
+    if [[ -x "${VIRTUAL_ENV}/bin/python3" ]]; then
+        export BLOCKSSSH_PYTHON_BIN="${VIRTUAL_ENV}/bin/python3"
+    elif [[ -x "${VIRTUAL_ENV}/Scripts/python3.exe" ]]; then
+        export BLOCKSSSH_PYTHON_BIN="${VIRTUAL_ENV}/Scripts/python3.exe"
+    elif [[ -x "${VIRTUAL_ENV}/Scripts/python.exe" ]]; then
+        export BLOCKSSSH_PYTHON_BIN="${VIRTUAL_ENV}/Scripts/python.exe"
+    else
+        export BLOCKSSSH_PYTHON_BIN="$(command -v python3 || command -v python)"
+    fi
 else
-    export BLOCKSSSH_PYTHON_BIN="$(command -v python3)"
+    export BLOCKSSSH_PYTHON_BIN="$(command -v python3 || command -v python)"
 fi
 
 if ! "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/scripts/build_completion_cache.py"; then
@@ -45,6 +53,7 @@ _blocksssh_supports_assoc_arrays() {
 bfft() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/FFT.py" "$@"; }
 bts() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/Timeseries.py" "$@"; }
 bsub() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/Subtract.py" "$@"; }
+blogsub() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/Logsubtract.py" "$@"; }
 bwf() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/Wavefunctions.py" "$@"; }
 bpeak() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/ClickPeakFind.py" "$@"; }
 bspec() { "$BLOCKSSSH_PYTHON_BIN" "$BLOCKSSSH_ROOT/analysis/go/SpectrasaveView.py" "$@"; }

@@ -464,7 +464,7 @@ def main() -> int:
             freq_max_hz=args.freq_max_hz,
             image_columns=args.image_columns,
             marker_x=args.marker_x,
-            tickspace_hz=args.tickspace,
+            tickspace_hz=args.tickspace_hz,
             initial_peaks=initial_peaks,
         )
 

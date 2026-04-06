@@ -101,7 +101,7 @@ def main():
 
     bond_dataset = load_bond_signal_dataset(
         dataset=f"{args.dataset}_{args.component}",
-        bond_spacing_mode="comoving",
+        bond_spacing_mode="purecomoving",
         component=args.component,
     )
     track2 = load_track2_dataset(dataset=f"{args.dataset}_{args.component}")

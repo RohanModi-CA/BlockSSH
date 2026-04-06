@@ -36,7 +36,7 @@ from analysis.tools.signal import compute_complex_spectrogram, preprocess_signal
 
 @dataclass(frozen=True)
 class EnabledRegionConfig:
-    bond_spacing_mode: str = "default"
+    bond_spacing_mode: str = "purecomoving"
     sliding_len_s: float = 20.0
     manual_peak_times_s: tuple[float, ...] = (400.0, 494.0)
     peak_finder_mode: str = "all"
@@ -359,7 +359,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dataset", required=True, help="Base dataset name, e.g. IMG_0681_rot270")
     parser.add_argument("--component", required=True, choices=("x", "y", "a"))
     parser.add_argument("--bond-id", required=True, type=int, help="1-based bond index")
-    parser.add_argument("--bond-spacing-mode", default="default", choices=("default", "comoving"))
+    parser.add_argument("--bond-spacing-mode", default="purecomoving", choices=("default", "purecomoving"))
     parser.add_argument("--sliding-len-s", type=float, default=20.0)
     parser.add_argument("--manual-peak-times-s", type=float, nargs="*", default=[400.0, 494.0])
     parser.add_argument("--peak-finder-mode", default="all", choices=("all", "prominence"))

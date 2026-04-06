@@ -60,7 +60,7 @@ def component_orientation_from_mask(component_mask: np.ndarray) -> float:
     mu20 = np.mean(x * x)
     mu02 = np.mean(y * y)
     mu11 = np.mean(x * y)
-    theta = 0.5 * math.atan2(2.0 * mu11, mu20 - mu02)
+    theta = 0.5 * math.atan2(-2.0 * mu11, mu02 - mu20)
 
     if theta >= math.pi / 2:
         theta -= math.pi
@@ -129,8 +129,8 @@ def draw_detections(
         cv2.circle(overlay, (x, y), 8, (0, 0, 255), 2)
         if np.isfinite(det.angle):
             length = 40
-            dx = int(round(math.cos(det.angle) * length))
-            dy = int(round(math.sin(det.angle) * length))
+            dx = int(round(math.sin(det.angle) * length))
+            dy = int(round(math.cos(det.angle) * length))
             cv2.line(overlay, (x - dx, y - dy), (x + dx, y + dy), (0, 255, 255), 2)
         cv2.putText(overlay, f"{idx}", (x + 8, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 0, 0), 2, cv2.LINE_AA)
         cv2.putText(overlay, f"({det.x:.1f}, {det.y:.1f})", (x + 8, y + 14), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 128, 255), 1, cv2.LINE_AA)

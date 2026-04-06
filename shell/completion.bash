@@ -57,16 +57,16 @@ _blocksssh_reply_from_catalog() {
     values="$(_blocksssh_cached_catalog "$cache_key")"
     if [[ -z "$values" ]]; then
         if [[ "$kind" == "components" && -n "$dataset" ]]; then
-            values="$(_blocksssh_catalog "$kind" "$dataset" | tr '\n' ' ')"
+            values="$(_blocksssh_catalog "$kind" "$dataset" | tr -d '\r' | tr '\n' ' ')"
         else
-            values="$(_blocksssh_catalog "$kind" | tr '\n' ' ')"
+            values="$(_blocksssh_catalog "$kind" | tr -d '\r' | tr '\n' ' ')"
         fi
     fi
     COMPREPLY=( $(compgen -W "$values" -- "$cur") )
 }
 
 _blocksssh_script_key() {
-    local word="$1"
+    local word="${1//\\//}"
     case "$word" in
         FFT.py|*analysis/go/FFT.py) echo "analysis/go/FFT.py" ;;
         Timeseries.py|*analysis/go/Timeseries.py) echo "analysis/go/Timeseries.py" ;;
@@ -181,6 +181,12 @@ _blocksssh_complete_by_script() {
                 return 0
             fi
             ;;
+        analysis/go/Logsubtract.py)
+            if [[ "$positional_index" -eq 0 ]]; then
+                _blocksssh_reply_from_catalog "$cur" datasets
+                return 0
+            fi
+            ;;
         analysis/go/Wavefunctions.py)
             if [[ "$positional_index" -eq 0 ]]; then
                 _blocksssh_reply_from_catalog "$cur" datasets
@@ -202,10 +208,8 @@ _blocksssh_complete_by_script() {
             fi
             ;;
         analysis/go/SpectrasaveView.py)
-            if [[ "$positional_index" -eq 0 ]]; then
-                _blocksssh_reply_from_catalog "$cur" spectrasaves
-                return 0
-            fi
+            _blocksssh_reply_from_catalog "$cur" spectrasaves
+            return 0
             ;;
         analysis/go/MakeGroup.py)
             _blocksssh_reply_from_catalog "$cur" datasets

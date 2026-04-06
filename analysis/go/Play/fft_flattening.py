@@ -44,7 +44,7 @@ def load_component_averages(
     *,
     dataset: str,
     track_data_root: Path = DEFAULT_TRACK_DATA_ROOT,
-    bond_spacing_mode: str = "comoving",
+    bond_spacing_mode: str = "purecomoving",
     use_welch: bool = True,
     longest: bool = False,
     handlenan: bool = False,
@@ -141,7 +141,7 @@ def compute_flattened_component_spectra(
     *,
     dataset: str,
     track_data_root: Path = DEFAULT_TRACK_DATA_ROOT,
-    bond_spacing_mode: str = "comoving",
+    bond_spacing_mode: str = "purecomoving",
     components: tuple[str, ...] = ("x", "y", "a"),
     baseline_quantile: float = 0.15,
     baseline_envelope_hz: float = 1.5,
@@ -321,7 +321,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Compute flattening transfer functions and flattened average spectra.")
     parser.add_argument("dataset", nargs="?", default="IMG_0681_rot270")
     parser.add_argument("--track-data-root", default=str(DEFAULT_TRACK_DATA_ROOT))
-    parser.add_argument("--bond-spacing-mode", default="comoving")
+    parser.add_argument("--bond-spacing-mode", default="purecomoving")
     parser.add_argument("--components", nargs="+", default=["x", "y", "a"])
     parser.add_argument("--save-csv", default=None, help="Optional output CSV path.")
     parser.add_argument("--save-plot", default=None, help="Optional output plot path.")

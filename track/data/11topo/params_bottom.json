@@ -1,0 +1,20 @@
+{
+  "rotation_deg": 0,
+  "crop_rect": {
+    "x0": 0,
+    "x1": 1920,
+    "y0": 0,
+    "y1": 482
+  },
+  "time_start_s": 0.0,
+  "time_end_s": null,
+  "dark_max_val": 55,
+  "blur_kernel": 5,
+  "open_radius": 1,
+  "close_radius": 2,
+  "min_area": 2000,
+  "max_area": null,
+  "reject_near_image_border": true,
+  "border_margin_px": 1,
+  "cc_connectivity": 8
+}

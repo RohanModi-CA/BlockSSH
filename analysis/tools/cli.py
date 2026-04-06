@@ -48,8 +48,8 @@ def add_bond_spacing_mode_arg(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--bond-spacing-mode",
         choices=BOND_SPACING_MODES,
-        default="default",
-        help="Bond signal derivation mode. Default: default",
+        default="purecomoving",
+        help="Bond signal derivation mode. Default: purecomoving",
     )
 
 
@@ -120,7 +120,7 @@ def add_frequency_window_args(parser: argparse.ArgumentParser, *, help_scope: st
 
 def add_tickspace_arg(parser: argparse.ArgumentParser, *, help_scope: str = "frequency axis") -> None:
     parser.add_argument(
-        "--tickspace",
+        "--tickspace-hz",
         type=float,
         default=None,
         help=f"Major tick spacing in Hz for the {help_scope}.",
@@ -216,6 +216,12 @@ def add_flattening_args(parser: argparse.ArgumentParser) -> None:
         "--flatten",
         action="store_true",
         help="Flatten the averaged spectrum by dividing out a smoothed baseline-response envelope.",
+    )
+    parser.add_argument(
+        "--baseline-match",
+        metavar="COMPONENT",
+        default=None,
+        help="Target component (e.g., 'x') whose baseline envelope or flat reference level will be imposed on all other components multiplicatively. Disabled by default.",
     )
     parser.add_argument(
         "--flatten-reference-band",

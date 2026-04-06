@@ -1,0 +1,22 @@
+{
+  "dataset": "IMG_0723",
+  "tracking_mode": "bottom_black",
+  "version": 1,
+  "source_video": "Videos\\IMG_0723.mov",
+  "params_file": "params_bottom.json",
+  "track1_file": "track1.msgpack",
+  "labels_file": "labels.json",
+  "components": {
+    "x": "components\\x\\track2_permanence.msgpack",
+    "y": "components\\y\\track2_permanence.msgpack",
+    "a": "components\\a\\track2_permanence.msgpack"
+  },
+  "rotation_deg": 0,
+  "crop_rect": {
+    "x0": 393,
+    "x1": 3358,
+    "y0": 194,
+    "y1": 1668
+  },
+  "notes": ""
+}

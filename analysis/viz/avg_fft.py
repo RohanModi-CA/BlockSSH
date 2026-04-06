@@ -112,8 +112,20 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Render the averaged spectrum as a 2D frequency image instead of a 1D curve.",
     )
+    parser.add_argument("--only", choices=["fft", "sliding"], default=None)
     add_flattening_args(parser)
     add_spectrasave_arg(parser)
+    parser.add_argument(
+        "--interp-kind",
+        default="cubic",
+        choices=["linear", "quadratic", "cubic"],
+        help="Interpolation kind for common frequency grid. Default: cubic",
+    )
+    parser.add_argument(
+        "--coarsest",
+        action="store_true",
+        help="Use the coarsest (max df) frequency grid instead of finest (default)",
+    )
     return parser
 
 
@@ -226,12 +238,20 @@ def _validate_flatten_args(args) -> str | None:
 
 
 def _maybe_apply_flattening(result, args) -> tuple[object, FlatteningResult | None]:
-    if not args.flatten:
+    from tools.flattening import apply_global_baseline_processing_to_results
+    import collections
+
+    if not args.flatten and getattr(args, "baseline_match", None) is None:
         return result, None
-    return apply_flattening_to_average_result(
-        result,
+
+    ordered: collections.OrderedDict[str, object] = collections.OrderedDict(result=result)
+    processed, flattening_by_key = apply_global_baseline_processing_to_results(
+        ordered,  # type: ignore[arg-type]
+        flatten=args.flatten,
+        baseline_match=getattr(args, "baseline_match", None),
         reference_band=tuple(float(value) for value in args.flatten_reference_band),
     )
+    return processed["result"], flattening_by_key.get("result")
 
 
 def _maybe_emit_flatten_plot(
@@ -296,6 +316,11 @@ def main() -> int:
     args = parser.parse_args()
     args.normalize = resolve_normalization_mode(args)
 
+    if args.only == "fft":
+        args.full_image = False
+    elif args.only == "sliding":
+        args.full_image = True
+
     freq_window_error = validate_frequency_window_args(args)
     if freq_window_error is not None:
         print(freq_window_error, file=sys.stderr)
@@ -308,6 +333,16 @@ def main() -> int:
     if flatten_error is not None:
         print(flatten_error, file=sys.stderr)
         return 1
+
+    if not args.flatten and args.baseline_match is not None and args.baseline_match != "none":
+        import warnings
+        warnings.warn(
+            f"--baseline-match={args.baseline_match} is active without --flatten; "
+            "warping component baselines multiplicatively to match component "
+            f"'{args.baseline_match}'s curved response envelope. "
+            "Pass --flatten to also flatten to a horizontal reference line.",
+            UserWarning,
+        )
 
     rel_low, rel_high = map(float, args.relative_range)
     if rel_high <= rel_low:
@@ -385,6 +420,8 @@ def main() -> int:
                     average_domain=args.average_domain,
                     lowest_freq=args.freq_min_hz,
                     highest_freq=args.freq_max_hz,
+                    grid_mode="coarsest" if args.coarsest else "finest",
+                    interp_kind=args.interp_kind,
                 )
                 result, flattening = _maybe_apply_flattening(raw_result, args)
                 raw_results_by_component[logical_component] = raw_result
@@ -463,7 +500,7 @@ def main() -> int:
                 cmap_index=args.cm,
                 title=title,
                 reference_amp_for_norm_by_component=reference_amp_by_component or None,
-                tickspace_hz=args.tickspace,
+                tickspace_hz=args.tickspace_hz,
             )
             if args.spectrasave is not None:
                 for logical_component, result in results_by_component.items():
@@ -524,6 +561,8 @@ def main() -> int:
                 average_domain=args.average_domain,
                 lowest_freq=args.freq_min_hz,
                 highest_freq=args.freq_max_hz,
+                grid_mode="coarsest" if args.coarsest else "finest",
+                interp_kind=args.interp_kind,
             )
             result, flattening = _maybe_apply_flattening(raw_result, args)
 
@@ -583,7 +622,7 @@ def main() -> int:
                 cmap_index=args.cm,
                 title=title,
                 reference_amp_for_norm=reference_amp,
-                tickspace_hz=args.tickspace,
+                tickspace_hz=args.tickspace_hz,
             )
             if args.spectrasave is not None:
                 _save_average_result(

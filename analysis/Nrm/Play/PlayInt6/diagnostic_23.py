@@ -48,7 +48,7 @@ def main():
     hit_idx_to_plot = args.hit_idx
     
     print(f"Loading {dataset} for diagnostic look at {f1} + {f2} -> {f3}...")
-    bond_dataset = load_bond_signal_dataset(dataset=f"{dataset}_x", bond_spacing_mode='comoving', component='x')
+    bond_dataset = load_bond_signal_dataset(dataset=f"{dataset}_x", bond_spacing_mode='purecomoving', component='x')
     track2 = load_track2_dataset(dataset=f"{dataset}_x")
     t_raw = track2.frame_times_s
     

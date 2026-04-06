@@ -70,7 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--bond-spacing-mode",
-        choices=("default", "comoving"),
+        choices=("default", "purecomoving"),
         default="default",
         help="Bond signal representation to analyze. Default: default",
     )

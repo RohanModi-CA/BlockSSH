@@ -243,6 +243,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     add_flattening_args(parser)
     add_spectrasave_arg(parser)
+    parser.add_argument(
+        "--interp-kind",
+        default="cubic",
+        choices=["linear", "quadratic", "cubic"],
+        help="Interpolation kind for common frequency grid. Default: cubic",
+    )
+    parser.add_argument(
+        "--coarsest",
+        action="store_true",
+        help="Use the coarsest (max df) frequency grid instead of finest (default)",
+    )
     return parser
 
 
@@ -566,7 +577,7 @@ def _export_single_spectrum(args, results: list, track2) -> None:
     print(f"Spectrum saved to: {saved}")
 
 
-def _average_result_from_pair_results(results: list, *, dataset_name: str, use_welch: bool) -> AverageSpectrumResult:
+def _average_result_from_pair_results(results: list, *, dataset_name: str, use_welch: bool, args) -> AverageSpectrumResult:
     contributions: list[SpectrumContribution] = []
 
     for result in results:
@@ -597,7 +608,11 @@ def _average_result_from_pair_results(results: list, *, dataset_name: str, use_w
     if len(contributions) == 0:
         raise ValueError("No valid bond spectra were available to average")
 
-    averaged = compute_mean_amplitude_spectrum(contributions)
+    averaged = compute_mean_amplitude_spectrum(
+        contributions,
+        grid_mode="coarsest" if args.coarsest else "finest",
+        interp_kind=args.interp_kind,
+    )
     return AverageSpectrumResult(
         freq_grid=averaged.freq_grid,
         avg_amp=averaged.mean_amplitude,
@@ -670,19 +685,20 @@ def _maybe_apply_flattening(
     args,
     results_by_component: dict[str, AverageSpectrumResult],
 ) -> tuple[dict[str, AverageSpectrumResult], dict[str, FlatteningResult]]:
-    if not args.flatten:
+    from tools.flattening import apply_global_baseline_processing_to_results
+    import collections
+
+    if not args.flatten and getattr(args, "baseline_match", None) is None:
         return dict(results_by_component), {}
 
-    flattened_results: dict[str, AverageSpectrumResult] = {}
-    flattening_by_component: dict[str, FlatteningResult] = {}
-    for component, result in results_by_component.items():
-        flattened, flattening = apply_flattening_to_average_result(
-            result,
-            reference_band=tuple(float(value) for value in args.flatten_reference_band),
-        )
-        flattened_results[component] = flattened
-        flattening_by_component[component] = flattening
-    return flattened_results, flattening_by_component
+    ordered_results = collections.OrderedDict(results_by_component)
+    processed_results, flattening_by_component = apply_global_baseline_processing_to_results(
+        ordered_results,
+        flatten=args.flatten,
+        baseline_match=getattr(args, "baseline_match", None),
+        reference_band=tuple(float(value) for value in args.flatten_reference_band),
+    )
+    return dict(processed_results), flattening_by_component
 
 
 def _maybe_emit_flatten_plot(
@@ -741,6 +757,22 @@ def main() -> int:
         print(flatten_error, file=sys.stderr)
         return 1
 
+    if not args.flatten and args.baseline_match is not None and args.baseline_match != "none":
+        import warnings
+        warnings.warn(
+            f"--baseline-match={args.baseline_match} is active without --flatten; "
+            "warping component baselines multiplicatively to match component "
+            f"'{args.baseline_match}'s' curved response envelope. "
+            "Pass --flatten to also flatten to a horizontal reference line.",
+            UserWarning,
+        )
+
+    if args.average:
+        if args.only == "fft":
+            args.full_image = False
+        elif args.only == "sliding":
+            args.full_image = True
+
     try:
         component_results, component_track2 = _load_component_results(args)
         if args.only_pairs is not None:
@@ -756,7 +788,7 @@ def main() -> int:
                 results = _filter_to_only_pairs(results, set(args.only_pairs))
             if args.average:
                 dataset_name = track2.dataset_name or Path(track2.track2_path).resolve().parent.name
-                averaged_raw = _average_result_from_pair_results(results, dataset_name=dataset_name, use_welch=args.welch)
+                averaged_raw = _average_result_from_pair_results(results, dataset_name=dataset_name, use_welch=args.welch, args=args)
                 flattened_by_component, flattening_by_component = _maybe_apply_flattening(
                     args,
                     {"x": averaged_raw},
@@ -782,7 +814,7 @@ def main() -> int:
                     plot_scale=args.sliding_plot_scale if args.full_image else ("log" if args.welch and args.welch_log else "log" if args.fft_log else "linear"),
                     cmap_index=args.cm,
                     title=args.title or f"{dataset_name} average bonds",
-                    tickspace_hz=args.tickspace,
+                    tickspace_hz=args.tickspace_hz,
                 )
             else:
                 results = _maybe_apply_flattening_to_results(args, results)
@@ -804,7 +836,7 @@ def main() -> int:
                         time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                         cmap_index=args.cm,
                         title=args.title,
-                        tickspace_hz=args.tickspace,
+                        tickspace_hz=args.tickspace_hz,
                     )
                 else:
                     fig = plot_pair_frequency_grid(
@@ -821,7 +853,7 @@ def main() -> int:
                         time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                         cmap_index=args.cm,
                         title=args.title,
-                        tickspace_hz=args.tickspace,
+                        tickspace_hz=args.tickspace_hz,
                     )
         else:
             if args.average:
@@ -830,6 +862,7 @@ def main() -> int:
                         results,
                         dataset_name=(component_track2[component].dataset_name or Path(component_track2[component].track2_path).resolve().parent.name),
                         use_welch=args.welch,
+                        args=args,
                     )
                     for component, results in component_results.items()
                 }
@@ -861,18 +894,13 @@ def main() -> int:
                     plot_scale=args.sliding_plot_scale if args.full_image else ("log" if args.welch and args.welch_log else "log" if args.fft_log else "linear"),
                     cmap_index=args.cm,
                     title=args.title or f"{dataset_name} average bonds",
-                    tickspace_hz=args.tickspace,
+                    tickspace_hz=args.tickspace_hz,
                 )
             else:
                 component_results = _maybe_apply_flattening_to_component_results(args, component_results)
                 if args.spectrasave is not None:
                     _export_selected_spectrum(args, component_results, component_track2)
-                plot_fn = (
-                    plot_component_pair_frequency_grid_single_row_groups
-                    if args.only == "sliding"
-                    else plot_component_pair_frequency_grid
-                )
-                fig = plot_fn(
+                fig = plot_component_pair_frequency_grid(
                     component_results,
                     fft_log=args.fft_log,
                     welch_log=args.welch_log,
@@ -890,7 +918,7 @@ def main() -> int:
                     time_interval=tuple(args.time_interval_s) if args.time_interval_s is not None else None,
                     cmap_index=args.cm,
                     title=args.title,
-                    tickspace_hz=args.tickspace,
+                    tickspace_hz=args.tickspace_hz,
                 )
         render_figure(fig, save=args.save)
         return 0

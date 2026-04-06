@@ -24,7 +24,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", default="CDX_10IC", nargs='?')
     parser.add_argument("--component", default="x")
-    parser.add_argument("--bond-spacing-mode", default="comoving")
+    parser.add_argument("--bond-spacing-mode", default="purecomoving")
     parser.add_argument("--json", required=True, help="Path to the taxonomy JSON file")
     args = parser.parse_args()
 

@@ -11,7 +11,7 @@ import numpy as np
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from analysis.plotting.common import render_figure
+from analysis.plotting.common import ensure_parent_dir, render_figure
 from analysis.tools.bond_phase import (
     bond_phase_table_from_result,
     build_bond_projection_factors,
@@ -109,6 +109,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="Hide the dotted zero reference line.",
     )
     parser.set_defaults(show_zero=True)
+    peak_label_group = parser.add_mutually_exclusive_group()
+    peak_label_group.add_argument(
+        "--peak-labels",
+        dest="show_peak_labels",
+        action="store_true",
+        help="Show peak labels/titles on the plot (default).",
+    )
+    peak_label_group.add_argument(
+        "--no-peak-labels",
+        dest="show_peak_labels",
+        action="store_false",
+        help="Hide peak labels/titles on the plot.",
+    )
+    parser.set_defaults(show_peak_labels=True)
     parser.add_argument(
         "--forcereal",
         action="store_true",
@@ -150,6 +164,19 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         default=0.05,
         help="Minimum retained reference amplitude fraction for gauge windows. Default: 0.05",
+    )
+    parser.add_argument(
+        "--absvalues",
+        "--absvalue",
+        action="store_true",
+        dest="absvalues",
+        help="Use absolute values for wavefunctions instead of projecting phases.",
+    )
+    parser.add_argument(
+        "--max-panels",
+        type=int,
+        default=6,
+        help="Maximum number of peak panels subplots per figure window. Excess panels spawn additional windows. Default: 6",
     )
     return parser
 
@@ -274,41 +301,46 @@ def main() -> int:
         if len(records) == 0:
             raise ValueError(f"No bond records were produced for dataset '{args.dataset}'")
 
-        reference_bond_zero = (
-            int(args.reference_bond) - 1 if args.reference_bond is not None else _default_reference_bond(records)
-        )
         bond_ids_zero = sorted({int(record.entity_id) for record in records})
-        if reference_bond_zero not in bond_ids_zero:
-            raise ValueError(
-                f"Reference bond {reference_bond_zero + 1} is not in the enabled bonds: "
-                f"{[bond_id + 1 for bond_id in bond_ids_zero]}"
-            )
+        projection_factors_by_peak = None
+        flip_bond_ids = []
+        reference_bond_zero = None
 
-        bond_phase_result = estimate_bond_peak_phases(
-            records,
-            peaks,
-            reference_bond_id=reference_bond_zero,
-            reference_peak_index=args.reference_peak_index,
-            welch_len_s=args.welch_len_s,
-            welch_overlap_fraction=args.welch_overlap,
-            search_width_hz=args.integration_window,
-            min_reference_fraction=args.min_reference_fraction,
-            longest=args.longest,
-            handlenan=args.handlenan,
-        )
-        phase_table = bond_phase_table_from_result(bond_phase_result)
-        flip_bond_ids = _parse_flip_args([*args.flip, *args.flipmode], bond_ids_zero)
-        phase_table = transform_bond_phase_table(
-            phase_table,
-            flip_bond_ids=flip_bond_ids,
-            forcereal=args.forcereal,
-            posphase=args.posphase,
-        )
-        projection_factors_by_peak = build_bond_projection_factors(
-            phase_table,
-            peaks,
-            [int(record.entity_id) for record in records],
-        )
+        if not args.absvalues:
+            reference_bond_zero = (
+                int(args.reference_bond) - 1 if args.reference_bond is not None else _default_reference_bond(records)
+            )
+            if reference_bond_zero not in bond_ids_zero:
+                raise ValueError(
+                    f"Reference bond {reference_bond_zero + 1} is not in the enabled bonds: "
+                    f"{[bond_id + 1 for bond_id in bond_ids_zero]}"
+                )
+
+            bond_phase_result = estimate_bond_peak_phases(
+                records,
+                peaks,
+                reference_bond_id=reference_bond_zero,
+                reference_peak_index=args.reference_peak_index,
+                welch_len_s=args.welch_len_s,
+                welch_overlap_fraction=args.welch_overlap,
+                search_width_hz=args.integration_window,
+                min_reference_fraction=args.min_reference_fraction,
+                longest=args.longest,
+                handlenan=args.handlenan,
+            )
+            phase_table = bond_phase_table_from_result(bond_phase_result)
+            flip_bond_ids = _parse_flip_args([*args.flip, *args.flipmode], bond_ids_zero)
+            phase_table = transform_bond_phase_table(
+                phase_table,
+                flip_bond_ids=flip_bond_ids,
+                forcereal=args.forcereal,
+                posphase=args.posphase,
+            )
+            projection_factors_by_peak = build_bond_projection_factors(
+                phase_table,
+                peaks,
+                [int(record.entity_id) for record in records],
+            )
 
         peak_targets = [(idx, peaks[idx]) for idx in range(len(peaks))]
         profiles = compute_localization_profiles(
@@ -363,7 +395,10 @@ def main() -> int:
             title = args.title
         else:
             mode_desc = "highest bin" if args.highest_bin else "sqrt(integrated power)"
-            phase_desc = "real-projected" if args.forcereal else "phase-projected"
+            if args.absvalues:
+                phase_desc = "absolute values"
+            else:
+                phase_desc = "real-projected" if args.forcereal else "phase-projected"
             title = (
                 f"Bond Wavefunctions | {args.dataset} | "
                 f"{'Welch' if args.welch else 'FFT'} | {mode_desc} | {phase_desc}"
@@ -375,25 +410,70 @@ def main() -> int:
         print(f"Peaks file: {peaks_path}")
         print(f"Peaks (Hz): {peaks}")
         print(f"Bonds: {[bond_id + 1 for bond_id in bond_ids_zero]}")
-        print(f"Reference bond: {reference_bond_zero + 1}")
-        print(f"Reference peak index: {args.reference_peak_index}")
+        if not args.absvalues and reference_bond_zero is not None:
+            print(f"Reference bond: {reference_bond_zero + 1}")
+            print(f"Reference peak index: {args.reference_peak_index}")
         print(f"Integration window half-width (Hz): {args.integration_window}")
         print(f"Amplitude mode: {'highest bin' if args.highest_bin else 'sqrt(integrated power)'}")
-        if flip_bond_ids:
-            print(f"Flipped bonds: {[bond_id + 1 for bond_id in flip_bond_ids]}")
-        if args.forcereal:
-            print("Phase snap: forced to {0, pi}")
+        if not args.absvalues:
+            if flip_bond_ids:
+                print(f"Flipped bonds: {[bond_id + 1 for bond_id in flip_bond_ids]}")
+            if args.forcereal:
+                print("Phase snap: forced to {0, pi}")
+        else:
+            print("Phase mode: absolute values")
 
-        fig = localize_module.plot_localization_profiles(
-            profiles,
-            xlabel="Bond Index",
-            title=title,
-            line_color="black",
-            diagnostics_by_entity=diagnostics_by_entity,
-            one_fig=args.one_fig,
-            show_zero=args.show_zero,
-        )
-        render_figure(fig, save=args.save)
+        max_panels = int(args.max_panels)
+        if max_panels < 1:
+            print("Error: --max-panels must be >= 1", file=sys.stderr)
+            return 1
+
+        n_profiles = len(profiles)
+        n_figs = 1 if args.one_fig else max(1, (n_profiles + max_panels - 1) // max_panels)
+
+        figs = []
+        for fig_idx in range(n_figs):
+            if n_figs == 1:
+                chunk_profiles = profiles
+                chunk_diagnostics = diagnostics_by_entity
+                fig_title = title
+            else:
+                start = fig_idx * max_panels
+                end = min(start + max_panels, n_profiles)
+                chunk_profiles = profiles[start:end]
+                if diagnostics_by_entity is not None:
+                    chunk_diagnostics = {
+                        label: diags[start:end] for label, diags in diagnostics_by_entity.items()
+                    }
+                else:
+                    chunk_diagnostics = None
+                fig_title = f"{title} ({fig_idx + 1}/{n_figs})"
+
+            fig = localize_module.plot_localization_profiles(
+                chunk_profiles,
+                xlabel="Bond Index",
+                title=fig_title,
+                line_color="black",
+                diagnostics_by_entity=chunk_diagnostics,
+                one_fig=args.one_fig,
+                show_zero=args.show_zero,
+                show_peak_labels=args.show_peak_labels,
+            )
+            if args.save is not None:
+                save_path = args.save if n_figs == 1 else f"{args.save}_{fig_idx + 1}"
+                save_path = ensure_parent_dir(save_path)
+                fig.savefig(save_path, dpi=300)
+                print(f"Plot saved to: {save_path}")
+            figs.append(fig)
+
+        import matplotlib.pyplot as _plt
+        if len(figs) > 1:
+            for fig in figs:
+                _plt.figure(fig.number)
+            _plt.show(block=False)
+            _plt.show()
+        else:
+            render_figure(figs[0], save=None)
         return 0
     except Exception as exc:
         print(f"Error: {exc}", file=sys.stderr)

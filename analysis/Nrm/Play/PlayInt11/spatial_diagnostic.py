@@ -73,7 +73,7 @@ def main():
     dataset = "CDX_10IC"
     component = "x"
     
-    bond_dataset = load_bond_signal_dataset(dataset=f"{dataset}_{component}", bond_spacing_mode="comoving", component=component)
+    bond_dataset = load_bond_signal_dataset(dataset=f"{dataset}_{component}", bond_spacing_mode="purecomoving", component=component)
     track2 = load_track2_dataset(dataset=f"{dataset}_{component}")
     t_raw = track2.frame_times_s
     

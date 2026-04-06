@@ -35,8 +35,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--bond-spacing-mode",
-        choices=("comoving", "default"),
-        default="comoving",
+        choices=("purecomoving", "default"),
+        default="purecomoving",
         help="Which bond spacing mode to flatten (default comoving).",
     )
     parser.add_argument(

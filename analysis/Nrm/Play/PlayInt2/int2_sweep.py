@@ -30,7 +30,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--show", action="store_true", help="Show figures.")
     parser.add_argument("--welch-len-s", type=float, default=100.0)
     parser.add_argument("--welch-overlap", type=float, default=0.5)
-    parser.add_argument("--bond-spacing-mode", choices=("default", "comoving"), default="comoving")
+    parser.add_argument("--bond-spacing-mode", choices=("default", "purecomoving"), default="purecomoving")
     parser.add_argument("--peak-prominence", type=float, default=0.05)
     parser.add_argument("--merge-hz", type=float, default=0.12)
     parser.add_argument("--ambiguity-gap-hz", type=float, default=0.05)

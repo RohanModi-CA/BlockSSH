@@ -25,7 +25,7 @@ def main():
     parser.add_argument("dataset", default="CDX_10IC", nargs='?')
     parser.add_argument("--json", required=True)
     parser.add_argument("--component", default="x")
-    parser.add_argument("--bond-spacing-mode", default="comoving")
+    parser.add_argument("--bond-spacing-mode", default="purecomoving")
     args = parser.parse_args()
 
     with open(args.json, 'r') as f:

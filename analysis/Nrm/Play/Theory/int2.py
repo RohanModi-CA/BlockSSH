@@ -90,7 +90,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--min-window-segments", type=int, default=4)
     parser.add_argument("--peak-prominence", type=float, default=0.02)
     parser.add_argument("--merge-hz", type=float, default=0.06)
-    parser.add_argument("--bond-spacing-mode", choices=("default", "comoving"), default="comoving")
+    parser.add_argument("--bond-spacing-mode", choices=("default", "purecomoving"), default="purecomoving")
     parser.add_argument("--snap-bins", type=int, default=2)
     parser.add_argument("--target-beta", type=float, default=0.91, help="Data-side dimensionless beta target to compare against.")
     return parser

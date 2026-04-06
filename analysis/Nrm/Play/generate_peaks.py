@@ -28,7 +28,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", help="Dataset name, e.g., CDX_10IC")
     parser.add_argument("--component", default="x")
-    parser.add_argument("--bond-spacing-mode", default="comoving")
+    parser.add_argument("--bond-spacing-mode", default="purecomoving")
     args = parser.parse_args()
 
     dataset = args.dataset

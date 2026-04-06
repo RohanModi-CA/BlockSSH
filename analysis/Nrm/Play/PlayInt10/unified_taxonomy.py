@@ -136,7 +136,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", default="CDX_10IC", nargs='?')
     parser.add_argument("--component", default="x")
-    parser.add_argument("--bond-spacing-mode", default="comoving")
+    parser.add_argument("--bond-spacing-mode", default="purecomoving")
     parser.add_argument("--seed-f", type=float, default=0.41)
     parser.add_argument("--n-peaks", type=int, default=50)
     parser.add_argument("--p-thresh", type=float, default=0.05)

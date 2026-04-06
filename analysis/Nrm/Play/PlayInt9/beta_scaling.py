@@ -46,7 +46,7 @@ def main():
     parser.add_argument("dataset", default="CDX_10IC", nargs='?')
     parser.add_argument("--json", required=True, help="Path to taxonomy JSON")
     parser.add_argument("--component", default="x")
-    parser.add_argument("--bond-spacing-mode", default="comoving")
+    parser.add_argument("--bond-spacing-mode", default="purecomoving")
     parser.add_argument("--window-s", type=float, default=15.0)
     args = parser.parse_args()
 

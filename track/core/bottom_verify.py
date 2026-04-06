@@ -20,10 +20,13 @@ def _load_vc(path: str | Path) -> VideoCentroids:
     return VideoCentroids.from_dict(load_msgpack(path))
 
 
-def _convert_angle_component_to_cos2(track2a):
+def _unwrap_angle_component(track2a):
     arr = np.asarray(track2a.xPositions, dtype=float)
-    finite = np.isfinite(arr)
-    arr[finite] = np.cos(2.0 * arr[finite])
+    # Unwrap each column (persistent block identity) independently over time
+    for col in range(arr.shape[1]):
+        mask = np.isfinite(arr[:, col])
+        if np.any(mask):
+            arr[mask, col] = np.unwrap(arr[mask, col], period=np.pi)
     track2a.xPositions = arr.tolist()
     return track2a
 
@@ -101,7 +104,7 @@ def run_process_verify(
         trim_weak_ends=trim_weak_ends,
         min_end_support=min_end_support,
     )
-    t2a = _convert_angle_component_to_cos2(t2a)
+    t2a = _unwrap_angle_component(t2a)
 
     out_x = component_track2_path(dataset, "x")
     out_y = component_track2_path(dataset, "y")
@@ -133,7 +136,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Verify bottom black-blob track1 detections, repair bad segments if possible, "
-            "and write X / Y / processed-angle permanence datasets."
+            "and write X / Y / angle permanence datasets."
         )
     )
     parser.add_argument("name", help="Dataset name, e.g. IMG_9282 or 9282")

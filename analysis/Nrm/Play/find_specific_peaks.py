@@ -23,7 +23,7 @@ from analysis.tools.io import load_track2_dataset
 def main():
     dataset = "CDX_10IC"
     component = "x"
-    bond_spacing_mode = "comoving"
+    bond_spacing_mode = "purecomoving"
     
     print(f"Loading dataset {dataset} ({component}) with {bond_spacing_mode}...")
     bond_dataset = load_bond_signal_dataset(

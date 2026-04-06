@@ -7,6 +7,8 @@ The public interface is:
     overlay = draw_detections(bgr, dets, frame_num, y_offset)
 """
 
+import math
+
 import cv2
 import numpy as np
 from typing import List
@@ -44,6 +46,28 @@ def is_bbox_near_border(x: int, y: int, w: int, h: int,
         or x + w >= img_w - margin
         or y + h >= img_h - margin
     )
+
+
+def component_orientation_from_mask(component_mask: np.ndarray) -> float:
+    ys, xs = np.nonzero(component_mask)
+    if len(xs) < 2:
+        return float("nan")
+
+    x = xs.astype(np.float64)
+    y = ys.astype(np.float64)
+    x -= x.mean()
+    y -= y.mean()
+
+    mu20 = np.mean(x * x)
+    mu02 = np.mean(y * y)
+    mu11 = np.mean(x * y)
+    theta = 0.5 * math.atan2(-2.0 * mu11, mu02 - mu20)
+
+    if theta >= math.pi / 2:
+        theta -= math.pi
+    elif theta < -math.pi / 2:
+        theta += math.pi
+    return float(theta)
 
 
 # ---------------------------------------------------------------------------
@@ -142,11 +166,13 @@ def _detect_color(
 
         ring_white = cv2.bitwise_and(ring, white_mask[y1:y2, x1:x2])
         if cv2.countNonZero(ring_white) / n_ring >= min_white_frac:
+            angle = component_orientation_from_mask(local_comp)
             dets.append(DetectionRecord(
                 x=float(cx),
                 y=float(cy) + y_offset,
                 color=color_char,
                 area=float(area),
+                angle=angle,
             ))
 
     return dets
@@ -235,14 +261,21 @@ def draw_detections(
 
     for d in detections:
         color = (0, 0, 255) if d.color == 'r' else (0, 255, 0)
+        x = int(d.x)
+        y = int(d.y - y_offset)
         cv2.drawMarker(
             out,
-            (int(d.x), int(d.y - y_offset)),
+            (x, y),
             color,
             markerType=cv2.MARKER_CROSS,
             markerSize=25,
             thickness=3,
         )
+        if np.isfinite(d.angle):
+            length = 26
+            dx = int(round(math.sin(d.angle) * length))
+            dy = int(round(math.cos(d.angle) * length))
+            cv2.line(out, (x - dx, y - dy), (x + dx, y + dy), (0, 255, 255), 2)
 
     text = f"Frame: {frame_num} | Det: {len(detections)} (R:{n_r}, G:{n_g})"
     if label:
