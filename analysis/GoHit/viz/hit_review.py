@@ -41,6 +41,7 @@ from analysis.GoHit.tools.hits import (
     load_legacy_hit_times,
     save_hit_catalog,
 )
+from analysis.GoHit.tools.cli import describe_hit_region_settings
 
 
 @dataclass(frozen=True)
@@ -659,6 +660,13 @@ def main() -> int:
         threshold_val, bg_med, bg_s = _robust_threshold(excess_broadband, args.threshold_sigma)
 
     print(f"\nTotal hits for editing: {len(hit_times)}")
+    for line in describe_hit_region_settings(
+        posthit=bool(args.posthit),
+        delay=float(args.delay),
+        exclude_before=float(args.exclude_before),
+        hit_window=float(args.hit_window),
+    ):
+        print(line)
 
     editor = HitEditor(
         args=args,

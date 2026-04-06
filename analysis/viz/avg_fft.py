@@ -115,6 +115,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--only", choices=["fft", "sliding"], default=None)
     add_flattening_args(parser)
     add_spectrasave_arg(parser)
+    parser.add_argument(
+        "--interp-kind",
+        default="cubic",
+        choices=["linear", "quadratic", "cubic"],
+        help="Interpolation kind for common frequency grid. Default: cubic",
+    )
+    parser.add_argument(
+        "--coarsest",
+        action="store_true",
+        help="Use the coarsest (max df) frequency grid instead of finest (default)",
+    )
     return parser
 
 
@@ -409,6 +420,8 @@ def main() -> int:
                     average_domain=args.average_domain,
                     lowest_freq=args.freq_min_hz,
                     highest_freq=args.freq_max_hz,
+                    grid_mode="coarsest" if args.coarsest else "finest",
+                    interp_kind=args.interp_kind,
                 )
                 result, flattening = _maybe_apply_flattening(raw_result, args)
                 raw_results_by_component[logical_component] = raw_result
@@ -548,6 +561,8 @@ def main() -> int:
                 average_domain=args.average_domain,
                 lowest_freq=args.freq_min_hz,
                 highest_freq=args.freq_max_hz,
+                grid_mode="coarsest" if args.coarsest else "finest",
+                interp_kind=args.interp_kind,
             )
             result, flattening = _maybe_apply_flattening(raw_result, args)
 

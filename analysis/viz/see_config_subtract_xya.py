@@ -214,6 +214,17 @@ def build_parser() -> argparse.ArgumentParser:
     add_frequency_window_args(parser)
     add_tickspace_arg(parser)
     add_flattening_args(parser)
+    parser.add_argument(
+        "--interp-kind",
+        default="cubic",
+        choices=["linear", "quadratic", "cubic"],
+        help="Interpolation kind for common frequency grid. Default: cubic",
+    )
+    parser.add_argument(
+        "--coarsest",
+        action="store_true",
+        help="Use the coarsest (max df) frequency grid instead of finest (default)",
+    )
 
     welch_group = parser.add_mutually_exclusive_group()
     welch_group.add_argument(
@@ -561,6 +572,8 @@ def _compute_average_result_from_records(args, records: list, *, label: str) -> 
         average_domain=args.average_domain,
         lowest_freq=args.freq_min_hz,
         highest_freq=args.freq_max_hz,
+        grid_mode="coarsest" if args.coarsest else "finest",
+        interp_kind=args.interp_kind,
     )
 
 
@@ -629,6 +642,8 @@ def _compute_component_results(args, groups: list[ShowGroup]):
             average_domain=args.average_domain,
             lowest_freq=args.freq_min_hz,
             highest_freq=args.freq_max_hz,
+            grid_mode="coarsest" if args.coarsest else "finest",
+            interp_kind=args.interp_kind,
         )
         results_by_component[logical_component] = result
 
@@ -1286,6 +1301,8 @@ def _logsubtract_main(args, rel_low, rel_high) -> int:
             average_domain=args.average_domain,
             lowest_freq=args.freq_min_hz,
             highest_freq=args.freq_max_hz,
+            grid_mode="coarsest" if args.coarsest else "finest",
+            interp_kind=args.interp_kind,
         )
         results_by_component[logical_component] = result
 

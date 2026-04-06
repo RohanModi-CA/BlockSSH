@@ -19,6 +19,7 @@ from analysis.GoHit.tools.hits import (
     build_posthit_regions,
     load_catalog_if_available,
 )
+from analysis.GoHit.tools.cli import describe_hit_region_settings
 from analysis.tools.bonds import load_bond_signal_dataset
 from analysis.tools.flattening import (
     apply_global_baseline_processing_to_results,
@@ -346,10 +347,13 @@ def main() -> int:
 
         print(f"Dataset: {args.dataset}")
         print(f"Catalog hits: {len(catalog.hit_times_s)}")
-        print(f"Region mode: {args.region_mode}")
-        print(f"Delay: {args.delay:g} s")
-        print(f"Exclude before: {args.exclude_before:g} s")
-        print(f"Hit window: {args.hit_window:g} s")
+        for line in describe_hit_region_settings(
+            posthit=(args.region_mode == "posthit"),
+            delay=float(args.delay),
+            exclude_before=float(args.exclude_before),
+            hit_window=float(args.hit_window),
+        ):
+            print(line)
         print(f"Usable regions: {len(regions)}")
         print(f"Bonds used: {bond_matrix.shape[1]}")
         print(f"Blocks used: {block_matrix.shape[1]}")

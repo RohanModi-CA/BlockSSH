@@ -243,6 +243,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     add_flattening_args(parser)
     add_spectrasave_arg(parser)
+    parser.add_argument(
+        "--interp-kind",
+        default="cubic",
+        choices=["linear", "quadratic", "cubic"],
+        help="Interpolation kind for common frequency grid. Default: cubic",
+    )
+    parser.add_argument(
+        "--coarsest",
+        action="store_true",
+        help="Use the coarsest (max df) frequency grid instead of finest (default)",
+    )
     return parser
 
 
@@ -566,7 +577,7 @@ def _export_single_spectrum(args, results: list, track2) -> None:
     print(f"Spectrum saved to: {saved}")
 
 
-def _average_result_from_pair_results(results: list, *, dataset_name: str, use_welch: bool) -> AverageSpectrumResult:
+def _average_result_from_pair_results(results: list, *, dataset_name: str, use_welch: bool, args) -> AverageSpectrumResult:
     contributions: list[SpectrumContribution] = []
 
     for result in results:
@@ -597,7 +608,11 @@ def _average_result_from_pair_results(results: list, *, dataset_name: str, use_w
     if len(contributions) == 0:
         raise ValueError("No valid bond spectra were available to average")
 
-    averaged = compute_mean_amplitude_spectrum(contributions)
+    averaged = compute_mean_amplitude_spectrum(
+        contributions,
+        grid_mode="coarsest" if args.coarsest else "finest",
+        interp_kind=args.interp_kind,
+    )
     return AverageSpectrumResult(
         freq_grid=averaged.freq_grid,
         avg_amp=averaged.mean_amplitude,
@@ -773,7 +788,7 @@ def main() -> int:
                 results = _filter_to_only_pairs(results, set(args.only_pairs))
             if args.average:
                 dataset_name = track2.dataset_name or Path(track2.track2_path).resolve().parent.name
-                averaged_raw = _average_result_from_pair_results(results, dataset_name=dataset_name, use_welch=args.welch)
+                averaged_raw = _average_result_from_pair_results(results, dataset_name=dataset_name, use_welch=args.welch, args=args)
                 flattened_by_component, flattening_by_component = _maybe_apply_flattening(
                     args,
                     {"x": averaged_raw},
@@ -847,6 +862,7 @@ def main() -> int:
                         results,
                         dataset_name=(component_track2[component].dataset_name or Path(component_track2[component].track2_path).resolve().parent.name),
                         use_welch=args.welch,
+                        args=args,
                     )
                     for component, results in component_results.items()
                 }

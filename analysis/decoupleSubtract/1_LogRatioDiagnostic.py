@@ -47,6 +47,17 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Reference band for flattening in Hz. Default: 20 30")
     parser.add_argument("--baseline-match", choices=["none", "x", "y", "a"], default="x",
                         help="Component to baseline-match all others to. Default: x")
+    parser.add_argument(
+        "--interp-kind",
+        default="cubic",
+        choices=["linear", "quadratic", "cubic"],
+        help="Interpolation kind for common frequency grid. Default: cubic",
+    )
+    parser.add_argument(
+        "--coarsest",
+        action="store_true",
+        help="Use the coarsest (max df) frequency grid instead of finest (default)",
+    )
     return parser
 
 
@@ -82,6 +93,8 @@ def compute_component_spectra(args) -> OrderedDict[str, object]:
             contributions, normalize_mode=args.normalize,
             relative_range=tuple(args.relative_range),
             average_domain=args.average_domain,
+            grid_mode="coarsest" if args.coarsest else "finest",
+            interp_kind=args.interp_kind,
         )
         results[component] = avg_result
         print(f"    {len(contributions)} contributors, "

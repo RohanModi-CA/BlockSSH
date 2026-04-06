@@ -53,6 +53,7 @@ def plot_localization_profiles(
     diagnostics_by_entity: dict[str, list[LocalizationPeakDiagnostic]] | None = None,
     one_fig: bool = False,
     show_zero: bool = True,
+    show_peak_labels: bool = True,
 ):
     if len(profiles) == 0:
         raise ValueError("No localization profiles to plot")
@@ -147,23 +148,26 @@ def plot_localization_profiles(
                 ymax = float(np.max(finite))
                 span = ymax - ymin
                 scaled = (y_vals - ymin) / span if span > 1e-12 else np.zeros_like(y_vals)
+                zero_y = offset + ((0.0 - ymin) / span if span > 1e-12 else 0.0)
             else:
                 scaled = np.zeros_like(y_vals)
+                zero_y = offset
 
             display_y = scaled + offset
             ax.plot(x_vals, display_y, **line_kwargs)
             if show_zero:
-                ax.axhline(offset, color="0.55", linewidth=1.0, alpha=0.9, linestyle=":")
-            ax.text(
-                0.02,
-                offset + 0.5,
-                f"Peak {profile.peak_index}: {profile.frequency} Hz",
-                transform=ax.get_yaxis_transform(),
-                ha="left",
-                va="center",
-                fontsize=9,
-                bbox={"boxstyle": "round,pad=0.2", "facecolor": "white", "alpha": 0.8, "edgecolor": "0.85"},
-            )
+                ax.axhline(zero_y, color="0.55", linewidth=1.0, alpha=0.9, linestyle=":")
+            if show_peak_labels:
+                ax.text(
+                    0.02,
+                    offset + 0.5,
+                    f"Peak {profile.peak_index}: {profile.frequency} Hz",
+                    transform=ax.get_yaxis_transform(),
+                    ha="left",
+                    va="center",
+                    fontsize=9,
+                    bbox={"boxstyle": "round,pad=0.2", "facecolor": "white", "alpha": 0.8, "edgecolor": "0.85"},
+                )
 
         ax.set_ylabel("Arb. Offset")
         ax.grid(True, alpha=0.3)
@@ -181,7 +185,8 @@ def plot_localization_profiles(
 
             if x_vals.size == 0:
                 ax.text(0.5, 0.5, "No Data", transform=ax.transAxes, ha="center", va="center")
-                ax.set_title(f"Peak {profile.peak_index}: {profile.frequency} Hz")
+                if show_peak_labels:
+                    ax.set_title(f"Peak {profile.peak_index}: {profile.frequency} Hz")
                 if xticks.size > 0:
                     ax.set_xticks(xticks)
                     ax.tick_params(axis="x", labelbottom=True)
@@ -199,7 +204,8 @@ def plot_localization_profiles(
                         color=line_kwargs["color"],
                     )
 
-                ax.set_title(f"Peak {profile.peak_index}: {profile.frequency} Hz")
+                if show_peak_labels:
+                    ax.set_title(f"Peak {profile.peak_index}: {profile.frequency} Hz")
                 ax.set_ylabel(ylabel)
                 ax.grid(True, alpha=0.3)
 

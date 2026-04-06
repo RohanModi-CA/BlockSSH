@@ -81,6 +81,7 @@ def _mark_bad_frames(frames, ref_spacing: float, ratio_min: float, ratio_max: fl
     n = len(frames)
     is_bad = np.zeros(n, dtype=bool)
     first_nz = -1
+    prev_count = None
 
     for k, f in enumerate(frames):
         dets = f.detections
@@ -92,17 +93,20 @@ def _mark_bad_frames(frames, ref_spacing: float, ratio_min: float, ratio_max: fl
                 is_bad[k] = True
             continue
 
+        if prev_count is not None and abs(len(dets) - prev_count) > 1:
+            is_bad[k] = True
+
         x = np.array([d.x for d in dets], dtype=float)
         c = np.array([d.color for d in dets])
 
         if np.any(~np.isfinite(x)) or np.any(np.diff(x) < 0) or np.any(~np.isin(c, ['r', 'g'])):
             is_bad[k] = True
-            continue
-
-        if len(dets) >= 2:
+        elif len(dets) >= 2:
             sr = np.diff(x) / ref_spacing
             if np.any(c[:-1] == c[1:]) or np.any((sr < ratio_min) | (sr > ratio_max)):
                 is_bad[k] = True
+
+        prev_count = len(dets)
 
     return is_bad
 
@@ -305,7 +309,18 @@ def verify_and_sanitize(
             for k in range(idx_start, idx_end + 1):
                 alpha = (frames[k].frame_time_s - tL) / (tR - tL)
                 sk = int(round(S_shift + alpha * best_offset))
-                ek = int(round(len(DL) + S_shift - 1 + alpha * (len(DR) - len(DL))))
+                len_interp = len(DL) + alpha * (len(DR) - len(DL))
+                if len(DR) > len(DL):
+                    n_vis = int(math.floor(len_interp))
+                elif len(DR) < len(DL):
+                    n_vis = int(math.ceil(len_interp))
+                else:
+                    n_vis = int(round(len_interp))
+
+                n_vis = max(1, min(n_vis, N_union))
+                sk = max(0, min(sk, N_union - 1))
+                ek = min(N_union - 1, sk + n_vis - 1)
+                sk = max(0, ek - n_vis + 1)
                 frames[k].detections = [
                     DetectionRecord(
                         x=float(U_XL[u] + alpha * (U_XR[u] - U_XL[u])),
@@ -336,21 +351,28 @@ def verify_and_sanitize(
             all_diffs.extend(np.diff([d.x for d in f.detections]))
 
     still_bad = []
+    prev_count = None
     for k, f in enumerate(frames):
         dets = f.detections
         if len(dets) == 0:
             if first_nz != -1 and k >= first_nz:
                 still_bad.append(k)
             continue
+        if prev_count is not None and abs(len(dets) - prev_count) > 1:
+            still_bad.append(k)
+            prev_count = len(dets)
+            continue
         x = np.array([d.x for d in dets], dtype=float)
         c = np.array([d.color for d in dets])
         if np.any(~np.isfinite(x)) or np.any(np.diff(x) < 0) or np.any(~np.isin(c, ['r', 'g'])):
             still_bad.append(k)
+            prev_count = len(dets)
             continue
         if len(dets) >= 2:
             sr = np.diff(x) / ref_spacing
             if np.any(c[:-1] == c[1:]) or np.any((sr < ratio_min) | (sr > ratio_max)):
                 still_bad.append(k)
+        prev_count = len(dets)
 
     if still_bad:
         preview = ", ".join(map(str, still_bad[:10])) + ("…" if len(still_bad) > 10 else "")

@@ -109,6 +109,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="Hide the dotted zero reference line.",
     )
     parser.set_defaults(show_zero=True)
+    peak_label_group = parser.add_mutually_exclusive_group()
+    peak_label_group.add_argument(
+        "--peak-labels",
+        dest="show_peak_labels",
+        action="store_true",
+        help="Show peak labels/titles on the plot (default).",
+    )
+    peak_label_group.add_argument(
+        "--no-peak-labels",
+        dest="show_peak_labels",
+        action="store_false",
+        help="Hide peak labels/titles on the plot.",
+    )
+    parser.set_defaults(show_peak_labels=True)
     parser.add_argument(
         "--forcereal",
         action="store_true",
@@ -443,6 +457,7 @@ def main() -> int:
                 diagnostics_by_entity=chunk_diagnostics,
                 one_fig=args.one_fig,
                 show_zero=args.show_zero,
+                show_peak_labels=args.show_peak_labels,
             )
             if args.save is not None:
                 save_path = args.save if n_figs == 1 else f"{args.save}_{fig_idx + 1}"

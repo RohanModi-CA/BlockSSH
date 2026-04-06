@@ -12,7 +12,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from analysis.plotting.common import ensure_parent_dir, render_figure
-from analysis.GoHit.tools.cli import add_hit_mode_args, add_hit_region_args
+from analysis.GoHit.tools.cli import add_hit_mode_args, add_hit_region_args, describe_hit_region_settings
 from analysis.GoHit.tools.hits import (
     build_interhit_regions,
     build_posthit_regions,
@@ -181,6 +181,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="Hide the dotted zero reference line.",
     )
     parser.set_defaults(show_zero=True)
+    peak_label_group = parser.add_mutually_exclusive_group()
+    peak_label_group.add_argument(
+        "--peak-labels",
+        dest="show_peak_labels",
+        action="store_true",
+        help="Show peak labels/titles on the plot (default).",
+    )
+    peak_label_group.add_argument(
+        "--no-peak-labels",
+        dest="show_peak_labels",
+        action="store_false",
+        help="Hide peak labels/titles on the plot.",
+    )
+    parser.set_defaults(show_peak_labels=True)
     parser.add_argument(
         "--forcereal",
         action="store_true",
@@ -371,6 +385,7 @@ def main() -> int:
         return 1
 
     try:
+        explicit_welch = "--welch" in sys.argv[1:]
         peaks_path = resolve_peaks_csv(args.peaks)
         peaks = load_peaks_csv(peaks_path)
         temp_config = write_temp_component_selection_config(
@@ -389,6 +404,15 @@ def main() -> int:
         if len(records) == 0:
             raise ValueError(f"No bond records were produced for dataset '{args.dataset}'")
 
+        if args.flatten and args.welch:
+            if explicit_welch:
+                raise ValueError("GoHit Wavefunctions --flatten currently supports FFT mode only")
+            args.welch = False
+        if args.baseline_subtract and args.welch:
+            if explicit_welch:
+                raise ValueError("GoHit Wavefunctions --baseline_subtract currently supports FFT mode only")
+            args.welch = False
+
         bond_ids_zero = sorted({int(record.entity_id) for record in records})
         projection_factors_by_peak = None
         phase_table = None
@@ -396,7 +420,6 @@ def main() -> int:
         reference_bond_zero = None
 
         if args.hits:
-            explicit_welch = "--welch" in sys.argv[1:]
             if explicit_welch:
                 raise ValueError("GoHit Wavefunctions --hits does not support Welch mode")
             catalog = load_catalog_if_available(args.dataset)
@@ -625,12 +648,14 @@ def main() -> int:
         print(f"Bonds: {[bond_id + 1 for bond_id in bond_ids_zero]}")
         if args.hits:
             print(summarize_catalog(catalog))
-            print(f"Region mode: {'posthit' if args.posthit else 'interhit'}")
+            for line in describe_hit_region_settings(
+                posthit=bool(args.posthit),
+                delay=float(args.delay),
+                exclude_before=float(args.exclude_before),
+                hit_window=float(args.hit_window),
+            ):
+                print(line)
             print(f"Usable regions: {len(regions)}")
-            if args.posthit:
-                print(f"Posthit window (s): {args.hit_window}")
-            else:
-                print(f"Interhit trims (s): after={args.delay} before={args.exclude_before}")
         if not args.absvalues and reference_bond_zero is not None:
             print(f"Reference bond: {reference_bond_zero + 1}")
             print(f"Reference peak index: {args.reference_peak_index}")
@@ -682,6 +707,7 @@ def main() -> int:
                 diagnostics_by_entity=chunk_diagnostics,
                 one_fig=args.one_fig,
                 show_zero=args.show_zero,
+                show_peak_labels=args.show_peak_labels,
             )
             if args.save is not None:
                 save_path = _figure_save_path(args.save, fig_idx, n_figs)

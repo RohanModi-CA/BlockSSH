@@ -20,6 +20,7 @@ import os
 import sys
 import argparse
 import msgpack
+import numpy as np
 from dataclasses import asdict
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -49,6 +50,17 @@ def _save_msgpack(path: str, obj) -> None:
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with open(path, 'wb') as fh:
         fh.write(msgpack.packb(asdict(obj)))
+
+
+def _unwrap_angle_component(track2a):
+    arr = np.asarray(track2a.xPositions, dtype=float)
+    # Unwrap each persistent block column independently over time using pi periodicity.
+    for col in range(arr.shape[1]):
+        mask = np.isfinite(arr[:, col])
+        if np.any(mask):
+            arr[mask, col] = np.unwrap(arr[mask, col], period=np.pi)
+    track2a.xPositions = arr.tolist()
+    return track2a
 
 
 # ---------------------------------------------------------------------------
@@ -142,6 +154,7 @@ def main() -> None:
     t2_x.trackingResultsPath = t1_path
     t2_y.trackingResultsPath = t1_path
     t2_a.trackingResultsPath = t1_path
+    t2_a = _unwrap_angle_component(t2_a)
 
     # ---- Save ----
     _save_msgpack(t2_path, t2_x)

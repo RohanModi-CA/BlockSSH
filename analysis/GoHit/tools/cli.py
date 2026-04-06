@@ -41,3 +41,13 @@ def add_hit_region_args(parser: argparse.ArgumentParser) -> None:
         default=5.0,
         help="Window length in seconds for posthit regions when --hits is enabled. Default: 5.0",
     )
+
+
+def describe_hit_region_settings(*, posthit: bool, delay: float, exclude_before: float, hit_window: float) -> list[str]:
+    lines = [f"Region mode: {'posthit' if posthit else 'interhit'}"]
+    if posthit:
+        lines.append(f"Hit window (s): {float(hit_window):g}")
+    else:
+        lines.append(f"Delay (s): {float(delay):g}")
+        lines.append(f"Exclude before (s): {float(exclude_before):g}")
+    return lines

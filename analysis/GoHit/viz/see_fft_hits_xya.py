@@ -14,6 +14,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from analysis.GoHit.tools.cli import add_hit_mode_args, describe_hit_region_settings
 from analysis.GoHit.tools.hits import (
     HitRegion,
     build_interhit_regions,
@@ -21,7 +22,6 @@ from analysis.GoHit.tools.hits import (
     load_catalog_if_available,
     summarize_catalog,
 )
-from analysis.GoHit.tools.cli import add_hit_mode_args
 from analysis.GoHit.tools.region_spectra import compute_region_averaged_fft
 from analysis.plotting.common import ensure_parent_dir, render_figure
 from analysis.plotting.frequency import (
@@ -34,6 +34,11 @@ from analysis.tools.bonds import load_bond_signal_dataset
 from analysis.tools.io import load_track2_dataset
 from analysis.tools.models import FFTResult, PairFrequencyAnalysisResult
 from analysis.tools.signal import compute_complex_spectrogram, compute_one_sided_fft, normalize_processed_signal_rms, preprocess_signal
+from analysis.tools.spectrasave import (
+    build_default_spectrasave_name,
+    resolve_spectrasave_path,
+    save_spectrum_msgpack,
+)
 from analysis.viz import see_fft_xya as legacy_fft
 
 
@@ -138,7 +143,12 @@ def _analyze_component_results(args, *, base_dataset: str, component: str):
                 continue
             processed = processed_norm
 
-        region_average = compute_region_averaged_fft(processed, regions)
+        region_average = compute_region_averaged_fft(
+            processed,
+            regions,
+            grid_mode="coarsest" if args.coarsest else "finest",
+            interp_kind=args.interp_kind,
+        )
         fft_result = region_average.fft_result
         spectrogram_result = compute_complex_spectrogram(processed.y, processed.Fs, args.sliding_len_s)
         spectrogram_error = None if spectrogram_result is not None else "window too short"
@@ -165,7 +175,14 @@ def _analyze_component_results(args, *, base_dataset: str, component: str):
         approx_nyquist = 0.5 * approx_fs
         print(f"Approx sampling rate ({component}): {approx_fs:.4f} Hz | Approx Nyquist: {approx_nyquist:.4f} Hz")
     print(summarize_catalog(catalog))
-    print(f"Region mode: {'posthit' if args.posthit else 'interhit'} | usable regions: {len(regions)}")
+    for line in describe_hit_region_settings(
+        posthit=bool(args.posthit),
+        delay=float(args.delay),
+        exclude_before=float(args.exclude_before),
+        hit_window=float(args.hit_window),
+    ):
+        print(line)
+    print(f"Usable regions: {len(regions)}")
 
     return results, track2
 
@@ -229,17 +246,25 @@ def main() -> int:
             return 1
 
         if args.average:
-            averaged_raw_by_component = {
-                component: legacy_fft._average_result_from_pair_results(
-                    results,
-                    dataset_name=(
-                        component_track2[component].dataset_name
-                        or Path(component_track2[component].track2_path).resolve().parent.name
-                    ),
-                    use_welch=False,
-                )
-                for component, results in component_results.items()
-            }
+            averaged_raw_by_component = {}
+            for component, results in component_results.items():
+                try:
+                    averaged_raw_by_component[component] = legacy_fft._average_result_from_pair_results(
+                        results,
+                        dataset_name=(
+                            component_track2[component].dataset_name
+                            or Path(component_track2[component].track2_path).resolve().parent.name
+                        ),
+                        use_welch=False,
+                        args=args,
+                    )
+                except Exception as e:
+                    print(f"Warning: Skipping {component} averaging: {e}", file=sys.stderr)
+
+            if not averaged_raw_by_component:
+                print("Error: No valid bond spectra were available to average", file=sys.stderr)
+                return 1
+
             averaged_by_component, flattening_by_component = legacy_fft._maybe_apply_flattening(
                 args,
                 averaged_raw_by_component,
@@ -254,6 +279,37 @@ def main() -> int:
                 results_by_component=averaged_raw_by_component,
                 flattening_by_component=flattening_by_component,
             )
+
+            if args.spectrasave is not None:
+                available_components = list(averaged_by_component)
+                if len(available_components) == 1:
+                    component = available_components[0]
+                else:
+                    component = legacy_fft._prompt_save_component_choice(available_components, spectrum_kind="fft")
+
+                result = averaged_by_component[component]
+                default_name = build_default_spectrasave_name(dataset_name, "average-bonds", component, "fft")
+                export_path = resolve_spectrasave_path(
+                    args.spectrasave,
+                    default_name=default_name,
+                )
+                if export_path is not None:
+                    save_spectrum_msgpack(
+                        export_path,
+                        freq=result.freq_grid,
+                        amplitude=result.avg_amp,
+                        label=f"{dataset_name} average bonds {component} FFT",
+                        metadata={
+                            "sourceKind": "single",
+                            "spectrumKind": "fft",
+                            "dataset": dataset_name,
+                            "component": component,
+                            "averageBonds": True,
+                            "contributors": len(result.contributors),
+                        },
+                    )
+                    print(f"Spectrum saved to: {export_path}")
+
             if len(averaged_by_component) == 1:
                 only_component = next(iter(averaged_by_component))
                 fig = plot_average_spectrum(
