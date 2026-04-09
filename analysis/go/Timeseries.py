@@ -76,6 +76,12 @@ def build_parser() -> argparse.ArgumentParser:
         default="x",
         help="Component to display. Default: x",
     )
+    parser.add_argument(
+        "--only-index",
+        type=int,
+        default=None,
+        help="Show only one 1-indexed site/block or bond/pair, depending on mode.",
+    )
     parser.set_defaults(timeseriesnorm=True)
     return parser
 
@@ -108,6 +114,8 @@ def main() -> int:
         delegated.append("--timeseriesnorm")
     if args.not_bonds:
         delegated.append("--not-bonds")
+    if args.only_index is not None:
+        delegated.extend(["--only-index", str(args.only_index)])
 
     delegated.extend(passthrough)
 

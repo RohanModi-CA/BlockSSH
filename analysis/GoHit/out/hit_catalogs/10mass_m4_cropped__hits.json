@@ -1,0 +1,36 @@
+{
+  "dataset": "10mass_m4_cropped",
+  "detector": {
+    "baseline_window_s": 18.0,
+    "broadband_max_hz": 25.0,
+    "broadband_min_hz": 3.0,
+    "delay_s": 1.0,
+    "exclude_before_s": 1.0,
+    "hit_window_s": 5.0,
+    "min_hit_separation_s": 6.0,
+    "region_mode": "interhit",
+    "sliding_len_s": 1.5,
+    "smooth_window_s": 0.35,
+    "strength_window_s": 2.5,
+    "threshold_sigma": 3.0
+  },
+  "hit_times_s": [
+    4.954949999999883,
+    43.45308284379122,
+    88.8887999999979,
+    125.86464660710838,
+    162.23289679115103,
+    203.0027999999952,
+    262.0117499999938,
+    322.5221999999924,
+    372.2218499999912,
+    404.35394999999045,
+    442.8356334379986,
+    450.29984999998936,
+    482.1341229252994,
+    522.9724499999877,
+    564.8642999999867,
+    615.4648499999855
+  ],
+  "source_component": "x"
+}

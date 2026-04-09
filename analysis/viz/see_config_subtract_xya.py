@@ -6,6 +6,7 @@ if __package__ in (None, ""):
     from pathlib import Path
 
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import argparse
 import sys
@@ -21,6 +22,14 @@ from scipy.signal import medfilt, savgol_filter
 
 from plotting.common import apply_major_tick_spacing, render_figure
 from plotting.frequency import COMPONENT_COLORS, _plot_frequency_image
+from analysis.GoHit.tools.cli import add_hit_mode_args, add_hit_region_args, describe_hit_region_settings
+from analysis.GoHit.tools.hits import (
+    build_interhit_regions,
+    build_posthit_regions,
+    load_catalog_if_available,
+    summarize_catalog,
+)
+from analysis.GoHit.tools.region_localization import build_region_spectrum_entries
 from tools.cli import (
     add_average_domain_args,
     add_bond_filter_args,
@@ -44,7 +53,7 @@ from tools.flattening import (
     plot_flattening_diagnostic,
 )
 from tools.io import default_track2_path
-from tools.models import AverageSpectrumResult, DatasetSelection, FlatteningResult
+from tools.models import AverageSpectrumResult, DatasetSelection, FFTResult, FlatteningResult, SpectrumContribution
 from tools.selection import (
     build_configured_bond_signals,
     collect_display_bond_numbers,
@@ -61,6 +70,7 @@ from tools.spectral import (
     ABSOLUTE_ZERO_TOL,
     compute_average_spectrum,
     compute_fft_contributions,
+    compute_mean_amplitude_spectrum,
     compute_welch_contributions,
 )
 
@@ -214,6 +224,8 @@ def build_parser() -> argparse.ArgumentParser:
     add_frequency_window_args(parser)
     add_tickspace_arg(parser)
     add_flattening_args(parser)
+    add_hit_mode_args(parser)
+    add_hit_region_args(parser)
     parser.add_argument(
         "--interp-kind",
         default="cubic",
@@ -545,6 +557,50 @@ def _build_plain_config_selection(config_json: str | Path) -> OrderedDict[str, D
 
 
 def _compute_average_result_from_records(args, records: list, *, label: str) -> AverageSpectrumResult:
+    if args.hits:
+        region_entries = build_region_spectrum_entries(
+            records,
+            regions=args._gohit_regions,
+            normalize_mode=args.normalize,
+            relative_range=tuple(args.relative_range),
+            flatten=False,
+            longest=args.longest,
+            handlenan=args.handlenan,
+            timeseriesnorm=args.timeseriesnorm,
+        )
+        if len(region_entries) == 0:
+            raise ValueError(
+                f"No valid {'posthit' if args.posthit else 'interhit'} spectra were accepted "
+                f"from the selected bond contributors for {label}"
+            )
+        contributions = [
+            SpectrumContribution(
+                record=entry.record,
+                processed=entry.processed,
+                fft_result=FFTResult(
+                    freq=np.asarray(entry.freq, dtype=float),
+                    amplitude=np.asarray(entry.amplitude, dtype=float),
+                ),
+            )
+            for entry in region_entries
+        ]
+        averaged = compute_mean_amplitude_spectrum(
+            contributions,
+            lowest_freq=args.freq_min_hz,
+            highest_freq=args.freq_max_hz,
+            grid_mode="coarsest" if args.coarsest else "finest",
+            interp_kind=args.interp_kind,
+        )
+        return AverageSpectrumResult(
+            freq_grid=np.asarray(averaged.freq_grid, dtype=float),
+            avg_amp=np.asarray(averaged.mean_amplitude, dtype=float),
+            norm_low=float(averaged.freq_low),
+            norm_high=float(averaged.freq_high),
+            freq_low=float(averaged.freq_low),
+            freq_high=float(averaged.freq_high),
+            contributors=list(contributions),
+        )
+
     contributions = (
         compute_welch_contributions(
             records,
@@ -575,6 +631,49 @@ def _compute_average_result_from_records(args, records: list, *, label: str) -> 
         grid_mode="coarsest" if args.coarsest else "finest",
         interp_kind=args.interp_kind,
     )
+
+
+def _resolve_gohit_regions(args, records: list) -> tuple[object, object]:
+    if not args.hits:
+        return None, None
+    if len(records) == 0:
+        raise ValueError("GoHit Subtract --hits requires at least one selected bond record")
+
+    dataset_names = sorted({str(record.dataset_name) for record in records})
+    if len(dataset_names) != 1:
+        raise ValueError(
+            "GoHit Subtract --hits currently requires all selected contributors to come from one dataset; "
+            f"got {dataset_names}"
+        )
+
+    dataset_name = dataset_names[0]
+    base_dataset = dataset_name.rsplit("_", 1)[0] if dataset_name.endswith(("_x", "_y", "_a")) else dataset_name
+    catalog = load_catalog_if_available(base_dataset)
+    if catalog is None:
+        raise ValueError(
+            f"No GoHit confirmed hit catalog exists for dataset '{base_dataset}'. "
+            f"Run python3 analysis/GoHit/HitReview.py {base_dataset} first."
+        )
+
+    t_stop_s = max(float(np.nanmax(np.asarray(record.t, dtype=float))) for record in records)
+    regions = (
+        build_posthit_regions(
+            catalog.hit_times_s,
+            t_stop_s=t_stop_s,
+            window_s=float(args.hit_window),
+        )
+        if args.posthit
+        else build_interhit_regions(
+            catalog.hit_times_s,
+            t_stop_s=t_stop_s,
+            exclude_after_s=float(args.delay),
+            exclude_before_s=float(args.exclude_before),
+        )
+    )
+    if len(regions) == 0:
+        raise ValueError(f"No usable {'posthit' if args.posthit else 'interhit'} regions were available")
+    args._gohit_catalog = catalog
+    return catalog, regions
 
 
 def _compute_component_results(args, groups: list[ShowGroup]):
@@ -612,38 +711,12 @@ def _compute_component_results(args, groups: list[ShowGroup]):
             raise ValueError(
                 f"Bond selection removed all configured bond contributors for component '{logical_component}'"
             )
-
-        contributions = (
-            compute_welch_contributions(
-                records,
-                welch_len_s=args.welch_len_s,
-                welch_overlap_fraction=args.welch_overlap,
-                longest=args.longest,
-                handlenan=args.handlenan,
-                timeseriesnorm=args.timeseriesnorm,
-            )
-            if args.welch
-            else compute_fft_contributions(
-                records,
-                longest=args.longest,
-                handlenan=args.handlenan,
-                timeseriesnorm=args.timeseriesnorm,
-            )
-        )
-        if len(contributions) == 0:
-            raise ValueError(
-                f"No spectra were accepted from the selected bond contributors for component '{logical_component}'"
-            )
-
-        result = compute_average_spectrum(
-            contributions,
-            normalize_mode=args.normalize,
-            relative_range=tuple(args.relative_range),
-            average_domain=args.average_domain,
-            lowest_freq=args.freq_min_hz,
-            highest_freq=args.freq_max_hz,
-            grid_mode="coarsest" if args.coarsest else "finest",
-            interp_kind=args.interp_kind,
+        _, regions = _resolve_gohit_regions(args, records)
+        args._gohit_regions = regions
+        result = _compute_average_result_from_records(
+            args,
+            records,
+            label=f"component '{logical_component}'",
         )
         results_by_component[logical_component] = result
 
@@ -691,6 +764,8 @@ def _compute_external_subtraction_results(args, groups: list[ShowGroup]) -> tupl
                 f"Bond selection removed all configured bond contributors for subtraction config '{config_path}'"
             )
 
+        _, regions = _resolve_gohit_regions(args, records)
+        args._gohit_regions = regions
         results_by_path[config_path] = _compute_average_result_from_records(
             args,
             records,
@@ -1273,36 +1348,12 @@ def _logsubtract_main(args, rel_low, rel_high) -> int:
             raise ValueError(
                 f"Bond selection removed all configured bond contributors for component '{logical_component}'"
             )
-        contributions = (
-            compute_welch_contributions(
-                records,
-                welch_len_s=args.welch_len_s,
-                welch_overlap_fraction=args.welch_overlap,
-                longest=args.longest,
-                handlenan=args.handlenan,
-                timeseriesnorm=args.timeseriesnorm,
-            )
-            if args.welch
-            else compute_fft_contributions(
-                records,
-                longest=args.longest,
-                handlenan=args.handlenan,
-                timeseriesnorm=args.timeseriesnorm,
-            )
-        )
-        if len(contributions) == 0:
-            raise ValueError(
-                f"No spectra were accepted from the selected bond contributors for component '{logical_component}'"
-            )
-        result = compute_average_spectrum(
-            contributions,
-            normalize_mode=args.normalize,
-            relative_range=tuple(args.relative_range),
-            average_domain=args.average_domain,
-            lowest_freq=args.freq_min_hz,
-            highest_freq=args.freq_max_hz,
-            grid_mode="coarsest" if args.coarsest else "finest",
-            interp_kind=args.interp_kind,
+        _, regions = _resolve_gohit_regions(args, records)
+        args._gohit_regions = regions
+        result = _compute_average_result_from_records(
+            args,
+            records,
+            label=f"component '{logical_component}'",
         )
         results_by_component[logical_component] = result
 
@@ -1371,6 +1422,16 @@ def _logsubtract_main(args, rel_low, rel_high) -> int:
     print(f"Unique datasets: {n_datasets}")
     print(f"Common frequency window: [{common_freq[0]:.6f}, {common_freq[-1]:.6f}] Hz")
     print(f"Spectrum type: {'Welch' if args.welch else 'FFT'}")
+    if args.hits and args._gohit_catalog is not None and args._gohit_regions is not None:
+        print(summarize_catalog(args._gohit_catalog))
+        for line in describe_hit_region_settings(
+            posthit=bool(args.posthit),
+            delay=float(args.delay),
+            exclude_before=float(args.exclude_before),
+            hit_window=float(args.hit_window),
+        ):
+            print(line)
+        print(f"Usable regions: {len(args._gohit_regions)}")
     if smoothing_steps:
         print(f"Display smoothing pipeline: {' -> '.join(smoothing_steps)}")
 
@@ -1433,6 +1494,9 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
     args.normalize = resolve_normalization_mode(args)
+    args._gohit_regions = None
+    args._gohit_catalog = None
+    explicit_welch = "--welch" in sys.argv[1:]
 
     freq_window_error = validate_frequency_window_args(args)
     if freq_window_error is not None:
@@ -1456,9 +1520,15 @@ def main() -> int:
             "Pass --flatten to also flatten to a horizontal reference line.",
             UserWarning,
         )
-    
+
     if args.logsubtract is not None:
         args.flatten = True
+
+    if args.hits:
+        if explicit_welch:
+            print("Error: GoHit Subtract uses interhit/posthit averaged FFTs, not Welch spectra", file=sys.stderr)
+            return 1
+        args.welch = False
 
     rel_low, rel_high = map(float, args.relative_range)
     if rel_high <= rel_low:
@@ -1542,6 +1612,16 @@ def main() -> int:
         print(f"Unique datasets: {n_datasets}")
         print(f"Common frequency window: [{common_freq[0]:.6f}, {common_freq[-1]:.6f}] Hz")
         print(f"Spectrum type: {'Welch' if args.welch else 'FFT'}")
+        if args.hits and args._gohit_catalog is not None and args._gohit_regions is not None:
+            print(summarize_catalog(args._gohit_catalog))
+            for line in describe_hit_region_settings(
+                posthit=bool(args.posthit),
+                delay=float(args.delay),
+                exclude_before=float(args.exclude_before),
+                hit_window=float(args.hit_window),
+            ):
+                print(line)
+            print(f"Usable regions: {len(args._gohit_regions)}")
         if args.welch:
             print(f"Welch parameters: len={args.welch_len_s:.6g}s overlap={args.welch_overlap:.6g}")
         smoothing_steps: list[str] = []
