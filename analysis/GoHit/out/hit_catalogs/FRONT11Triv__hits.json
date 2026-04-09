@@ -1,0 +1,25 @@
+{
+  "dataset": "FRONT11Triv",
+  "detector": {
+    "baseline_window_s": 18.0,
+    "broadband_max_hz": 25.0,
+    "broadband_min_hz": 3.0,
+    "delay_s": 1.0,
+    "exclude_before_s": 1.0,
+    "hit_window_s": 5.0,
+    "min_hit_separation_s": 6.0,
+    "region_mode": "interhit",
+    "sliding_len_s": 1.5,
+    "smooth_window_s": 0.35,
+    "strength_window_s": 2.5,
+    "threshold_sigma": 3.0
+  },
+  "hit_times_s": [
+    35.33112150511212,
+    53.788658333332066,
+    94.4793083333311,
+    134.86965833333014,
+    165.6504083333294
+  ],
+  "source_component": "x"
+}

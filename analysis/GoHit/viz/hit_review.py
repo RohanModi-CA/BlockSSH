@@ -98,6 +98,28 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Use the coarsest (max df) frequency grid instead of finest (default)")
 
     p.add_argument("--save", default=None, help="Output plot path for FFT panel")
+    p.add_argument(
+        "--saveHR",
+        nargs="?",
+        const="__default__",
+        default=None,
+        help="Save the hit-review window. Optionally pass an output path; defaults to an SVG in analysis/GoHit/out/.",
+    )
+    p.add_argument(
+        "--save-hits",
+        nargs="?",
+        const="__default__",
+        default="__default__",
+        help=(
+            "Save accepted hit catalog JSON/CSV. Optionally pass a JSON path to override the default "
+            "catalog location."
+        ),
+    )
+    p.add_argument(
+        "--no-save-hits",
+        action="store_true",
+        help="Do not save the accepted hit catalog JSON/CSV.",
+    )
     p.add_argument("--no-show", action="store_true")
     return p
 
@@ -477,7 +499,14 @@ class HitEditor:
             f_edges[0] = spec.f[0] - 0.5 * f_step
             f_edges[-1] = spec.f[-1] + 0.5 * f_step
             s_db = 20.0 * np.log10(np.abs(spec.S_complex) + np.finfo(float).eps)
-            pcm = ax2.pcolormesh(t_edges, f_edges, s_db, shading="flat", cmap="viridis")
+            pcm = ax2.pcolormesh(
+                t_edges,
+                f_edges,
+                s_db,
+                shading="flat",
+                cmap="viridis",
+                rasterized=True,
+            )
             fig.colorbar(pcm, ax=ax2, label="Amplitude (dB)")
             ax2.set_ylim(0.0, min(self.args.broadband_max_hz * 1.2, 0.5 * self.fs))
 
@@ -503,8 +532,30 @@ class HitEditor:
         if not self.args.no_show:
             plt.show()
         else:
-            plt.close(fig)
             self.accepted = True
+            if self.args.saveHR is not None:
+                save_path = (
+                    f"analysis/GoHit/out/{self.args.dataset}_{self.args.component}_hit_review.svg"
+                    if self.args.saveHR == "__default__"
+                    else self.args.saveHR
+                )
+                out_full = Path(__file__).resolve().parents[3] / save_path
+                out_full.parent.mkdir(parents=True, exist_ok=True)
+                fig.savefig(out_full, dpi=200)
+                print(f"Saved hit-review plot: {out_full}")
+            plt.close(fig)
+            return self.accepted
+
+        if self.accepted and self.args.saveHR is not None:
+            save_path = (
+                f"analysis/GoHit/out/{self.args.dataset}_{self.args.component}_hit_review.svg"
+                if self.args.saveHR == "__default__"
+                else self.args.saveHR
+            )
+            out_full = Path(__file__).resolve().parents[3] / save_path
+            out_full.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(out_full, dpi=200)
+            print(f"Saved hit-review plot: {out_full}")
 
         return self.accepted
 
@@ -562,7 +613,7 @@ def run_fft_analysis(pt, sig_matrix, fs, hit_times, delay, exclude_before, hit_w
     ax2.grid(True, which="both", alpha=0.2)
     ax2.legend()
 
-    out_path = args.save or f"analysis/GoHit/out/{dataset}_{component}_hit_interactive_{mode}.png"
+    out_path = args.save or f"analysis/GoHit/out/{dataset}_{component}_hit_interactive_{mode}.svg"
     out_full = Path(__file__).resolve().parents[3] / out_path
     out_full.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_full, dpi=200)
@@ -716,8 +767,12 @@ def main() -> int:
             "hit_window_s": float(args.hit_window),
         },
     )
-    catalog_path = save_hit_catalog(catalog)
-    print(f"Saved {len(final_hits)} hits to {catalog_path}")
+    if args.no_save_hits:
+        print("Skipped saving accepted hits (--no-save-hits)")
+    else:
+        catalog_path_arg = None if args.save_hits == "__default__" else args.save_hits
+        catalog_path = save_hit_catalog(catalog, path=catalog_path_arg)
+        print(f"Saved {len(final_hits)} hits to {catalog_path}")
 
     run_fft_analysis(
         pt=processed_t,

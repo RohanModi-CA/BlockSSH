@@ -214,6 +214,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Use linear amplitude display for the full-image panel.",
     )
     parser.set_defaults(image_plot_scale="log")
+    parser.add_argument(
+        "--no-image",
+        dest="show_image",
+        action="store_false",
+        help="Hide the right-hand full-image panel and show only the FFT curve.",
+    )
+    parser.set_defaults(show_image=True)
 
     add_frequency_window_args(parser, help_scope="displayed frequency range for both panels")
     add_tickspace_arg(parser)
@@ -916,6 +923,7 @@ def plot_spectrasave_dual_panel(
     *,
     fft_log: bool,
     image_plot_scale: str,
+    show_image: bool,
     cmap_index: int,
     freq_min_hz: float | None,
     freq_max_hz: float | None,
@@ -949,10 +957,13 @@ def plot_spectrasave_dual_panel(
     )
 
     label = spectrum.get("label") or "Spectrum"
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5), constrained_layout=True)
-
-    ax_fft = axes[0]
-    ax_img = axes[1]
+    if show_image:
+        fig, axes = plt.subplots(1, 2, figsize=(14, 5), constrained_layout=True)
+        ax_fft = axes[0]
+        ax_img = axes[1]
+    else:
+        fig, ax_fft = plt.subplots(figsize=(12, 5), constrained_layout=True)
+        ax_img = None
 
     _plot_fft_curve_panel(
         ax_fft,
@@ -969,21 +980,22 @@ def plot_spectrasave_dual_panel(
         if x_min <= peak <= x_max:
             ax_fft.axvline(peak, color="tab:red", linewidth=1.1, alpha=0.6, zorder=3)
 
-    _plot_frequency_image(
-        fig,
-        ax_img,
-        freq=freq,
-        amp=amp,
-        plot_scale=image_plot_scale,
-        cmap_index=cmap_index,
-        y_min=x_min,
-        y_max=x_max,
-        x_max=float(image_cols),
-        title=f"{label} Full Image",
-        y_tickspace_hz=tickspace_hz,
-    )
+    if show_image and ax_img is not None:
+        _plot_frequency_image(
+            fig,
+            ax_img,
+            freq=freq,
+            amp=amp,
+            plot_scale=image_plot_scale,
+            cmap_index=cmap_index,
+            y_min=x_min,
+            y_max=x_max,
+            x_max=float(image_cols),
+            title=f"{label} Full Image",
+            y_tickspace_hz=tickspace_hz,
+        )
 
-    if full_couple:
+    if show_image and full_couple and ax_img is not None:
         _link_fft_frequency_to_image_frequency([ax_fft], [ax_img])
 
     if title:
@@ -1252,6 +1264,7 @@ def main() -> int:
                 spectra[0],
                 fft_log=args.fft_log,
                 image_plot_scale=args.image_plot_scale,
+                show_image=args.show_image,
                 cmap_index=args.cm,
                 freq_min_hz=args.freq_min_hz,
                 freq_max_hz=args.freq_max_hz,

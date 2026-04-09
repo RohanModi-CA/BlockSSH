@@ -1,0 +1,37 @@
+{
+  "dataset": "11topo",
+  "detector": {
+    "baseline_window_s": 18.0,
+    "broadband_max_hz": 25.0,
+    "broadband_min_hz": 3.0,
+    "delay_s": 1.0,
+    "exclude_before_s": 1.0,
+    "hit_window_s": 5.0,
+    "min_hit_separation_s": 6.0,
+    "region_mode": "interhit",
+    "sliding_len_s": 1.5,
+    "smooth_window_s": 0.35,
+    "strength_window_s": 2.5,
+    "threshold_sigma": 3.0
+  },
+  "hit_times_s": [
+    6.006,
+    48.005300169,
+    49.54949999999883,
+    87.6876,
+    126.27615,
+    166.556506871,
+    166.66649999999606,
+    209.0088,
+    258.421793331,
+    261.11084999999383,
+    328.67147402,
+    368.61825,
+    407.65725,
+    447.447,
+    488.43795,
+    535.4349,
+    568.1676
+  ],
+  "source_component": "x"
+}

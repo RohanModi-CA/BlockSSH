@@ -35,6 +35,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Plot raw block x-position traces instead of adjacent bond-spacing traces.",
     )
+    parser.add_argument(
+        "--only-index",
+        type=int,
+        default=None,
+        help="Show only one 1-indexed site/block or bond/pair, depending on mode.",
+    )
     return parser
 
 
@@ -61,6 +67,9 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
+        if args.only_index is not None and int(args.only_index) < 1:
+            raise ValueError("--only-index must be a positive 1-indexed site/block or bond/pair number")
+
         track2 = load_track2_dataset(
             dataset=args.dataset,
             track2_path=args.track2,
@@ -72,16 +81,30 @@ def main() -> int:
                 if args.timeseriesnorm
                 else track2.x_positions
             )
+            block_labels = list(track2.block_colors)
+            block_indices = [idx + 1 for idx in range(block_matrix.shape[1])]
+            if args.only_index is not None:
+                block_zero = int(args.only_index) - 1
+                if block_zero >= block_matrix.shape[1]:
+                    raise ValueError(
+                        f"--only-index {args.only_index} is out of range for {block_matrix.shape[1]} blocks"
+                    )
+                block_matrix = block_matrix[:, [block_zero]]
+                block_labels = [block_labels[block_zero]]
+                block_indices = [int(args.only_index)]
 
             print(f"Track2: {track2.track2_path}")
             print(f"Blocks: {track2.x_positions.shape[1]}")
+            if args.only_index is not None:
+                print(f"Selected block: {args.only_index}")
             print(f"Frames: {track2.x_positions.shape[0]}")
 
             fig = plot_block_timeseries(
                 track2.frame_times_s,
                 block_matrix,
-                track2.block_colors,
+                block_labels,
                 title=args.title,
+                series_indices=block_indices,
             )
         else:
             bond_dataset = load_bond_signal_dataset(
@@ -95,16 +118,30 @@ def main() -> int:
                 if args.timeseriesnorm
                 else bond_dataset.signal_matrix
             )
+            pair_labels = list(bond_dataset.pair_labels)
+            pair_indices = [idx + 1 for idx in range(spacing_matrix.shape[1])]
+            if args.only_index is not None:
+                pair_zero = int(args.only_index) - 1
+                if pair_zero >= spacing_matrix.shape[1]:
+                    raise ValueError(
+                        f"--only-index {args.only_index} is out of range for {spacing_matrix.shape[1]} bonds/pairs"
+                    )
+                spacing_matrix = spacing_matrix[:, [pair_zero]]
+                pair_labels = [pair_labels[pair_zero]]
+                pair_indices = [int(args.only_index)]
 
             print(f"Track2: {bond_dataset.source_path}")
             print(f"Pairs: {bond_dataset.signal_matrix.shape[1]}")
+            if args.only_index is not None:
+                print(f"Selected pair: {args.only_index}")
             print(f"Frames: {bond_dataset.signal_matrix.shape[0]}")
 
             fig = plot_spacing_timeseries(
                 bond_dataset.frame_times_s,
                 spacing_matrix,
-                bond_dataset.pair_labels,
+                pair_labels,
                 title=args.title,
+                series_indices=pair_indices,
             )
         render_figure(fig, save=args.save)
         return 0

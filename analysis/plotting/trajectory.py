@@ -224,6 +224,7 @@ def plot_spacing_timeseries(
     pair_labels: list[str],
     *,
     title: str | None = None,
+    series_indices: list[int] | None = None,
 ):
     if spacing.ndim != 2:
         raise ValueError("spacing must be 2D")
@@ -253,6 +254,10 @@ def plot_spacing_timeseries(
 
     color_map = {"rg": "#e74c3c", "gr": "#2ecc71"}
     global_avg = np.nanmean(spacing)
+    if series_indices is None:
+        series_indices = [i + 1 for i in range(n_pairs)]
+    elif len(series_indices) != n_pairs:
+        raise ValueError("series_indices length must match spacing columns")
 
     for i in range(n_pairs):
         ax = axes[i]
@@ -263,7 +268,7 @@ def plot_spacing_timeseries(
 
         local_avg = np.nanmean(spacing[:, i])
         ax.set_ylabel("Dist (px)")
-        ax.set_title(f"Pair {i + 1}: {label.upper()}  |  Avg: {local_avg:.1f}px")
+        ax.set_title(f"Pair {int(series_indices[i])}: {label.upper()}  |  Avg: {local_avg:.1f}px")
         ax.grid(True, linestyle="--", alpha=0.3)
         ax.tick_params(labelbottom=True)
 
@@ -283,6 +288,7 @@ def plot_block_timeseries(
     block_labels: list[str],
     *,
     title: str | None = None,
+    series_indices: list[int] | None = None,
 ):
     if x_positions.ndim != 2:
         raise ValueError("x_positions must be 2D")
@@ -312,6 +318,10 @@ def plot_block_timeseries(
 
     color_map = {"r": "#e74c3c", "g": "#2ecc71"}
     global_avg = np.nanmean(x_positions)
+    if series_indices is None:
+        series_indices = [i + 1 for i in range(n_blocks)]
+    elif len(series_indices) != n_blocks:
+        raise ValueError("series_indices length must match x_positions columns")
 
     for i in range(n_blocks):
         ax = axes[i]
@@ -322,7 +332,7 @@ def plot_block_timeseries(
 
         local_avg = np.nanmean(x_positions[:, i])
         ax.set_ylabel("X (px)")
-        ax.set_title(f"Block {i}: {label.upper()}  |  Avg: {local_avg:.1f}px")
+        ax.set_title(f"Block {int(series_indices[i])}: {label.upper()}  |  Avg: {local_avg:.1f}px")
         ax.grid(True, linestyle="--", alpha=0.3)
         ax.tick_params(labelbottom=True)
 
