@@ -82,6 +82,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Show only one 1-indexed site/block or bond/pair, depending on mode.",
     )
+    parser.add_argument(
+        "--bandpass",
+        nargs=3,
+        type=float,
+        metavar=("LOW", "HIGH", "STRENGTH"),
+        default=None,
+        help="Apply a display-side bandpass in Hz and blend with strength in [0, 1].",
+    )
     parser.set_defaults(timeseriesnorm=True)
     return parser
 
@@ -116,6 +124,8 @@ def main() -> int:
         delegated.append("--not-bonds")
     if args.only_index is not None:
         delegated.extend(["--only-index", str(args.only_index)])
+    if args.bandpass is not None:
+        delegated.extend(["--bandpass", *(str(value) for value in args.bandpass)])
 
     delegated.extend(passthrough)
 

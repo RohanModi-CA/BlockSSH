@@ -16,6 +16,7 @@ from plotting.trajectory import plot_block_timeseries, plot_spacing_timeseries
 from tools.bonds import load_bond_signal_dataset
 from tools.cli import add_bond_spacing_mode_arg, add_output_args, add_track2_input_args
 from tools.io import load_track2_dataset
+from tools.signal import bandpass_processed_signal, preprocess_signal
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -41,6 +42,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Show only one 1-indexed site/block or bond/pair, depending on mode.",
     )
+    parser.add_argument(
+        "--bandpass",
+        nargs=3,
+        type=float,
+        metavar=("LOW", "HIGH", "STRENGTH"),
+        default=None,
+        help="Apply a display-side Butterworth bandpass in Hz and blend it with strength in [0, 1].",
+    )
     return parser
 
 
@@ -62,6 +71,39 @@ def _normalize_timeseries_columns_to_rms(matrix: np.ndarray, *, target_rms: floa
     return out
 
 
+def _apply_bandpass_to_matrix(
+    frame_times_s: np.ndarray,
+    matrix: np.ndarray,
+    *,
+    low_hz: float,
+    high_hz: float,
+    strength: float,
+) -> np.ndarray:
+    frame_times_s = np.asarray(frame_times_s, dtype=float)
+    matrix = np.asarray(matrix, dtype=float)
+    out = matrix.copy()
+
+    for col in range(out.shape[1]):
+        original = np.asarray(matrix[:, col], dtype=float)
+        processed, error_msg = preprocess_signal(frame_times_s, original)
+        if processed is None:
+            raise ValueError(f"Bandpass failed for series {col + 1}: {error_msg}")
+
+        filtered, filter_error = bandpass_processed_signal(
+            processed,
+            low_hz,
+            high_hz,
+            strength=strength,
+        )
+        if filtered is None:
+            raise ValueError(f"Bandpass failed for series {col + 1}: {filter_error}")
+
+        out[:, col] = np.interp(frame_times_s, filtered.t, filtered.y)
+        out[~np.isfinite(original), col] = np.nan
+
+    return out
+
+
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
@@ -69,6 +111,7 @@ def main() -> int:
     try:
         if args.only_index is not None and int(args.only_index) < 1:
             raise ValueError("--only-index must be a positive 1-indexed site/block or bond/pair number")
+        bandpass = tuple(float(value) for value in args.bandpass) if args.bandpass is not None else None
 
         track2 = load_track2_dataset(
             dataset=args.dataset,
@@ -76,11 +119,18 @@ def main() -> int:
             track_data_root=args.track_data_root,
         )
         if args.not_bonds:
-            block_matrix = (
-                _normalize_timeseries_columns_to_rms(track2.x_positions)
-                if args.timeseriesnorm
-                else track2.x_positions
-            )
+            block_matrix = np.asarray(track2.x_positions, dtype=float)
+            if bandpass is not None:
+                low_hz, high_hz, strength = bandpass
+                block_matrix = _apply_bandpass_to_matrix(
+                    track2.frame_times_s,
+                    block_matrix,
+                    low_hz=low_hz,
+                    high_hz=high_hz,
+                    strength=strength,
+                )
+            if args.timeseriesnorm:
+                block_matrix = _normalize_timeseries_columns_to_rms(block_matrix)
             block_labels = list(track2.block_colors)
             block_indices = [idx + 1 for idx in range(block_matrix.shape[1])]
             if args.only_index is not None:
@@ -113,11 +163,18 @@ def main() -> int:
                 track_data_root=args.track_data_root,
                 bond_spacing_mode=args.bond_spacing_mode,
             )
-            spacing_matrix = (
-                _normalize_timeseries_columns_to_rms(bond_dataset.signal_matrix)
-                if args.timeseriesnorm
-                else bond_dataset.signal_matrix
-            )
+            spacing_matrix = np.asarray(bond_dataset.signal_matrix, dtype=float)
+            if bandpass is not None:
+                low_hz, high_hz, strength = bandpass
+                spacing_matrix = _apply_bandpass_to_matrix(
+                    bond_dataset.frame_times_s,
+                    spacing_matrix,
+                    low_hz=low_hz,
+                    high_hz=high_hz,
+                    strength=strength,
+                )
+            if args.timeseriesnorm:
+                spacing_matrix = _normalize_timeseries_columns_to_rms(spacing_matrix)
             pair_labels = list(bond_dataset.pair_labels)
             pair_indices = [idx + 1 for idx in range(spacing_matrix.shape[1])]
             if args.only_index is not None:

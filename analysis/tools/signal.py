@@ -189,6 +189,42 @@ def normalize_processed_signal_rms(
     return replace(processed, y=(y * scale)), scale, None
 
 
+def bandpass_processed_signal(
+    processed: ProcessedSignal,
+    low_hz: float,
+    high_hz: float,
+    *,
+    strength: float = 1.0,
+    order: int = 4,
+) -> tuple[ProcessedSignal | None, str | None]:
+    low_hz = float(low_hz)
+    high_hz = float(high_hz)
+    strength = float(strength)
+    order = int(order)
+
+    if not np.isfinite(low_hz) or not np.isfinite(high_hz):
+        return None, "bandpass frequencies must be finite"
+    if low_hz <= 0.0:
+        return None, "bandpass LOW must be > 0 Hz"
+    if high_hz <= low_hz:
+        return None, "bandpass HIGH must be greater than LOW"
+    if not np.isfinite(strength) or strength < 0.0 or strength > 1.0:
+        return None, "bandpass STRENGTH must be within [0, 1]"
+    if order < 1:
+        return None, "bandpass order must be >= 1"
+    if high_hz >= float(processed.nyquist):
+        return None, f"bandpass HIGH must be below Nyquist ({processed.nyquist:.6g} Hz)"
+
+    y = np.asarray(processed.y, dtype=float)
+    if y.size < max(8, 3 * order):
+        return None, "processed signal is too short for bandpass filtering"
+
+    sos = sp_signal.butter(order, [low_hz, high_hz], btype="bandpass", fs=processed.Fs, output="sos")
+    filtered = sp_signal.sosfiltfilt(sos, y)
+    blended = ((1.0 - strength) * y) + (strength * filtered)
+    return replace(processed, y=np.asarray(blended, dtype=float)), None
+
+
 def hann_window_symmetric(n: int):
     return sp_signal.windows.hann(n, sym=True)
 
