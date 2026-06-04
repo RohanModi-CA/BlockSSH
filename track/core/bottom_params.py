@@ -16,11 +16,11 @@ class BottomTrackingParams:
     crop_rect: CropRect = field(default_factory=CropRect)
     time_start_s: float = 0.0
     time_end_s: float | None = None
-    dark_max_val: int = 90
+    dark_max_val: int = 60
     blur_kernel: int = 5
     open_radius: int = 1
     close_radius: int = 2
-    min_area: int = 90000
+    min_area: int = 5000
     max_area: float | None = None
     reject_near_image_border: bool = True
     border_margin_px: int = 3

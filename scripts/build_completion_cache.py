@@ -34,6 +34,7 @@ COMMAND_SPECS: dict[str, tuple[str, str]] = {
     "analysis/go/Subtract.py": ("analysis.viz.see_config_subtract_xya", "build_parser"),
     "analysis/go/Logsubtract.py": ("analysis.viz.see_config_subtract_xya", "build_parser"),
     "analysis/go/Wavefunctions.py": ("analysis.go.Wavefunctions", "build_parser"),
+    "analysis/go/RohanTop.py": ("analysis.go.RohanTop", "build_parser"),
     "analysis/go/ClickPeakFind.py": ("analysis.viz.click_peak_find", "build_parser"),
     "analysis/go/SpectrasaveView.py": ("analysis.viz.spectrasave_view", "build_parser"),
     "analysis/go/MakeGroup.py": ("analysis.go.MakeGroup", "build_parser"),

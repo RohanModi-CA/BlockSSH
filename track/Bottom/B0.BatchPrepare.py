@@ -57,7 +57,7 @@ def main() -> int:
 
     for idx, name in enumerate(to_prepare, start=1):
         print(f"[{idx}/{len(to_prepare)}] Preparing {name}...\n")
-        cmd = ["python3", "track/Bottom/0.VideoPrepareBottom.py", name]
+        cmd = ["python3", "0.VideoPrepareBottom.py", name]
         if args.no_preview:
             cmd.append("--no-preview")
         subprocess.run(cmd)

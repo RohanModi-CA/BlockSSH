@@ -1,0 +1,8 @@
+{
+  "name": "Topo6",
+  "version": 1,
+  "datasets": [
+    "LTopo6",
+    "RTopo6"
+  ]
+}

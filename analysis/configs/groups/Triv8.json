@@ -1,0 +1,8 @@
+{
+  "name": "Triv8",
+  "version": 1,
+  "datasets": [
+    "LTriv8",
+    "RTriv8"
+  ]
+}

@@ -69,7 +69,7 @@ def main() -> int:
 
     for idx, name in enumerate(tasks, start=1):
         print(f"[{idx}/{len(tasks)}] Tracking {name}...\n")
-        cmd = ["python3", "track/Bottom/1.TrackRun.py", name]
+        cmd = ["python3", "1.TrackRun.py", name]
         if args.no_preview:
             cmd.append("--no-preview")
         subprocess.run(cmd)

@@ -55,7 +55,7 @@ def main() -> int:
         print(f"[{idx}/{len(datasets)}] Verifying {name}...\n")
         cmd = [
             "python3",
-            "track/Bottom/2.ProcessVerify.py",
+            "2.ProcessVerify.py",
             name,
             "--ratio-min",
             str(args.ratio_min),

@@ -1,0 +1,25 @@
+{
+  "name": "Triv",
+  "version": 1,
+  "datasets": [
+    "LTriv1",
+    "LTriv2",
+    "LTriv3",
+    "LTriv4",
+    "LTriv5",
+    "LTriv6",
+    "LTriv7",
+    "LTriv8",
+    "LTriv9",
+    "LTriv10",
+    "RTriv1",
+    "RTriv2",
+    "RTriv3",
+    "RTriv4",
+    "RTriv6",
+    "RTriv7",
+    "RTriv8",
+    "RTriv9",
+    "RTriv10"
+  ]
+}
