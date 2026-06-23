@@ -146,6 +146,11 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="BOOL",
         help="Use a log y-axis for the FFT curve panel. Pass --fft-log false for a linear axis.",
     )
+    parser.add_argument(
+        "--linear",
+        action="store_true",
+        help="Force linear scale for FFT/Welch curve panels and the sliding panel.",
+    )
 
     sliding_group = parser.add_mutually_exclusive_group()
     sliding_group.add_argument(
@@ -740,6 +745,11 @@ def _maybe_emit_flatten_plot(
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+
+    if args.linear:
+        args.fft_log = False
+        args.welch_log = False
+        args.sliding_plot_scale = "linear"
 
     args.disable = _convert_pair_indices_to_zero_based(args.disable)
     args.only_pairs = _convert_pair_indices_to_zero_based(args.only_pairs)
