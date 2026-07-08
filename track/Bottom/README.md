@@ -20,6 +20,12 @@ python3 track/Bottom/B1.BatchTrack.py
 python3 track/Bottom/B2.BatchProcessVerify.py
 ```
 
+For batch prepare with one interactive setup and fully headless reuse for later videos:
+
+```bash
+python3 track/Bottom/B0.BatchPrepare.py --reuse-all-from-first
+```
+
 Notes:
 
 - `0.VideoPrepareBottom.py` stores transform and detection settings in
