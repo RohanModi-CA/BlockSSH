@@ -13,9 +13,13 @@ from track.core.bottom_prepare import build_parser, run_prepare
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
-    return run_prepare(args.name, no_preview=args.no_preview)
+    return run_prepare(
+        args.name,
+        no_preview=args.no_preview,
+        non_interactive=args.non_interactive,
+        copy_params_from=args.copy_params_from,
+    )
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

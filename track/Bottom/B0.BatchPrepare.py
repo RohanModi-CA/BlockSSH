@@ -27,6 +27,11 @@ def find_videos(video_dir: Path = VIDEOS_DIR) -> list[Path]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run Bottom/0.VideoPrepareBottom.py on any video missing bottom params.")
     parser.add_argument("--no-preview", action="store_true", help="Disable detection preview during tests.")
+    parser.add_argument(
+        "--reuse-all-from-first",
+        action="store_true",
+        help="Prepare the first video interactively, then reuse all its params for the rest without UI.",
+    )
     return parser
 
 
@@ -55,13 +60,36 @@ def main() -> int:
         print(f"  {name}")
     print()
 
-    for idx, name in enumerate(to_prepare, start=1):
-        print(f"[{idx}/{len(to_prepare)}] Preparing {name}...\n")
-        cmd = ["python3", "track/Bottom/0.VideoPrepareBottom.py", name]
+    if args.reuse_all_from_first and to_prepare:
+        source_name = to_prepare[0]
+        print(f"[1/{len(to_prepare)}] Preparing {source_name} (interactive source)...\n")
+        cmd = ["python3", "track/Bottom/0.VideoPrepareBottom.py", source_name]
         if args.no_preview:
             cmd.append("--no-preview")
         subprocess.run(cmd)
         print()
+
+        for idx, name in enumerate(to_prepare[1:], start=2):
+            print(f"[{idx}/{len(to_prepare)}] Preparing {name} (reusing params from {source_name})...\n")
+            cmd = [
+                "python3",
+                "track/Bottom/0.VideoPrepareBottom.py",
+                name,
+                "--non-interactive",
+                "--no-preview",
+                "--copy-params-from",
+                source_name,
+            ]
+            subprocess.run(cmd)
+            print()
+    else:
+        for idx, name in enumerate(to_prepare, start=1):
+            print(f"[{idx}/{len(to_prepare)}] Preparing {name}...\n")
+            cmd = ["python3", "track/Bottom/0.VideoPrepareBottom.py", name]
+            if args.no_preview:
+                cmd.append("--no-preview")
+            subprocess.run(cmd)
+            print()
 
     print("Bottom batch preparation complete.")
     return 0

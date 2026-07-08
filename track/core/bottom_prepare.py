@@ -277,7 +277,37 @@ def adjust_params_interactive(params: BottomTrackingParams) -> BottomTrackingPar
     return params
 
 
-def run_prepare(name: str, *, no_preview: bool = False) -> int:
+def _resolve_params_source_path(name_or_prefix: str) -> Path | None:
+    base = Path(name_or_prefix).stem
+    direct_candidates = (
+        params_bottom_path(base),
+        legacy_params_black_path(base),
+    )
+    for candidate in direct_candidates:
+        if candidate.exists():
+            return candidate
+
+    source_video = find_video(name_or_prefix, VIDEOS_DIR)
+    if source_video is None:
+        return None
+    source_dataset = video_name(source_video)
+    source_candidates = (
+        params_bottom_path(source_dataset),
+        legacy_params_black_path(source_dataset),
+    )
+    for candidate in source_candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def run_prepare(
+    name: str,
+    *,
+    no_preview: bool = False,
+    non_interactive: bool = False,
+    copy_params_from: str | None = None,
+) -> int:
     video_path = find_video(name, VIDEOS_DIR)
     if video_path is None:
         print(f"Error: no video found for '{name}' in {VIDEOS_DIR}/")
@@ -289,7 +319,14 @@ def run_prepare(name: str, *, no_preview: bool = False) -> int:
     legacy_params_path = legacy_params_black_path(dataset)
     manifest = _load_manifest(dataset)
 
-    if params_path.exists():
+    if copy_params_from is not None:
+        source_params_path = _resolve_params_source_path(copy_params_from)
+        if source_params_path is None:
+            print(f"Error: params source not found for '{copy_params_from}'.")
+            return 1
+        params = BottomTrackingParams.load(source_params_path)
+        print(f"Loaded reusable params from {source_params_path}")
+    elif params_path.exists():
         params = BottomTrackingParams.load(params_path)
         print(f"Loaded existing params from {params_path}")
     elif legacy_params_path.exists():
@@ -302,18 +339,21 @@ def run_prepare(name: str, *, no_preview: bool = False) -> int:
         print("Starting from default bottom-tracking parameters.")
 
     print(f"Video: {video_path}")
-    params = setup_rotation_and_crop(str(video_path), params)
-    params = setup_time_crop(str(video_path), params)
-    params.save(params_path)
-
-    show_preview = not no_preview
-    while True:
-        run_test_tracking(str(video_path), params, show_preview=show_preview)
-        ans = input("\nAdjust parameters and re-run tests? [y/N] ").strip().lower()
-        if ans != "y":
-            break
-        params = adjust_params_interactive(params)
+    if non_interactive:
+        print("Non-interactive mode enabled: skipping crop/time setup, previews, and prompts.")
+    else:
+        params = setup_rotation_and_crop(str(video_path), params)
+        params = setup_time_crop(str(video_path), params)
         params.save(params_path)
+
+        show_preview = not no_preview
+        while True:
+            run_test_tracking(str(video_path), params, show_preview=show_preview)
+            ans = input("\nAdjust parameters and re-run tests? [y/N] ").strip().lower()
+            if ans != "y":
+                break
+            params = adjust_params_interactive(params)
+            params.save(params_path)
 
     params.save(params_path)
     manifest.dataset = dataset
@@ -339,4 +379,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Interactive preparation for bottom black-blob tracking.")
     parser.add_argument("name", help="Video name or numeric suffix, e.g. IMG_9282 or 9282")
     parser.add_argument("--no-preview", action="store_true", help="Disable the live detection preview during tests.")
+    parser.add_argument("--non-interactive", action="store_true", help="Skip all UI prompts and keep loaded parameters.")
+    parser.add_argument(
+        "--copy-params-from",
+        help="Copy all parameters from an existing dataset/video (name or suffix) before saving.",
+    )
     return parser
